@@ -123,4 +123,9 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'spam' => [
+        'timeout' => intval(env('TELEGRAM_SPAM_TIMEOUT', 30)),
+        'attempts' => intval(env('TELEGRAM_SPAM_ATTEMPTS', 15)),
+    ],
+
 ];
