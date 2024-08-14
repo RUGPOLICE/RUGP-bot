@@ -19,7 +19,6 @@ class ExplorePools implements ShouldQueue
 
             $token = Token::query()->firstOrCreate(['address' => $pool['token']['address']]);
             Pool::query()->updateOrCreate(['address' => $pool['pool']['address']], $pool['pool'] + ['token_id' => $token->id]);
-
             ScanToken::dispatch($token)->delay($delay = $delay->addSeconds(5));
 
         }

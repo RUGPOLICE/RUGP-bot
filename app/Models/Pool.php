@@ -20,6 +20,11 @@ use Illuminate\Database\Schema\Blueprint;
  * @property float $h24_price_change
  * @property integer $h24_buys
  * @property integer $h24_sells
+ * @property integer $burned_amount
+ * @property integer $locked_amount
+ * @property float $burned_percent
+ * @property float $locked_percent
+ * @property Carbon $unlocks_at
  */
 class Pool extends Model
 {
@@ -35,14 +40,20 @@ class Pool extends Model
         'h24_price_change',
         'h24_buys',
         'h24_sells',
+        'burned_amount',
+        'locked_amount',
+        'burned_percent',
+        'locked_percent',
         'token_id',
         'created_at',
+        'unlocks_at',
     ];
 
     public function casts(): array
     {
         return [
             'dex' => Dex::class,
+            'unlocks_at' => 'datetime',
         ];
     }
 
@@ -63,6 +74,11 @@ class Pool extends Model
         $table->double('h24_price_change')->nullable();
         $table->integer('h24_buys')->nullable();
         $table->integer('h24_sells')->nullable();
+        $table->bigInteger('burned_amount')->nullable();
+        $table->bigInteger('locked_amount')->nullable();
+        $table->decimal('burned_percent')->nullable();
+        $table->decimal('locked_percent')->nullable();
+        $table->timestamp('unlocks_at')->nullable();
     }
 
     public function token(): \Illuminate\Database\Eloquent\Relations\BelongsTo

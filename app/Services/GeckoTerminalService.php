@@ -26,7 +26,6 @@ class GeckoTerminalService
             try {
 
                 $token_address = str_replace('ton_', '', $pool['relationships']['base_token']['data']['id']);
-                $quote_address = str_replace('ton_', '', $pool['relationships']['quote_token']['data']['id']);
 
                 yield [
                     'token' => [
@@ -34,7 +33,6 @@ class GeckoTerminalService
                     ],
                     'pool' => [
                         'address' => $pool['attributes']['address'],
-                        'quote_address' => $quote_address,
                         'dex' => $pool['relationships']['dex']['data']['id'],
                         'base_price_usd' => $pool['attributes']['base_token_price_usd'],
                         'fdv' => $pool['attributes']['fdv_usd'],
@@ -55,5 +53,17 @@ class GeckoTerminalService
             }
 
         }
+    }
+
+    public function getOhlcv(string $pool): ?array
+    {
+        $response = $this->get("/networks/ton/pools/$pool/ohlcv/day", ['limit' => 50]);
+        if (!isset($response->json()['data'])) return null;
+
+        return array_map(fn ($item) => [
+            'timestamp' => $item[0],
+            'close' => $item[4],
+            'volume' => $item[5],
+        ], array_reverse($response->json()['data']['attributes']['ohlcv_list']));
     }
 }

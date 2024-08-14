@@ -2,11 +2,11 @@
 
 namespace App\Telegram\Conversations;
 
-use SergiX44\Nutgram\Conversations\InlineMenu;
 use SergiX44\Nutgram\Nutgram;
+use SergiX44\Nutgram\Telegram\Properties\ParseMode;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 
-class Home extends InlineMenu
+class Home extends ImagedInlineMenu
 {
     public function start(Nutgram $bot): void
     {
@@ -37,7 +37,7 @@ class Home extends InlineMenu
 
         $account = $bot->get('account');
         $account->language = $lang;
-        //$account->is_shown_language = true;
+        $account->is_shown_language = true;
         $account->save();
 
         $this->rulesFront($bot);
@@ -60,7 +60,7 @@ class Home extends InlineMenu
             return;
 
         $account = $bot->get('account');
-        //$account->is_shown_rules = true;
+        $account->is_shown_rules = true;
         $account->save();
 
         $this->menuFront($bot);
@@ -70,7 +70,7 @@ class Home extends InlineMenu
     public function menuFront(Nutgram $bot): void
     {
         $this->clearButtons();
-        $this->menuText(__('telegram.home.text'));
+        $this->menuText(__('telegram.home.text'), ['image' => public_path('img/home.png')]);
         $this->addButtonRow(
             InlineKeyboardButton::make(__('telegram.buttons.token_scanner'), callback_data: 'token_scanner@menuBack'),
             InlineKeyboardButton::make(__('telegram.buttons.wallet_tracker'), callback_data: 'wallet_tracker@menuBack'),

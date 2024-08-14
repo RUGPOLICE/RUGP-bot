@@ -26,10 +26,10 @@ class TonApiService
 
     public function getJettonHolders(string $address): ?array
     {
-        $response = $this->get("/jettons/$address/holders", ['limit' => 10])->json();
+        $response = $this->get("/jettons/$address/holders", ['limit' => 20])->json();
         if (isset($response['error']))
             return null;
 
-        return array_map(fn ($a) => ['address' => $a['address'], 'balance' => $a['balance']], $response['addresses']);
+        return $response['addresses'];
     }
 }

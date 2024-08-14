@@ -98,8 +98,8 @@ class Token extends Model
         $table->string('name')->nullable();
         $table->string('symbol')->nullable();
         $table->string('owner')->nullable();
-        $table->string('image')->nullable();
-        $table->string('description')->nullable();
+        $table->text('image')->nullable();
+        $table->text('description')->nullable();
         $table->integer('holders_count')->nullable();
         $table->bigInteger('supply')->nullable();
         $table->json('holders')->nullable();

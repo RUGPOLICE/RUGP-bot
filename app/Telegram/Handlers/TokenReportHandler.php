@@ -13,13 +13,23 @@ use SergiX44\Nutgram\Telegram\Types\Message\LinkPreviewOptions;
 
 class TokenReportHandler
 {
+    public function error(Nutgram $bot, string $message, string $chat_id, int $reply_message_id): void
+    {
+        $bot->sendMessage(
+            $message,
+            chat_id: $chat_id,
+            parse_mode: ParseMode::HTML,
+            link_preview_options: LinkPreviewOptions::make(is_disabled: true),
+            reply_to_message_id: $reply_message_id,
+        );
+    }
     public function route(Nutgram $bot, string $token, string $type): void
     {
         $bot->answerCallbackQuery();
         $token = Token::find($token);
 
         if ($token && in_array($type, ['main', 'chart', 'holders', 'volume']))
-            $this->report($bot, $token, $type, message_id: $bot->callbackQuery()->message->message_id);
+            $this->report($bot, $token, $type, chat_id: $bot->callbackQuery()->message->chat->id, message_id: $bot->callbackQuery()->message->message_id);
     }
 
     public function main(Nutgram $bot, Token $token, ?int $chat_id = null, ?int $reply_message_id = null, ?int $message_id = null): void
@@ -30,26 +40,25 @@ class TokenReportHandler
     public function report(Nutgram $bot, Token $token, string $type, ?int $chat_id = null, ?int $reply_message_id = null, ?int $message_id = null): void
     {
         $tokenReportService = App::make(TokenReportService::class);
-        $buttons = [
-            'main' => InlineKeyboardButton::make('Главная', callback_data: "reports:token:$token->id:main"),
-            'chart' => InlineKeyboardButton::make('Чарт', callback_data: "reports:token:$token->id:chart"),
-            'holders' => InlineKeyboardButton::make('Холдеры', callback_data: "reports:token:$token->id:holders"),
-            'volume' => InlineKeyboardButton::make('Объем', callback_data: "reports:token:$token->id:volume"),
-        ];
+        $markup = InlineKeyboardMarkup::make()
+            ->addRow(
+                InlineKeyboardButton::make('Чарт', callback_data: "reports:token:$token->id:chart"),
+                InlineKeyboardButton::make('Холдеры', callback_data: "reports:token:$token->id:holders"),
+                InlineKeyboardButton::make('Объем', callback_data: "reports:token:$token->id:volume"),
+            );
 
-        unset($buttons[$type]);
+        if ($type !== 'main')
+            $markup->addRow(InlineKeyboardButton::make('Главная', callback_data: "reports:token:$token->id:main"));
 
-        $method = $message_id ? 'editMessageText' : 'sendMessage';
-        $options = [
-            'chat_id' => $chat_id,
-            'parse_mode' => ParseMode::HTML,
-            'link_preview_options' => LinkPreviewOptions::make(is_disabled: true),
-            'reply_markup' => InlineKeyboardMarkup::make()->addRow(... array_values($buttons)),
-        ];
+        $options = ['link_preview_options' => LinkPreviewOptions::make(is_disabled: true)];
+        if (!$message_id)
+            $options['reply_to_message_id'] = $reply_message_id;
 
-        if ($message_id) $options['message_id'] = $message_id;
-        else $options['reply_to_message_id'] = $reply_message_id;
+        $params = $tokenReportService->{$type}($token);
+        if (array_key_exists('image', $params))
+            $options['image'] = $params['image'];
 
-        $bot->{$method}($tokenReportService->{$type}($token), ... $options);
+        $bot->sendImagedMessage($params['text'], $markup, $options, $chat_id, $message_id);
+
     }
 }
