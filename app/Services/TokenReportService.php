@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\Dex;
+use App\Enums\Lock;
 use App\Models\Token;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -31,19 +32,33 @@ class TokenReportService
             $link = Dex::link($pool->dex, $pool->address);
             $price = number_format($pool->price, 20);
             $price = mb_substr($price, 0, mb_strpos($price, '00000') ?: mb_strlen($price));
-            $burned_percent = number_format($pool->burned_percent, 2);
-            $locked_percent = number_format($pool->locked_percent, 2);
+            $burned_percent = number_format($pool->burned_percent ?? 0.0, 2);
+            $locked_percent = number_format($pool->locked_percent ?? 0.0, 2);
 
             $this->addLine("<i><b><a href='$link'>$name</a></b></i>:");
             $this->addLine("<i>Цена</i>: <b>$$price</b>");
 
             if ($pool->burned_amount) $this->addLine("<i>LP сожжены</i>: <b>$burned_percent%</b>");
-            if ($pool->locked_amount) $this->addLine("<i>LP заблокированы</i>: <b>$locked_percent% (до {$pool->unlocks_at->format('d M Y')})</b>");
+            else $this->addLine("<i>LP сожжены</i>: <b>0%</b>");
+
+            if ($pool->locked_amount) {
+
+                $type = Lock::verbose($pool->locked_type);
+                $dyor = $pool->locked_dyor ? '/ more locks! DYOR' : '';
+                $unlocks = $pool->unlocks_at ? "(до {$pool->unlocks_at->format('d M Y')})" : '';
+                $this->addLine("<i>LP заблокированы</i>: <b>$locked_percent% on $type $unlocks <i>$dyor</i></b>");
+
+            } else $this->addLine("<i>LP заблокированы</i>: <b>0%</b>");
+
+            if ($pool->tax_buy === null) $this->addLine("<i>Невозможно купить</i>");
+            else $this->addLine("<i>Налог на покупку</i>: <b>$pool->tax_buy%</b>");
+
+            if ($pool->tax_sell === null) $this->addLine("<i>Невозможно продать</i>");
+            else $this->addLine("<i>Налог на продажу</i>: <b>$pool->tax_sell%</b>");
 
             $this->addBlank();
 
         }
-        $this->addBlank();
 
         $links = "";
         foreach ($token->websites ?? [] as $website) {
@@ -67,11 +82,6 @@ class TokenReportService
         $this->addLine($token->riskIcon('wallet') . ($token->is_known_wallet ? 'Контракт кошелька содержит проверенный код' : 'Контракт кошелька содержит кастомный код'));
         $this->addLine($token->riskIcon('revoked') . ($token->is_revoked ? 'Права отозваны' : 'Права не отозваны'));
         $this->addBlank();
-
-        $this->addLine("<i>Honeypot: </i><b>Не проверено</b>");
-        $this->addLine("<i>Buy Tax: </i><b>Не проверено</b>");
-        $this->addLine("<i>Sell Tax: </i><b>Не проверено</b>");
-        $this->addLine("<i>Transfer Tax: </i><b>Не проверено</b>");
 
         // $buy_tax = number_format($this->dedust_tax_buy * 100, decimals: 2);
         // $sell_tax = number_format($this->dedust_tax_sell * 100, decimals: 2);
@@ -112,14 +122,18 @@ class TokenReportService
             $price = mb_substr($price, 0, mb_strpos($price, '00000') ?: mb_strlen($price));
             $fdv = number_format($pool->fdv, 2);
             $reserve = number_format($pool->reserve, 2);
-            $price_change = number_format($pool->h24_price_change, 2);
             $created_at = $pool->created_at->translatedFormat('d M Y H:i');
+
+            $price_change_m5 = number_format($pool->m5_price_change, 2);
+            $price_change_h1 = number_format($pool->h1_price_change, 2);
+            $price_change_h6 = number_format($pool->h6_price_change, 2);
+            $price_change_h24 = number_format($pool->h24_price_change, 2);
 
             $this->addLine("<a href='$link'>$name</a>");
             $this->addLine("<i>Цена:</i> <b>$$price</b>");
             $this->addLine("<i>FDV:</i> <b>$$fdv</b>");
             $this->addLine("<i>Ликвидность:</i> <b>$$reserve</b>");
-            $this->addLine("<i>Изменение цены (24ч):</i> <b>$price_change%</b>");
+            $this->addLine("<i>Изменение цены</i> <i>(5м):</i> <b>$price_change_m5%</b> <i>(1ч):</i> <b>$price_change_h1%</b> <i>(6ч):</i> <b>$price_change_h6%</b> <i>(24ч):</i> <b>$price_change_h24%</b>");
             $this->addLine("<i>Пул создан:</i> <b>$created_at</b>");
             $this->addBlank();
 
@@ -169,16 +183,28 @@ class TokenReportService
 
             $price = number_format($pool->price, 20);
             $price = mb_substr($price, 0, mb_strpos($price, '00000') ?: mb_strlen($price));
-            $volume = number_format($pool->h24_volume, 2);
-            $buys = number_format($pool->h24_buys);
-            $sells = number_format($pool->h24_sells);
             $created_at = $pool->created_at->translatedFormat('d M Y H:i');
+
+            $volume_m5 = number_format($pool->m5_volume, 2);
+            $volume_h1 = number_format($pool->h1_volume, 2);
+            $volume_h6 = number_format($pool->h6_volume, 2);
+            $volume_h24 = number_format($pool->h24_volume, 2);
+
+            $buys_m5 = number_format($pool->m5_buys);
+            $buys_h1 = number_format($pool->h1_buys);
+            $buys_h6 = number_format($pool->h6_buys);
+            $buys_h24 = number_format($pool->h24_buys);
+
+            $sells_m5 = number_format($pool->m5_sells);
+            $sells_h1 = number_format($pool->h1_sells);
+            $sells_h6 = number_format($pool->h6_sells);
+            $sells_h24 = number_format($pool->h24_sells);
 
             $this->addLine("<a href='$link'>$name</a>");
             $this->addLine("<i>Цена:</i> <b>$$price</b>");
-            $this->addLine("<i>Объем (24ч):</i> <b>$$volume</b>");
-            $this->addLine("<i>Покупки (24ч):</i> <b>$buys</b>");
-            $this->addLine("<i>Продажи (24ч):</i> <b>$sells</b>");
+            $this->addLine("<i>Объем</i> <i>(5м): </i> <b>$$volume_m5</b> <i>(1ч): </i> <b>$$volume_h1</b> <i>(6ч): </i> <b>$$volume_h6</b> <i>(24ч): </i> <b>$$volume_h24</b>");
+            $this->addLine("<i>Покупки</i> <i>(5м): </i> <b>$buys_m5</b> <i>(1ч): </i> <b>$buys_h1</b> <i>(6ч): </i> <b>$buys_h6</b> <i>(24ч): </i> <b>$buys_h24</b>");
+            $this->addLine("<i>Продажи</i> <i>(5м): </i> <b>$sells_m5</b> <i>(1ч): </i> <b>$sells_h1</b> <i>(6ч): </i> <b>$sells_h6</b> <i>(24ч): </i> <b>$sells_h24</b>");
             $this->addLine("<i>Пул создан:</i> <b>$created_at</b>");
             $this->addBlank();
 
@@ -234,7 +260,6 @@ class TokenReportService
 
         $prices = implode(' ', $prices);
         Process::path(base_path('utils/charts'))->run("python3 line.py $path $prices");
-        Log::error("python3 utils/charts/line.py $path $prices");
         return $path;
     }
 
@@ -257,6 +282,7 @@ class TokenReportService
 
         $prices = implode(' ', $prices);
         Process::path(base_path('utils/charts'))->run("python3 bar.py $path $prices");
+        Log::error("python3 utils/charts/bar.py $path $prices");
         return $path;
     }
 }

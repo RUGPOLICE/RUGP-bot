@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Enums\Dex;
+use App\Enums\Lock;
 use App\Exceptions\ScanningError;
 use App\Models\Pool;
 use App\Models\Token;
@@ -51,6 +52,18 @@ class ScanToken implements ShouldQueue, ShouldBeUnique
                         log_message: "Scan Token Metadata: {$this->token->address}",
                     );
 
+                $this->token->name = $tokenMetadata['metadata']['name'];
+                $this->token->symbol = $tokenMetadata['metadata']['symbol'];
+                $this->token->owner = $tokenMetadata['admin']['address'] ?? null;
+                $this->token->image = $tokenMetadata['metadata']['image'] ?? null;
+                $this->token->description = $tokenMetadata['metadata']['description'] ?? null;
+                $this->token->holders_count = $tokenMetadata['holders_count'];
+                $this->token->supply = $tokenMetadata['total_supply'] / 1000000000;
+
+            }
+
+            if (!$this->token->is_scanned || !$this->token->is_revoked) {
+
                 $dex = implode(',', $dex ?: Dex::all());
                 $result = Process::path(base_path('utils/scanner'))->run("node --no-warnings src/main.js {$this->token->address} $dex");
                 $report = json_decode($result->output());
@@ -61,27 +74,21 @@ class ScanToken implements ShouldQueue, ShouldBeUnique
                         log_message: "Scan Token Honeypot: {$this->token->address}",
                     );
 
-                $this->token->name = $tokenMetadata['metadata']['name'];
-                $this->token->symbol = $tokenMetadata['metadata']['symbol'];
-                $this->token->owner = $tokenMetadata['admin']['address'];
-                $this->token->image = $tokenMetadata['metadata']['image'] ?? null;
-                $this->token->description = $tokenMetadata['metadata']['description'] ?? null;
-                $this->token->holders_count = $tokenMetadata['holders_count'];
-                $this->token->supply = $tokenMetadata['total_supply'] / 1000000000;
-
                 $this->token->is_known_master = $report->isKnownMaster;
                 $this->token->is_known_wallet = $report->isKnownWallet;
 
-                // $this->token->dedust_tax_buy = $report->dedust->taxBuy ?? null;
-                // $this->token->dedust_tax_sell = $report->dedust->taxSell ?? null;
-                // $this->token->dedust_tax_transfer = $report->dedust->taxTransfer ?? null;
-                // $this->token->stonfi_deprecated = $report->stonfi->deprecated ?? null;
-                // $this->token->stonfi_taxable = $report->stonfi->taxable ?? null;
+                foreach ($this->token->pools as $pool) {
 
-                $this->token->is_scanned = true;
-                $this->token->save();
+                    $pool->tax_buy = ($report->{$pool->dex->value}->taxBuy ?? null) * 100;
+                    $pool->tax_sell = ($report->{$pool->dex->value}->taxSell ?? null) * 100;
+                    $pool->tax_transfer = ($report->{$pool->dex->value}->taxTransfer ?? null) * 100;
+
+                }
 
             }
+
+            $this->token->is_scanned = true;
+            $this->token->save();
 
         } catch (ScanningError $e) {
 
@@ -93,10 +100,14 @@ class ScanToken implements ShouldQueue, ShouldBeUnique
         $tokenHolders = $tonApiService->getJettonHolders($this->token->address);
         if ($tokenHolders) {
 
+            $holderAddresses = implode(',', array_map(fn ($a) => $a['address'], $tokenHolders));
+            $result = Process::path(base_path('utils/scanner'))->run("node --no-warnings src/convert.js $holderAddresses");
+            $holderAddresses = json_decode($result->output())->addresses;
+
             $this->token->holders = array_map(fn ($a) => [
-                'address' => $a['address'],
+                'address' => $holderAddresses->{$a['address']},
                 'balance' => $a['balance'] / 1000000000,
-                'name' => $a['owner']['name'] ?? (!$a['owner']['is_wallet'] ? 'DEX' : null),
+                'name' => $a['owner']['name'] ?? (!$a['owner']['is_wallet'] ? 'DEX/LOCK/STAKE?' : null),
                 'percent' => $this->token->supply ? ($a['balance'] / 1000000000 * 100 / $this->token->supply) : 0,
             ], $tokenHolders);
             $this->token->save();
@@ -109,31 +120,61 @@ class ScanToken implements ShouldQueue, ShouldBeUnique
             if ($poolHolders) {
 
                 $holderAddress = $poolHolders[0]['owner']['address'];
-                if ($holderAddress === '0:0000000000000000000000000000000000000000000000000000000000000000') {
+                $poolMetadata = $tonApiService->getJetton($pool->address);
 
-                    $poolMetadata = $tonApiService->getJetton($pool->address);
-                    if ($poolMetadata) {
+                if ($poolMetadata) {
+
+                    $pool->supply = $poolMetadata['total_supply'] / 1000000000;
+
+                    if ($holderAddress === '0:0000000000000000000000000000000000000000000000000000000000000000') {
 
                         $pool->burned_amount = $poolHolders[0]['balance'] / 1000000000;
-                        $pool->burned_percent = $poolHolders[0]['balance'] /$poolMetadata['total_supply'] * 100;
-                        $pool->save();
+                        $pool->burned_percent = $poolHolders[0]['balance'] / $poolMetadata['total_supply'] * 100;
+
+                    } else {
+
+                        $result = Process::path(base_path('utils/scanner'))->run("node --no-warnings src/convert.js $holderAddress");
+                        $holderAddress = json_decode($result->output())->addresses->{$holderAddress};
+
+                        $lockedAmount = null;
+                        $lockedPercent = null;
+
+                        $lockInfo = $tonHubService->getContractData($holderAddress);
+                        if ($lockInfo) {
+
+                            $lockedAmount = $lockInfo['locked_amount'] / 1000000000;
+                            $lockedPercent = $lockInfo['locked_amount'] / $poolMetadata['total_supply'] * 100;
+
+                            $pool->locked_type = Lock::RAFFLE;
+                            $pool->unlocks_at = Carbon::createFromTimestamp($lockInfo['unlocks_at']);
+
+                        }
+
+                        $toninuAmount = array_reduce(
+                            array_filter($poolHolders, fn ($item) => ($item['owner']['name'] ?? '') === 'tinu-locker.ton'),
+                            fn ($acc, $item) => $acc + $item['balance'],
+                            0
+                        );
+
+                        if ($toninuAmount) {
+
+                            $lockedAmount = $toninuAmount / 1000000000;
+                            $lockedPercent = $toninuAmount / $poolMetadata['total_supply'] * 100;
+                            $pool->locked_type = Lock::TONINU;
+
+                        }
+
+                        $isSmallLock = $lockedPercent && $lockedPercent < 100;
+                        $hasLargeHolders = boolval(array_filter($poolHolders, fn ($item) => ($item['balance'] / $poolMetadata['total_supply'] * 100) > 5));
+                        $isUnlocked = $pool->unlocks_at && $pool->unlocks_at < now();
+
+                        $pool->locked_dyor = $isSmallLock && $hasLargeHolders || $isUnlocked;
+                        $pool->locked_amount = $lockedAmount;
+                        $pool->locked_percent = $lockedPercent;
 
                     }
 
-                } else {
-
-                    $result = Process::path(base_path('utils/scanner'))->run("node --no-warnings src/convert.js $holderAddress");
-                    $holderAddress = json_decode($result->output())->address;
-
-                    $lockInfo = $tonHubService->getContractData($holderAddress);
-                    if ($lockInfo) {
-
-                        $pool->locked_amount = $lockInfo['locked_amount'] / 1000000000;
-                        $pool->locked_percent = $lockInfo['locked_amount'] / $lockInfo['total_amount'] * 100;
-                        $pool->unlocks_at = Carbon::createFromTimestamp($lockInfo['unlocks_at']);
-                        $pool->save();
-
-                    }
+                    $pool->save();
 
                 }
 

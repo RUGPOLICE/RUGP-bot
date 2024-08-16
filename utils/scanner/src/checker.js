@@ -27,6 +27,7 @@ export async function checkForHoneypot(address, dex) {
         success: true,
         name: data.name,
         symbol: data.symbol,
+        admin: data.admin?.toString(),
         isKnownMaster: knownMaster,
         isKnownWallet: knownWallet,
         dedust: {
@@ -36,9 +37,10 @@ export async function checkForHoneypot(address, dex) {
             taxTransfer: simulation.dedust?.transfer?.loss,
         },
         stonfi: {
-            pool: null,
-            deprecated: null,
-            taxable: null,
+            pool: simulation.stonfi?.pool.toString(),
+            taxBuy: simulation.stonfi?.buy?.loss,
+            taxSell: simulation.stonfi?.sell?.loss,
+            taxTransfer: simulation.stonfi?.transfer?.loss,
         },
         sfd: simulation.sfd,
     };

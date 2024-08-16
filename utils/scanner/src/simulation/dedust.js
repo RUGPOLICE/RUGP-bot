@@ -63,7 +63,9 @@ export async function simulateDedust(chain, master, simulator, jettonWallet, buy
     // console.log("Estimated jetton payout:", estimatedBuy.amountOut);
     // console.log("Buy diff:", buyResult.loss);
 
-    const transferResult = await simulateTransfer(chain, master, simulator, jettonWallet, actualBalance);
+    // const transferResult = await simulateTransfer(chain, master, simulator, jettonWallet, actualBalance);
+    const transferResult = null;
+
     const estimatedSell = await pool.getEstimatedSwapOut({
         assetIn: jettonAsset,
         amountIn: actualBalance

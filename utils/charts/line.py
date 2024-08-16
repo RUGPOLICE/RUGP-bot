@@ -13,7 +13,7 @@ def formatter(x, pos):
         return "0"
     if x < 1e-2:
         mat = ['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉', '₁₀', '₁₁', '₁₂']
-        return re.sub(r'(.*\.0)(0+)(\d*)', lambda m: m.group(1) + mat[len(m.group(2))] + m.group(3), f'{x:f}').rstrip('0')
+        return re.sub(r'(.*\.0)(0+)(\d*)', lambda m: m.group(1) + mat[len(m.group(2))] + m.group(3)[:2], f'{x:f}').rstrip('0')
     if x < 1000:
         return f'{x:.2f}'
     if x < 1e6:

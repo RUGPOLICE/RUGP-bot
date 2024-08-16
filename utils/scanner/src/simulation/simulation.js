@@ -4,7 +4,6 @@ import { request, gql } from 'graphql-request';
 import { getJettonWallet } from './utils.js';
 import { simulateDedust } from './dedust.js';
 import { simulateStonfi } from './stonfi.js';
-import { simulateStonfiDev } from './stonfi.dev.js';
 
 
 const BUY_AMOUNT = toNano(5);
@@ -37,9 +36,8 @@ export async function simulateActions(dex, client, clientV4, master, walletCode)
     const jettonWallet = await getJettonWallet(chain, simulator.address, master);
 
     return {
-        // dedust: dex.includes('dedust') ? await simulateDedust(chain, master, simulator, jettonWallet, BUY_AMOUNT) : null,
-        sfd: dex.includes('stonfi') ? await simulateStonfiDev(client, chain, master, simulator, jettonWallet, BUY_AMOUNT) : null,
-        // stonfi: dex.includes('stonfi') ? await simulateStonfi(master) : null,
+        dedust: dex.includes('dedust') ? await simulateDedust(chain, master, simulator, jettonWallet, BUY_AMOUNT) : null,
+        stonfi: dex.includes('stonfi') ? await simulateStonfi(client, chain, master, simulator, jettonWallet, BUY_AMOUNT) : null,
     };
 }
 

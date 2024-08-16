@@ -5,6 +5,8 @@ const response = (data) => {
     console.log(JSON.stringify(data));
 };
 
-const address = process.argv[2];
-response({'address': Address.parse(address).toString()})
+const addresses = {};
+for (let address of process.argv[2].split(','))
+    addresses[address] = Address.parse(address).toString();
+response({'addresses': addresses});
 
