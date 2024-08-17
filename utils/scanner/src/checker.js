@@ -31,18 +31,17 @@ export async function checkForHoneypot(address, dex) {
         isKnownMaster: knownMaster,
         isKnownWallet: knownWallet,
         dedust: {
-            pool: simulation.dedust?.pool.toString(),
-            taxBuy: simulation.dedust?.buy?.loss,
-            taxSell: simulation.dedust?.sell?.loss,
-            taxTransfer: simulation.dedust?.transfer?.loss,
+            pool: simulation.dedust?.pool?.toString(),
+            taxBuy: simulation.dedust?.buy,
+            taxSell: simulation.dedust?.sell,
+            taxTransfer: simulation.dedust?.transfer,
         },
         stonfi: {
-            pool: simulation.stonfi?.pool.toString(),
-            taxBuy: simulation.stonfi?.buy?.loss,
-            taxSell: simulation.stonfi?.sell?.loss,
-            taxTransfer: simulation.stonfi?.transfer?.loss,
+            pool: simulation.stonfi?.pool?.toString(),
+            taxBuy: simulation.stonfi?.buy,
+            taxSell: simulation.stonfi?.sell,
+            taxTransfer: simulation.stonfi?.transfer,
         },
-        sfd: simulation.sfd,
     };
 
 }

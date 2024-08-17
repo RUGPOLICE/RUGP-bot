@@ -19,7 +19,7 @@ class SpamProtection
 
             if (!Cache::has($key_message)) {
 
-                $bot->sendMessage(__('telegram.spam'));
+                $bot->sendMessage(__('telegram.text.spam'));
                 Cache::put($key_message, true, config('app.spam.timeout'));
 
             }

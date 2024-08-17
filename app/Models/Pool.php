@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\Dex;
 use App\Enums\Lock;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
@@ -44,6 +45,8 @@ use Illuminate\Database\Schema\Blueprint;
  * @property float $tax_sell
  * @property float $tax_transfer
  * @property Carbon $unlocks_at
+ *
+ * @property string $price_formatted
  */
 class Pool extends Model
 {
@@ -147,5 +150,15 @@ class Pool extends Model
     public function token(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Token::class);
+    }
+
+    public function priceFormatted(): Attribute
+    {
+        return Attribute::make(
+            get: function (?float $price) {
+                $price = number_format($this->price, 20);
+                return mb_substr($price, 0, mb_strpos($price, '00000') ?: mb_strlen($price));
+            },
+        );
     }
 }

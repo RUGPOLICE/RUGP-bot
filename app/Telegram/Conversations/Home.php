@@ -2,8 +2,8 @@
 
 namespace App\Telegram\Conversations;
 
+use Illuminate\Support\Facades\App;
 use SergiX44\Nutgram\Nutgram;
-use SergiX44\Nutgram\Telegram\Properties\ParseMode;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 
 class Home extends ImagedInlineMenu
@@ -12,16 +12,28 @@ class Home extends ImagedInlineMenu
     {
         $account = $bot->get('account');
 
-        if (!$account->is_shown_language) $this->langFront($bot);
-        else if (!$account->is_shown_rules) $this->rulesFront($bot);
-        else $this->menuFront($bot);
+        if (!$account->is_shown_language) {
+
+            $this->langFront($bot);
+            return;
+
+        }
+
+        if (!$account->is_shown_rules) {
+
+            $this->rulesFront($bot);
+            return;
+
+        }
+
+        $this->menuFront($bot);
     }
 
 
     public function langFront(Nutgram $bot): void
     {
         $this->clearButtons();
-        $this->menuText(__('telegram.language.text'));
+        $this->menuText(__('telegram.text.lang'));
         $this->addButtonRow(
             InlineKeyboardButton::make(__('telegram.buttons.ru'), callback_data: 'ru@langBack'),
             InlineKeyboardButton::make(__('telegram.buttons.en'), callback_data: 'en@langBack'),
@@ -37,17 +49,20 @@ class Home extends ImagedInlineMenu
 
         $account = $bot->get('account');
         $account->language = $lang;
-        $account->is_shown_language = true;
+        // $account->is_shown_language = true;
         $account->save();
 
-        $this->rulesFront($bot);
+        App::setLocale($lang);
+
+        if ($account->is_shown_rules) $this->menuFront($bot);
+        else $this->rulesFront($bot);
     }
 
 
     public function rulesFront(Nutgram $bot): void
     {
         $this->clearButtons();
-        $this->menuText(__('telegram.rules.text'));
+        $this->menuText(__('telegram.text.rules'));
         $this->addButtonRow(
             InlineKeyboardButton::make(__('telegram.buttons.agree'), callback_data: 'yes@rulesBack'),
         );
@@ -70,7 +85,7 @@ class Home extends ImagedInlineMenu
     public function menuFront(Nutgram $bot): void
     {
         $this->clearButtons();
-        $this->menuText(__('telegram.home.text'), ['image' => public_path('img/home.png')]);
+        $this->menuText(__('telegram.text.home'), ['image' => public_path('img/home.png')]);
         $this->addButtonRow(
             InlineKeyboardButton::make(__('telegram.buttons.token_scanner'), callback_data: 'token_scanner@menuBack'),
             InlineKeyboardButton::make(__('telegram.buttons.wallet_tracker'), callback_data: 'wallet_tracker@menuBack'),

@@ -16,7 +16,7 @@ class TokenScanner extends InlineMenu
 {
     public function start(Nutgram $bot): void
     {
-        $this->menuText(__('telegram.token_scanner.text'))
+        $this->menuText(__('telegram.text.token_scanner.main'))
             ->addButtonRow(
                 InlineKeyboardButton::make(__('telegram.buttons.back'), callback_data: 'back@menu'),
                 InlineKeyboardButton::make(__('telegram.buttons.profile'), callback_data: 'profile@menu'),
@@ -44,7 +44,7 @@ class TokenScanner extends InlineMenu
 
         if (mb_strlen($address) < 48) {
 
-            $this->restartWithMessage($bot, 'Неверный CA');
+            $this->restartWithMessage($bot, __('telegram.errors.address.invalid'));
             return;
 
         }
@@ -58,12 +58,12 @@ class TokenScanner extends InlineMenu
 
         if (!$address) {
 
-            $this->restartWithMessage($bot, 'По данному CA ничего не найдено');
+            $this->restartWithMessage($bot, __('telegram.errors.address.empty'));
             return;
 
         }
 
-        $this->restartWithMessage($bot, __('telegram.token_scanner.pending'));
+        $this->restartWithMessage($bot, __('telegram.text.token_scanner.pending'));
         $token = Token::query()->firstOrCreate(['address' => $address]);
 
         $pending = new Pending;

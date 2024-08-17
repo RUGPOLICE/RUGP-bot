@@ -48,7 +48,7 @@ class ScanToken implements ShouldQueue, ShouldBeUnique
                 $tokenMetadata = $tonApiService->getJetton($this->token->address);
                 if (!$tokenMetadata)
                     throw new ScanningError(
-                        message: "Невозможно получить информацию по токену {$this->token->address}. Попробуйте позже",
+                        message: __('telegram.errors.scan.metadata', ['address' => $this->token->address]),
                         log_message: "Scan Token Metadata: {$this->token->address}",
                     );
 
@@ -62,16 +62,16 @@ class ScanToken implements ShouldQueue, ShouldBeUnique
 
             }
 
-            if (!$this->token->is_scanned || !$this->token->is_revoked) {
+            $dex = implode(',', $this->token->pools()->whereNull('tax_buy')->orWhereNull('tax_sell')->get()->pluck('dex')->map(fn (Dex $dex) => $dex->value)->all());
+            if (!$this->token->is_scanned || !$this->token->is_revoked || $dex) {
 
-                $dex = implode(',', $dex ?: Dex::all());
                 $result = Process::path(base_path('utils/scanner'))->run("node --no-warnings src/main.js {$this->token->address} $dex");
                 $report = json_decode($result->output());
 
                 if (!$report->success)
                     throw new ScanningError(
-                        message: "Невозможно получить информацию по токену {$this->token->address}. Попробуйте позже",
-                        log_message: "Scan Token Honeypot: {$this->token->address}",
+                        message: __('telegram.errors.scan.simulator', ['address' => $this->token->address]),
+                        log_message: "Scan Token Simulator: {$this->token->address}, $report->message, $report->stack",
                     );
 
                 $this->token->is_known_master = $report->isKnownMaster;
@@ -107,7 +107,7 @@ class ScanToken implements ShouldQueue, ShouldBeUnique
             $this->token->holders = array_map(fn ($a) => [
                 'address' => $holderAddresses->{$a['address']},
                 'balance' => $a['balance'] / 1000000000,
-                'name' => $a['owner']['name'] ?? (!$a['owner']['is_wallet'] ? 'DEX/LOCK/STAKE?' : null),
+                'name' => $a['owner']['name'] ?? (!$a['owner']['is_wallet'] ? __('telegram.text.token_scanner.holders.dex_lock_stake') : null),
                 'percent' => $this->token->supply ? ($a['balance'] / 1000000000 * 100 / $this->token->supply) : 0,
             ], $tokenHolders);
             $this->token->save();

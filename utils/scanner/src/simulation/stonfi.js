@@ -34,9 +34,9 @@ export async function simulateStonfi(client, chain, master, simulator, jettonWal
         if (expectedBuy.jettonToReceive === 0n) {
             return {
                 pool: pool.address,
+                buy: -1,
+                sell: null,
                 transfer: null,
-                buy: null,
-                sell: null
             };
         }
 
@@ -52,15 +52,13 @@ export async function simulateStonfi(client, chain, master, simulator, jettonWal
         if (!allTxsOk(resultBuy.transactions))
             return {
                 pool: pool.address,
-                transfer: null,
                 buy: null,
-                sell: null
+                sell: null,
+                transfer: null,
             };
 
         const actualBalance = await getJettonBalance(chain, jettonWallet);
-        const buyResult = {
-            loss: calculateLoss(actualBalance, expectedBuy.jettonToReceive)
-        };
+        const buyResult = calculateLoss(actualBalance, expectedBuy.jettonToReceive);
 
         // const transferResult = await simulateTransfer(chain, master, simulator, jettonWallet, actualBalance);
         const transferResult = null;
@@ -83,21 +81,19 @@ export async function simulateStonfi(client, chain, master, simulator, jettonWal
         if (!allTxsOk(resultSell.transactions))
             return {
                 pool: pool.address,
-                transfer: transferResult,
                 buy: buyResult,
-                sell: null
+                sell: null,
+                transfer: transferResult,
             };
 
         const actualTonPayout = getActualPayout(resultSell.transactions, pool.address, simulator.address, checkAnotherSwapWallet);
-        const sellResult = {
-            loss: calculateLoss(actualTonPayout, expectedSell.jettonToReceive)
-        };
+        const sellResult = calculateLoss(actualTonPayout, expectedSell.jettonToReceive);
 
         return {
             pool: pool.address,
-            transfer: transferResult,
             buy: buyResult,
-            sell: sellResult
+            sell: sellResult,
+            transfer: transferResult,
         };
 
     } catch (e) {

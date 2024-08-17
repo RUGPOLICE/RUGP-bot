@@ -153,11 +153,11 @@ return [
         'check_wallet' => "🚨 Check My Wallet",
         'academy' => "📚 The Academy",
         'gpt' => "💡 GPTo",
-        'profile' => "⚙️ Профиль",
+        'profile' => "⚙️ Profile",
 
-        'report' => "Главная", // Главная в отчете
-        'chart' => "Чарт",
-        'holders' => "Холдеры",
-        'volume' => "Объем",
+        'report' => "Main", // Главная в отчете
+        'chart' => "Chart",
+        'holders' => "Holders",
+        'volume' => "Volume",
     ],
 ];

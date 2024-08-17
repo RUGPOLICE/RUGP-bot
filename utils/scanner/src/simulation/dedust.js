@@ -16,8 +16,6 @@ export async function simulateDedust(chain, master, simulator, jettonWallet, buy
     const jettonAsset = Asset.jetton(master);
 
     const pool = chain.openContract(await factory.getPool(PoolType.VOLATILE, [tonAsset, jettonAsset]));
-    // console.log("Pool:", pool.address.toString());
-
     if ((await pool.getReadinessStatus()) !== ReadinessStatus.READY)
         return null;
 
@@ -30,9 +28,9 @@ export async function simulateDedust(chain, master, simulator, jettonWallet, buy
     if (estimatedBuy.amountOut === 0n) {
         return {
             pool: pool.address,
+            buy: -1,
+            sell: null,
             transfer: null,
-            buy: null,
-            sell: null
         };
     }
 
@@ -43,25 +41,16 @@ export async function simulateDedust(chain, master, simulator, jettonWallet, buy
         gasAmount: toNano(0.25)
     });
 
-    // console.log("BUY TABLE");
-    // printTransactionFees(result.transactions);
-
     if (!allTxsOk(result.transactions))
         return {
             pool: pool.address,
-            transfer: null,
             buy: null,
-            sell: null
+            sell: null,
+            transfer: null,
         };
 
     const actualBalance = await getJettonBalance(chain, jettonWallet);
-    const buyResult = {
-        loss: calculateLoss(actualBalance, estimatedBuy.amountOut)
-    };
-
-    // console.log("Actual jetton payout:", actualBalance);
-    // console.log("Estimated jetton payout:", estimatedBuy.amountOut);
-    // console.log("Buy diff:", buyResult.loss);
+    const buyResult = calculateLoss(actualBalance, estimatedBuy.amountOut);
 
     // const transferResult = await simulateTransfer(chain, master, simulator, jettonWallet, actualBalance);
     const transferResult = null;
@@ -79,25 +68,16 @@ export async function simulateDedust(chain, master, simulator, jettonWallet, buy
         body: createTransferBody(actualBalance, jettonVault.address, simulator.address, toNano(0.25), payload)
     });
 
-    // console.log("SELL TABLE");
-    // printTransactionFees(result.transactions);
-
     if (!allTxsOk(result.transactions))
         return {
             pool: pool.address,
-            transfer: transferResult,
             buy: buyResult,
-            sell: null
+            sell: null,
+            transfer: transferResult,
         };
 
     const actualTonPayout = getActualPayout(result.transactions, pool.address);
-    const sellResult = {
-        loss: calculateLoss(actualTonPayout, estimatedSell.amountOut)
-    };
-
-    // console.log("Actual ton payout:", actualTonPayout);
-    // console.log("Estimated ton payout:", estimatedSell.amountOut);
-    // console.log("Sell diff:", sellResult.loss);
+    const sellResult = calculateLoss(actualTonPayout, estimatedSell.amountOut);
 
     return {
         pool: pool.address,

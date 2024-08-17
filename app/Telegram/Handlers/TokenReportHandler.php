@@ -23,6 +23,7 @@ class TokenReportHandler
             reply_to_message_id: $reply_message_id,
         );
     }
+
     public function route(Nutgram $bot, string $token, string $type): void
     {
         $bot->answerCallbackQuery();
@@ -42,13 +43,13 @@ class TokenReportHandler
         $tokenReportService = App::make(TokenReportService::class);
         $markup = InlineKeyboardMarkup::make()
             ->addRow(
-                InlineKeyboardButton::make('Чарт', callback_data: "reports:token:$token->id:chart"),
-                InlineKeyboardButton::make('Холдеры', callback_data: "reports:token:$token->id:holders"),
-                InlineKeyboardButton::make('Объем', callback_data: "reports:token:$token->id:volume"),
+                InlineKeyboardButton::make(__('telegram.buttons.chart'), callback_data: "reports:token:$token->id:chart"),
+                InlineKeyboardButton::make(__('telegram.buttons.holders'), callback_data: "reports:token:$token->id:holders"),
+                InlineKeyboardButton::make(__('telegram.buttons.volume'), callback_data: "reports:token:$token->id:volume"),
             );
 
         if ($type !== 'main')
-            $markup->addRow(InlineKeyboardButton::make('Главная', callback_data: "reports:token:$token->id:main"));
+            $markup->addRow(InlineKeyboardButton::make(__('telegram.buttons.report'), callback_data: "reports:token:$token->id:main"));
 
         $options = ['link_preview_options' => LinkPreviewOptions::make(is_disabled: true)];
         if (!$message_id)
