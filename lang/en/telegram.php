@@ -45,6 +45,8 @@ return [
 :is_known_master
 :is_known_wallet
 :is_revoked
+
+❤️ <b>:likes_count</b> / <b>:dislikes_count</b> 💩
 ",
                 'pool' => "<i><b><a href=':link'>:name</a></b></i>:
 <i>Цена</i>: <b>$:price</b>
@@ -159,5 +161,9 @@ return [
         'chart' => "Chart",
         'holders' => "Holders",
         'volume' => "Volume",
+        'like' => "❤️",
+        'dislike' => "💩",
+        'to_scanner' => "To Scanner",
+        'to_home' => "Home",
     ],
 ];

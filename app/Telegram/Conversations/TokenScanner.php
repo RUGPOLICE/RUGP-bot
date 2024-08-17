@@ -63,7 +63,10 @@ class TokenScanner extends InlineMenu
 
         }
 
-        $this->restartWithMessage($bot, __('telegram.text.token_scanner.pending'));
+        $this->clearButtons();
+        $this->menuText(__('telegram.text.token_scanner.pending'));
+        $this->showMenu();
+
         $token = Token::query()->firstOrCreate(['address' => $address]);
 
         $pending = new Pending;

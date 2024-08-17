@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\Dex;
 use App\Enums\Lock;
+use App\Enums\Reaction;
 use App\Models\Token;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Process;
@@ -70,6 +71,8 @@ class TokenReportService
                 'is_known_master' => __('telegram.text.token_scanner.report.is_known_master.' . ($token->is_known_master ? 'yes' : 'no')),
                 'is_known_wallet' => __('telegram.text.token_scanner.report.is_known_wallet.' . ($token->is_known_wallet ? 'yes' : 'no')),
                 'is_revoked' => __('telegram.text.token_scanner.report.is_revoked.' . ($token->is_revoked ? 'yes' : 'no')),
+                'likes_count' => $token->reactions()->where('type', Reaction::LIKE)->count(),
+                'dislikes_count' => $token->reactions()->where('type', Reaction::DISLIKE)->count(),
             ]),
         ];
     }

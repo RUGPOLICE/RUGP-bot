@@ -10,6 +10,9 @@ class Home extends ImagedInlineMenu
 {
     public function start(Nutgram $bot): void
     {
+        if ($bot->message()->text === '/start')
+            $bot->deleteMessage($bot->chatId(), $bot->messageId());
+
         $account = $bot->get('account');
 
         if (!$account->is_shown_language) {

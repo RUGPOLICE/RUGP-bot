@@ -92,6 +92,11 @@ class Token extends Model
         return $this->hasMany(Pending::class);
     }
 
+    public function reactions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Reaction::class);
+    }
+
 
     public function isRevoked(): Attribute
     {

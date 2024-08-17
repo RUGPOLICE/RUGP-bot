@@ -44,4 +44,10 @@ class Account extends Model
         $table->boolean('is_shown_language')->default(false);
         $table->boolean('is_shown_rules')->default(false);
     }
+
+
+    public function reactions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Reaction::class);
+    }
 }
