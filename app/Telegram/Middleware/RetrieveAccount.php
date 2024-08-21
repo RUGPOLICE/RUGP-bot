@@ -15,6 +15,7 @@ class RetrieveAccount
             ['telegram_username' => $bot->user()->username],
         );
 
+        $account->refresh();
         App::setLocale($account->language->value);
 
         $bot->set('account', $account);
