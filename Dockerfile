@@ -22,4 +22,3 @@ RUN docker-php-ext-install pdo_mysql zip
 
 ENV COMPOSER_ALLOW_SUPERUSER=1
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
-
