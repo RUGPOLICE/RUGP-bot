@@ -65,6 +65,6 @@
 @endtask
 
 @task('change_owner')
-    chown -R rugp_user:rugp_user {{ $new_release_dir }}
+    sudo chown -R rugp_user:rugp_user {{ $new_release_dir }}
 @endtask
 
