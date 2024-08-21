@@ -18,32 +18,28 @@ class TokenReportService
 
         foreach ($token->pools as $pool) {
 
-            $name = Dex::verbose($pool->dex);
-            $link = Dex::link($pool->dex, $pool->address);
-            $price = number_format($pool->price, 20);
-            $price = mb_substr($price, 0, mb_strpos($price, '00000') ?: mb_strlen($price));
             $burned_percent = number_format($pool->burned_percent ?? 0.0, 2);
             $locked_percent = number_format($pool->locked_percent ?? 0.0, 2);
             $type = Lock::verbose($pool->locked_type ?? Lock::RAFFLE);
             $dyor = $pool->locked_dyor ? '/ more locks! DYOR' : '';
             $unlocks = $pool->unlocks_at ? "(до {$pool->unlocks_at->format('d M Y')})" : '';
 
-            $tax_buy = match ($pool->tax_buy ?? null) {
-                -100 => __('telegram.text.token_scanner.report.tax_buy.no'),
-                null => __('telegram.text.token_scanner.report.tax_buy.unknown'),
-                default => __('telegram.text.token_scanner.report.tax_buy.yes', ['value' => $pool->tax_buy]),
-            };
+            if ($pool->tax_buy === null) $tax_buy = __('telegram.text.token_scanner.report.tax_buy.unknown');
+            else if ($pool->tax_buy < 0) $tax_buy = __('telegram.text.token_scanner.report.tax_buy.no');
+            else if ($pool->tax_buy > 30) $tax_buy = __('telegram.text.token_scanner.report.tax_buy.danger', ['value' => $pool->tax_buy]);
+            else if ($pool->tax_buy > 0) $tax_buy = __('telegram.text.token_scanner.report.tax_buy.warning', ['value' => $pool->tax_buy]);
+            else $tax_buy = __('telegram.text.token_scanner.report.tax_buy.ok');
 
-            $tax_sell = match ($pool->tax_buy ?? null) {
-                -100 => __('telegram.text.token_scanner.report.tax_sell.no'),
-                null => __('telegram.text.token_scanner.report.tax_sell.unknown'),
-                default => __('telegram.text.token_scanner.report.tax_sell.yes', ['value' => $pool->tax_sell]),
-            };
+            if ($pool->tax_sell === null) $tax_sell = __('telegram.text.token_scanner.report.tax_sell.unknown');
+            else if ($pool->tax_sell < 0) $tax_sell = __('telegram.text.token_scanner.report.tax_sell.no');
+            else if ($pool->tax_sell > 30) $tax_sell = __('telegram.text.token_scanner.report.tax_sell.danger', ['value' => $pool->tax_sell]);
+            else if ($pool->tax_sell > 0) $tax_sell = __('telegram.text.token_scanner.report.tax_sell.warning', ['value' => $pool->tax_sell]);
+            else $tax_sell = __('telegram.text.token_scanner.report.tax_sell.ok');
 
             $pools[] = __('telegram.text.token_scanner.report.pool', [
-                'link' => $link,
-                'name' => $name,
-                'price' => $price,
+                'link' => Dex::link($pool->dex, $pool->address),
+                'name' => Dex::verbose($pool->dex),
+                'price' => $pool->price_formatted,
                 'lp_burned' => __('telegram.text.token_scanner.report.lp_burned.' . ($pool->burned_amount ? 'yes' : 'no'), ['value' => $burned_percent]),
                 'lp_locked' => __('telegram.text.token_scanner.report.lp_locked.' . ($pool->locked_amount ? 'yes' : 'no'), ['value' => $locked_percent, 'type' => $type, 'unlocks' => $unlocks, 'dyor' => $dyor]),
                 'tax_buy' => $tax_buy,

@@ -33,7 +33,7 @@ class TokenReportHandler
 
         if ($type === 'back') {
 
-            TokenScanner::begin($bot);
+            TokenScanner::begin($bot, data: ['referrer' => TokenReportHandler::class]);
             return;
 
         }
@@ -97,8 +97,8 @@ class TokenReportHandler
         $dislikes_count = $token->reactions()->where('type', Reaction::DISLIKE)->count();
         $message_effect_id = match ($likes_count <=> $dislikes_count) {
             0 => null,
-            -1 => 5046589136895476101,
-            1 => 5159385139981059251,
+            -1 => 5104858069142078462, // dislike
+            1 => 5107584321108051014, // like
         };
 
         $options = [

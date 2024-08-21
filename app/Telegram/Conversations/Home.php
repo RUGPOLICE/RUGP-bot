@@ -78,7 +78,7 @@ class Home extends ImagedInlineMenu
             return;
 
         $account = $bot->get('account');
-        $account->is_shown_rules = true;
+        // $account->is_shown_rules = true;
         $account->save();
 
         $this->menuFront($bot);
@@ -111,7 +111,8 @@ class Home extends ImagedInlineMenu
     {
         $this->end();
         match ($bot->callbackQuery()->data) {
-            'token_scanner' => TokenScanner::begin($bot),
+            'token_scanner' => TokenScanner::begin($bot, data: ['referrer' => Home::class]),
+            'profile' => Profile::begin($bot),
         };
     }
 }

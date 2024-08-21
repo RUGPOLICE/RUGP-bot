@@ -2,54 +2,64 @@
 
 return [
     'text' => [
-        'lang' => "Выберите язык",
-        'rules' => "Правила. Согласны?",
-        'spam' => "Не стоит отправлять так много сообщений. Возьму перерыв...",
+        'lang' => "👇 Please choose your language.",
+        'rules' => "<b>TERMS OF USE:</b>
+By using this Telegram bot, you confirm and agree that the use of the bot is at your own risk. The creators of this bot are not responsible for any losses or damages that may arise from its use. The bot is provided as is, without any warranties, express or implied. The user is responsible for verifying the accuracy of the information provided and taking necessary precautions to protect themselves from potential fraudulent actions and other risks.",
+        'spam' => "🏖 It's not worth sending so many messages. I'll take a break...",
         'home' => "
-<b>Token Scanner</b>
-<code>Check a token for signs of fraud and get general information about the token. Useful for DYOR (Do Your Own Research).</code>
 
-<b>Wallet Tracker</b>
-<code>Track asset movements in any wallet in real-time.</code>
+<b>🔎 Token Scanner</b> - <code>Scam check. Complete information about the token. Tool for DYOR.</code>
 
-<b>Blackbox</b>
-<code>Send anonymous reports about scammers and fraud activities to the RUGP project.</code>
+<b>👀 Wallet Tracker</b> - <code>Realtime wallets tracking.</code>
 
-<b>Check My Wallet</b>
-<code>Check your wallet for suspicious and scam assets.</code>
+<b>🗃 Blackbox</b> - <code>To send insights about fraudulent schemes or scammers anonymously to RUGP.</code>
 
-<b>Academy</b>
-<code>Free educational materials.</code>
+<b>🚨 Check My Wallet</b> - <code>Check your wallet for scams and vulnerabilities.</code>
 
-<b>GPT</b>
-<code>Utilize GPT capabilities for free.</code>
+<b>📚 Academy</b> - <code>Free educational stuff.</code>
 
-<b>My Profile</b>
-<code>Customize your profile, change the interface language, and manage subscriptions.</code>
+<b>💡 GPT</b> - <code>Free GPT.</code>
+
+
+   <a href='http://rugo.io'>WEB</a>    |    <a href='t.me/rugp_ton'>Telegram</a>    |     <a href='https://x.com/rugp_ton'>Twitter</a>     
+
 ",
         'token_scanner' => [
-            'main' => "Введи",
-            'pending' => "Отчет будет отправлен вам сообщением, как только будет готов",
+            'main' => "👇 Enter token or pool address.",
+            'pending' => "🔎 Scanning. The report will be sent to you shortly.",
             'report' => [
                 'text' => "
+
+
+
+<b>ℹ️ INFO</b>
+
 <b>:name | $:symbol</b>
 
-:description
-
-<i>Кол-во: </i><b>:supply</b>
-<i>Холдеры: </i><b>:holders_count</b>
-
-:pools
-:links
+<i>:description</i>
 
 :is_known_master
 :is_known_wallet
 :is_revoked
 
-❤️ <b>:likes_count</b> / <b>:dislikes_count</b> 💩
+<b>🔢 Supply:</b> :supply
+<b>👨‍👦‍👦 Holders:</b> :holders_count
+
+🔄 <u><b>DEX's:</b> </u>
+:pools
+
+<u><b>Socials:</b></u>
+:links
+
+<u><b>Community trust:</b></u>
+👍 <b>:likes_count</b> / <b>:dislikes_count</b> 👎
+
+Click 🔎 for new scan.
+
 ",
-                'pool' => "<i><b><a href=':link'>:name</a></b></i>:
-<i>Цена</i>: <b>$:price</b>
+                'pool' => "				
+<i><b>:name</b></i>:
+├💵 Цена: <b>$:price</b>
 :lp_burned
 :lp_locked
 :tax_buy
@@ -57,113 +67,144 @@ return [
 ",
                 'link' => "<a href=':url'><b>:Label</b></a> ",
                 'is_known_master' => [
-                    'yes' => "Этот контракт содержит проверенный код",
-                    'no' => "Этот контракт содержит кастомный код",
+                    'yes' => "✅ VERIFIED MASTER",
+                    'no' => "⚠️ NON-STANDARD MASTER",
                 ],
                 'is_known_wallet' => [
-                    'yes' => "Контракт кошелька содержит проверенный код",
-                    'no' => "Контракт кошелька содержит кастомный код",
+                    'yes' => "✅ VERIFIED WALLET",
+                    'no' => "⚠️ NON-STANDARD WALLET",
                 ],
                 'is_revoked' => [
-                    'yes' => "Права отозваны",
-                    'no' => "Права не отозваны",
+                    'yes' => "✅ REWOKE: YES",
+                    'no' => "⚠️ REWOKE: NO",
                 ],
                 'lp_burned' => [
-                    'yes' => "<i>LP сожжены</i>: <b>:value%</b>",
-                    'no' => "<i>LP сожжены</i>: <b>0%</b>",
+                    'yes' => "├✅  <i>LP burned</i>: <b>:value%</b>",
+                    'no' => "├⚠️ <i>LP not burned</i>  ",
                 ],
                 'lp_locked' => [
-                    'yes' => "<i>LP заблокированы</i>: <b>:value% on :type :unlocks <i>:dyor</i></b>",
-                    'no' => "<i>LP заблокированы</i>: <b>0%</b>",
+                    'yes' => "├🔒 <i>LP locked</i>: <b>:value% :type :unlocks <i>:dyor</i></b>",
+                    'no' => "├🔒 <i>LP locked</i>: <b>0%</b>",
                 ],
                 'tax_buy' => [
-                    'yes' => "<i>Налог на покупку</i>: <b>:value%</b>",
-                    'no' => "<i>Невозможно купить</i>",
-                    'unknown' => "<i>Не удалось произвести проверку</i>",
+                    'unknown' => "<i>🤷‍♂️ Failed to check jetton</i>",
+                    'no' => "├<i>🤦🏻 Can't buy jetton</i>",
+                    'ok' => "├<i>✅ Buy tax</i>: <b>No</b>",
+                    'warning' => "├<i>⚠️ Buy tax</i>: <b>:value%</b>",
+                    'danger' => "├<i>🚨 Buy tax</i>: <b>:value%</b>",
                 ],
                 'tax_sell' => [
-                    'yes' => "<i>Налог на продажу</i>: <b>:value%</b>",
-                    'no' => "<i>Невозможно продать</i>",
-                    'unknown' => "<i>Не удалось произвести проверку</i>",
+                    'unknown' => "└<i>🤷‍♂️ Failed to check jetton</i>",
+                    'no' => "
+<b>CAN'T SELL JETTON</b> 
+
+‼️HONEYPOT‼️SCAM‼️",
+                    'ok' => "└<i>✅ Sell tax</i>: <b>No</b>",
+                    'warning' => "└<i>⚠️ Sell tax</i>: <b>:value%</b>",
+                    'danger' => "└<i>❌ Sell tax</i>: <b>:value%</b>",
                 ],
             ],
             'chart' => [
                 'text' => "
-<b>:name | $:symbol</b>
-
-<b>Чарт</b>
+				
+📈 <b>CHART</b> <b>$:symbol</b>
 
 :pools
 ",
-                'pool' => "<a href=':link'>:name</a>
-<i>Цена:</i> <b>$:price</b>
-<i>FDV:</i> <b>$:fdv</b>
-<i>Ликвидность:</i> <b>$:reserve</b>
-<i>Изменение цены</i> <i>(5м):</i> <b>:price_change_m5%</b> <i>(1ч):</i> <b>:price_change_h1%</b> <i>(6ч):</i> <b>:price_change_h6%</b> <i>(24ч):</i> <b>:price_change_h24%</b>
-<i>Пул создан:</i> <b>:created_at</b>
+                'pool' => "
+<a href=':link'>:name</a>
+💵 <i>Price:</i> <b>$:price</b>
+🏦 <i>FDV:</i> <b>$:fdv</b>
+💦 <i>Liquidity:</i> <b>$:reserve</b>
+📉 <u><i>Price change:</i></u>
+├<i>(5m):</i> <b>:price_change_m5%</b>
+├<i>(1h):</i> <b>:price_change_h1%</b>
+├<i>(6h):</i> <b>:price_change_h6%</b>
+└<i>(24h):</i> <b>:price_change_h24%</b>
+ 
+<i>Pool created:</i> <b>:created_at</b>
 ",
             ],
             'holders' => [
                 'text' => "
-<b>:name | $:symbol</b>
-
-<b>Холдеры</b>
-
+👨‍👦‍👦 <b>HOLDERS</b> <b>$:symbol</b>		
+				
 :holders
+
 ",
                 'holder' => "<a href='tonviewer.com/:address'><i>:label</i></a>: <b>:balance (:percent%)</b>\n",
                 'dex_lock_stake' => "DEX/LOCK/STAKE?",
             ],
             'volume' => [
                 'text' => "
-<b>:name | $:symbol</b>
-
-<b>Объем</b>
-
+				
+📊 <b>VOLUME</b> <b>$:symbol</b>	
+				
 :pools
+
 ",
                 'pool' => "<a href=':link'>:name</a>
-<i>Цена:</i> <b>$:price</b>
-<i>Объем</i> <i>(5м): </i> <b>$:volume_m5</b> <i>(1ч): </i> <b>$:volume_h1</b> <i>(6ч): </i> <b>$:volume_h6</b> <i>(24ч): </i> <b>$:volume_h24</b>
-<i>Покупки</i> <i>(5м): </i> <b>:buys_m5</b> <i>(1ч): </i> <b>:buys_h1</b> <i>(6ч): </i> <b>:buys_h6</b> <i>(24ч): </i> <b>:buys_h24</b>
-<i>Продажи</i> <i>(5м): </i> <b>:sells_m5</b> <i>(1ч): </i> <b>:sells_h1</b> <i>(6ч): </i> <b>:sells_h6</b> <i>(24ч): </i> <b>:sells_h24</b>
-<i>Пул создан:</i> <b>:created_at</b>
+🔈 <u><i>Vol</i></u>
+├<i>(5m): </i> <b>$:volume_m5</b> 
+├<i>(1h): </i> <b>$:volume_h1</b> 
+├<i>(6h): </i> <b>$:volume_h6</b> 
+└<i>(24h): </i> <b>$:volume_h24</b>
+🔼 <u><i>Bought</i></u>
+├<i>(5m): </i> <b>:buys_m5</b> 
+├<i>(1h): </i> <b>:buys_h1</b> 
+├<i>(6h): </i> <b>:buys_h6</b> 
+└<i>(24h): </i> <b>:buys_h24</b>
+🔽 <u><i>Sold</i></u>
+├<i>(5m): </i> <b>:sells_m5</b> 
+├<i>(1h): </i> <b>:sells_h1</b> 
+├<i>(6h): </i> <b>:sells_h6</b> 
+└<i>(24h): </i> <b>:sells_h24</b>
+
 ",
             ],
+        ],
+        'profile' => [
+            'main' => "
+<b>Language</b>: <i>:language</i>
+",
         ],
     ],
     'errors' => [
         'address' => [
-            'invalid' => "Неверный CA",
-            'empty' => "По данному CA ничего не найдено",
+            'invalid' => "Wrong adress",
+            'empty' => "Nohing found",
         ],
         'scan' => [
-            'metadata' => "Невозможно получить информацию по токену :address. Попробуйте позже",
-            'simulator' => "Невозможно произвести проверки по токену :address. Попробуйте позже",
+            'metadata' => "Can't scan :address. Please try later",
+            'simulator' => "Can't scan :address. Please try later",
         ],
     ],
     'buttons' => [
-        'ru' => "🇷🇺 Русский",
-        'en' => "🇺🇸 English",
+        'ru' => "🇷🇺 RUS",
+        'en' => "🇺🇸 ENG",
 
-        'back' => "Назад",
-        'agree' => "Согласен",
+        'back' => "Back",
+        'cancel' => "Cancel",
+        'agree' => "🤝 Agreed",
 
         'token_scanner' => "🔎 Token Scanner",
         'wallet_tracker' => "👀 Wallet Tracker",
         'black_box' => "🗃 Black Box",
         'check_wallet' => "🚨 Check My Wallet",
-        'academy' => "📚 The Academy",
+        'academy' => "📚 Academy",
         'gpt' => "💡 GPTo",
-        'profile' => "⚙️ Profile",
+        'profile' => "⚙️ My profile",
 
-        'report' => "Main", // Главная в отчете
-        'chart' => "Chart",
-        'holders' => "Holders",
-        'volume' => "Volume",
-        'like' => "❤️",
-        'dislike' => "💩",
-        'to_scanner' => "To Scanner",
-        'to_home' => "Home",
+        'report' => "ℹ️", // Главная в отчете
+        'chart' => "📈",
+        'holders' => "👨‍👦‍👦",
+        'volume' => "📊",
+        'like' => "👍",
+        'dislike' => "👎",
+        'to_scanner' => "🔎",
+        'to_home' => "🏠",
+
+        'simulation_on' => "Симуляция: вкл",
+        'simulation_off' => "Симуляция: выкл",
     ],
 ];

@@ -72,7 +72,7 @@ export async function simulateDedust(chain, master, simulator, jettonWallet, buy
         return {
             pool: pool.address,
             buy: buyResult,
-            sell: null,
+            sell: -1,
             transfer: transferResult,
         };
 

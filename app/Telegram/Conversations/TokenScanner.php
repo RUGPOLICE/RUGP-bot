@@ -3,9 +3,9 @@
 namespace App\Telegram\Conversations;
 
 use App\Jobs\ScanToken;
-use App\Models\Pending;
 use App\Models\Token;
 use App\Services\DexScreenerService;
+use App\Telegram\Handlers\TokenReportHandler;
 use App\Telegram\Middleware\SpamProtection;
 use Illuminate\Support\Facades\App;
 use SergiX44\Nutgram\Conversations\InlineMenu;
@@ -14,13 +14,15 @@ use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 
 class TokenScanner extends InlineMenu
 {
-    public function start(Nutgram $bot): void
+    public function start(Nutgram $bot, string $referrer): void
     {
+        $btn = match ($referrer) {
+            Home::class => InlineKeyboardButton::make(__('telegram.buttons.back'), callback_data: 'back@menu'),
+            TokenReportHandler::class => InlineKeyboardButton::make(__('telegram.buttons.cancel'), callback_data: 'close@menu'),
+        };
+
         $this->menuText(__('telegram.text.token_scanner.main'))
-            ->addButtonRow(
-                InlineKeyboardButton::make(__('telegram.buttons.back'), callback_data: 'back@menu'),
-                InlineKeyboardButton::make(__('telegram.buttons.profile'), callback_data: 'profile@menu'),
-            )
+            ->addButtonRow($btn)
             ->orNext('handle')
             ->showMenu();
     }
@@ -68,14 +70,7 @@ class TokenScanner extends InlineMenu
         $this->showMenu();
 
         $token = Token::query()->firstOrCreate(['address' => $address]);
-
-        $pending = new Pending;
-        $pending->account()->associate($account);
-        $pending->token()->associate($token);
-        $pending->message_id = $message_id;
-        $pending->save();
-
-        ScanToken::dispatch($token);
+        ScanToken::dispatch($token, $account, $message_id);
     }
 
     private function restartWithMessage(Nutgram $bot, string $message): void

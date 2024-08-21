@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Services\DexScreenerService;
 use Illuminate\Database\Eloquent\Casts\AsCollection;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\App;
 
 /**
  * @property integer $id
@@ -54,6 +56,8 @@ class Token extends Model
             'holders' => AsCollection::class,
             'websites' => 'array',
             'socials' => 'array',
+            'is_known_master' => 'boolean',
+            'is_known_wallet' => 'boolean',
         ];
     }
 
@@ -87,11 +91,6 @@ class Token extends Model
         return $this->hasMany(Pool::class);
     }
 
-    public function pendings(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Pending::class);
-    }
-
     public function reactions(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Reaction::class);
@@ -101,5 +100,20 @@ class Token extends Model
     public function isRevoked(): Attribute
     {
         return Attribute::make(get: fn (?string $value, array $attributes) => $this->owner === '0:0000000000000000000000000000000000000000000000000000000000000000');
+    }
+
+
+    public static function getAddress(string $address): array
+    {
+        if (mb_strlen($address) < 48)
+            return ['success' => false, 'error' => __('telegram.errors.address.invalid')];
+
+        $service = App::make(DexScreenerService::class);
+        $address = $service->getTokenAddressByPoolAddress($address);
+
+        if (!$address)
+            return ['success' => false, 'error' => __('telegram.errors.address.empty')];
+
+        return ['success' => true, 'address' => $address];
     }
 }

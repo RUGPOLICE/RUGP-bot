@@ -39,10 +39,11 @@ class Account extends Model
 
         $table->string('telegram_id')->unique();
         $table->string('telegram_username')->nullable();
-        $table->string('language')->default(Language::RU->value);
 
         $table->boolean('is_shown_language')->default(false);
         $table->boolean('is_shown_rules')->default(false);
+
+        $table->string('language')->default(Language::RU->value);
     }
 
 
