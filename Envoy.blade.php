@@ -15,6 +15,7 @@
     update_symlinks
     optimize
     restart_workers
+    change_owner
 @endstory
 
 @task('clone_repository')
@@ -61,5 +62,9 @@
 
 @task('restart_workers')
     sudo supervisorctl restart rugp-production:*
+@endtask
+
+@task('change_owner')
+    chown -R rugp_user:rugp_user {{ $new_release_dir }}
 @endtask
 
