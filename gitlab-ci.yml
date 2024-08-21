@@ -1,0 +1,23 @@
+default:
+  image: registry.gitlab.com/wanord/rugp:latest
+
+stages:
+  - deploy
+
+deploy_production:
+  stage: deploy
+  script:
+    - cp .env.example .env
+    - composer install
+    - php artisan key:generate
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - php vendor/bin/envoy run deploy --commit="$CI_COMMIT_SHA"
+  environment:
+    name: production
+    url: https://rugp.app
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
