@@ -22,4 +22,12 @@ enum Lock: int
             self::TONINU => 'Ton Inu',
         };
     }
+
+    public static function link(self $lock, string $address): string
+    {
+        return match ($lock) {
+            self::RAFFLE => "https://tonraffles.app/lock/$address",
+            self::TONINU => "https://app.toninu.tech/locker/$address",
+        };
+    }
 }

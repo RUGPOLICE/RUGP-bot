@@ -6,7 +6,9 @@ use App\Enums\Dex;
 use App\Enums\Lock;
 use App\Enums\Reaction;
 use App\Models\Token;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
 
 class TokenReportService
@@ -16,13 +18,33 @@ class TokenReportService
         $pools = [];
         $links = [];
 
+        $honeypot = $token->pools()->where('tax_sell', '<', 0)->exists();
+        $lp_burned_warning = $token->pools()
+            ->where(function (Builder $query) {
+                $query->whereNull('burned_percent');
+                $query->orWhere('burned_percent', '<', 99);
+                $query->orWhere(function (Builder $query) {
+                    $query->where('burned_percent', '<', 99);
+                    $query->whereNull('locked_percent');
+                    $query->orWhere(function (Builder $query) {
+                        $query->where('locked_percent', '<', 99);
+                        $query->where('unlocks_at', '>', now());
+                    });
+                });
+            })
+            ->exists();
+
+        $holders = $token->holders->slice(0, 10)->filter(fn ($holder) => str_contains($holder['name'], 'MEXC') || str_contains($holder['name'], 'Bybit') || str_contains($holder['name'], 'OKX'))->count();
+        $low_pools = $token->pools()->where('h24_volume', '<', 10000)->exists();
+        $rugpull_warning = $low_pools && $holders && !$honeypot;
+
         foreach ($token->pools as $pool) {
 
             $burned_percent = number_format($pool->burned_percent ?? 0.0, 2);
             $locked_percent = number_format($pool->locked_percent ?? 0.0, 2);
             $type = Lock::verbose($pool->locked_type ?? Lock::RAFFLE);
-            $dyor = $pool->locked_dyor ? '/ more locks! DYOR' : '';
-            $unlocks = $pool->unlocks_at ? "(до {$pool->unlocks_at->format('d M Y')})" : '';
+            $dyor = $pool->locked_dyor ? __('telegram.text.token_scanner.report.lp_locked.dyor') : '';
+            $unlocks = $pool->unlocks_at ? __('telegram.text.token_scanner.report.lp_locked.unlocks', ['value' => $pool->unlocks_at->translatedFormat('d M Y')]) : '';
 
             if ($pool->tax_buy === null) $tax_buy = __('telegram.text.token_scanner.report.tax_buy.unknown');
             else if ($pool->tax_buy < 0) $tax_buy = __('telegram.text.token_scanner.report.tax_buy.no');
@@ -40,8 +62,8 @@ class TokenReportService
                 'link' => Dex::link($pool->dex, $pool->address),
                 'name' => Dex::verbose($pool->dex),
                 'price' => $pool->price_formatted,
-                'lp_burned' => __('telegram.text.token_scanner.report.lp_burned.' . ($pool->burned_amount ? 'yes' : 'no'), ['value' => $burned_percent]),
-                'lp_locked' => __('telegram.text.token_scanner.report.lp_locked.' . ($pool->locked_amount ? 'yes' : 'no'), ['value' => $locked_percent, 'type' => $type, 'unlocks' => $unlocks, 'dyor' => $dyor]),
+                'lp_burned' => $honeypot ? '' : __('telegram.text.token_scanner.report.lp_burned.' . ($pool->burned_amount ? 'yes' : 'no'), ['value' => $burned_percent]),
+                'lp_locked' => $honeypot ? '' : __('telegram.text.token_scanner.report.lp_locked.' . ($pool->burned_percent > 99 ? 'burned' : ($pool->locked_amount ? 'yes' : 'no')), ['value' => $locked_percent, 'type' => $type, 'unlocks' => $unlocks, 'dyor' => $dyor, 'link' => $pool->locked_type ? Lock::link($pool->locked_type, $pool->address) : null]),
                 'tax_buy' => $tax_buy,
                 'tax_sell' => $tax_sell,
             ]);
@@ -59,11 +81,15 @@ class TokenReportService
             'text' => __('telegram.text.token_scanner.report.text', [
                 'name' => $token->name,
                 'symbol' => $token->symbol,
-                'description' => $token->description,
+                'address' => $token->address,
+                'description' => $token->description_formatted,
                 'supply' => number_format($token->supply ?? 0),
                 'holders_count' => number_format($token->holders_count ?? 0),
                 'pools' => implode('', $pools),
-                'links' => implode('', $links),
+                'lp_burned_warning' => $lp_burned_warning ? __('telegram.text.token_scanner.report.lp_burned.warning') : '',
+                'rugpull_warning' => $rugpull_warning ? __('telegram.text.token_scanner.report.rugpull') : '',
+                'has_links' => $links ? __('telegram.text.token_scanner.report.has_links') : '',
+                'links' => $links ? (implode('', $links) . "\n") : '',
                 'is_known_master' => __('telegram.text.token_scanner.report.is_known_master.' . ($token->is_known_master ? 'yes' : 'no')),
                 'is_known_wallet' => __('telegram.text.token_scanner.report.is_known_wallet.' . ($token->is_known_wallet ? 'yes' : 'no')),
                 'is_revoked' => __('telegram.text.token_scanner.report.is_revoked.' . ($token->is_revoked ? 'yes' : 'no')),
@@ -111,12 +137,33 @@ class TokenReportService
                 'percent' => number_format($holder['percent'], 2),
             ]);
 
+        $pools = [];
+        foreach ($token->pools as $pool) {
+
+            $poolHolders = [];
+            foreach ($pool->holders ?? [] as $holder)
+                $poolHolders[] = __('telegram.text.token_scanner.holders.holder', [
+                    'address' => $holder['address'],
+                    'label' => $holder['name'] ?? mb_strcut($holder['address'], 0, 5) . '...' . mb_strcut($holder['address'], -5),
+                    'balance' => number_format($holder['balance'], 2),
+                    'percent' => number_format($holder['percent'], 2),
+                ]);
+
+            if ($pool->holders)
+                $pools[] = __('telegram.text.token_scanner.holders.pool', [
+                    'name' => Dex::verbose($pool->dex),
+                    'holders' => implode('', $poolHolders),
+                ]);
+
+        }
+
         return [
             'image' => $this->getHoldersChartUrl($token),
             'text' => __('telegram.text.token_scanner.holders.text', [
                 'name' => $token->name,
                 'symbol' => $token->symbol,
                 'holders' => implode('', $holders),
+                'pools' => implode('', $pools),
             ]),
         ];
     }
@@ -169,19 +216,22 @@ class TokenReportService
         $geckoService = app(GeckoTerminalService::class);
         $prices = [];
 
+        $is_new = $token->pools->map(fn ($pool) => $pool->created_at >= now()->subWeeks(2))->contains(true);
         foreach ($token->pools as $pool) {
 
-            $price = $geckoService->getOhlcv($pool->address);
+            $price = $geckoService->getOhlcv($pool->address, $is_new);
             $prices[] = implode(':', [
                 Dex::verbose($pool->dex),
-                implode(',', array_map(fn ($item) => Carbon::createFromTimestamp($item['timestamp'])->format('d.m.Y'), $price)),
+                implode(',', array_map(fn ($item) => Carbon::createFromTimestamp($item['timestamp'])->format('d.m.Y.H.i'), $price)),
                 implode(',', array_map(fn ($item) => $item['close'], $price)),
             ]);
 
         }
 
         $prices = implode(' ', $prices);
-        Process::path(base_path('utils/charts'))->run("python3 line.py $path $prices");
+        $is_new = intval($is_new);
+
+        Process::path(base_path('utils/charts'))->run("python3 line.py $path $is_new $prices");
         return $path;
     }
 
@@ -191,19 +241,22 @@ class TokenReportService
         $geckoService = app(GeckoTerminalService::class);
         $prices = [];
 
+        $is_new = $token->pools->map(fn ($pool) => $pool->created_at >= now()->subWeeks(2))->contains(true);
         foreach ($token->pools as $pool) {
 
-            $price = $geckoService->getOhlcv($pool->address);
+            $price = $geckoService->getOhlcv($pool->address, $is_new);
             $prices[] = implode(':', [
                 Dex::verbose($pool->dex),
-                implode(',', array_map(fn ($item) => Carbon::createFromTimestamp($item['timestamp'])->format('d.m.Y'), $price)),
+                implode(',', array_map(fn ($item) => Carbon::createFromTimestamp($item['timestamp'])->format('d.m.Y.H.i'), $price)),
                 implode(',', array_map(fn ($item) => $item['volume'], $price)),
             ]);
 
         }
 
         $prices = implode(' ', $prices);
-        Process::path(base_path('utils/charts'))->run("python3 bar.py $path $prices");
+        $is_new = intval($is_new);
+
+        Process::path(base_path('utils/charts'))->run("python3 bar.py $path $is_new $prices");
         return $path;
     }
 }

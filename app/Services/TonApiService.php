@@ -24,9 +24,9 @@ class TonApiService
         return $response;
     }
 
-    public function getJettonHolders(string $address): ?array
+    public function getJettonHolders(string $address, int $limit = 20): ?array
     {
-        $response = $this->get("/jettons/$address/holders", ['limit' => 20])->json();
+        $response = $this->get("/jettons/$address/holders", ['limit' => $limit])->json();
         if (isset($response['error']))
             return null;
 

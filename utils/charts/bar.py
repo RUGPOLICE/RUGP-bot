@@ -25,11 +25,11 @@ def formatter(x, pos):
 
 
 pools = []
-for pool in sys.argv[2:]:
+for pool in sys.argv[3:]:
     name, dates, prices = pool.split(':')
     pools.append({
         'name': name,
-        'date': list(map(lambda x: datetime.strptime(x, '%d.%m.%Y'), dates.split(','))),
+        'date': list(map(lambda x: datetime.strptime(x, '%d.%m.%Y.%H.%M'), dates.split(','))),
         'price': list(map(float, prices.split(','))),
     })
 
@@ -42,8 +42,13 @@ for i, ax in enumerate(axs):
     ax.grid(True)
     ax.set_ylabel(pools[i]['name'])
 
-    ax.xaxis.set_major_locator(dts.DayLocator(bymonthday=range(1, 31, 3)))
-    ax.xaxis.set_major_formatter(dts.DateFormatter('%d'))
+    if int(sys.argv[2]):
+        ax.xaxis.set_major_locator(dts.HourLocator(byhour=range(1, 24, 3)))
+        ax.xaxis.set_major_formatter(dts.DateFormatter('%H'))
+
+    else:
+        ax.xaxis.set_major_locator(dts.DayLocator(bymonthday=range(1, 31, 3)))
+        ax.xaxis.set_major_formatter(dts.DateFormatter('%d'))
 
     ax.yaxis.set_major_locator(ticker.MaxNLocator(10))
     ax.yaxis.set_major_formatter(formatter)

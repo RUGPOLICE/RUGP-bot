@@ -55,9 +55,10 @@ class GeckoTerminalService
         }
     }
 
-    public function getOhlcv(string $pool): ?array
+    public function getOhlcv(string $pool, bool $is_new): ?array
     {
-        $response = $this->get("/networks/ton/pools/$pool/ohlcv/day", ['limit' => 50]);
+        $frame = $is_new ? 'hour' : 'day';
+        $response = $this->get("/networks/ton/pools/$pool/ohlcv/$frame", ['limit' => 50]);
         if (!isset($response->json()['data'])) return null;
 
         return array_map(fn ($item) => [

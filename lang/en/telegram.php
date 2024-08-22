@@ -21,7 +21,7 @@ By using this Telegram bot, you confirm and agree that the use of the bot is at 
 <b>💡 GPT</b> - <code>Free GPT.</code>
 
 
-   <a href='http://rugo.io'>WEB</a>    |    <a href='t.me/rugp_ton'>Telegram</a>    |     <a href='https://x.com/rugp_ton'>Twitter</a>     
+   <a href='http://rugo.io'>WEB</a>    |    <a href='t.me/rugp_ton'>Telegram</a>    |     <a href='https://x.com/rugp_ton'>Twitter</a>
 
 ",
         'token_scanner' => [
@@ -47,25 +47,23 @@ By using this Telegram bot, you confirm and agree that the use of the bot is at 
 
 🔄 <u><b>DEX's:</b> </u>
 :pools
-
-<u><b>Socials:</b></u>
-:links
-
+:rugpull_warning:lp_burned_warning:has_links:links
 <u><b>Community trust:</b></u>
 👍 <b>:likes_count</b> / <b>:dislikes_count</b> 👎
 
 Click 🔎 for new scan.
 
 ",
-                'pool' => "				
+                'pool' => "
 <i><b>:name</b></i>:
 ├💵 Цена: <b>$:price</b>
-:lp_burned
-:lp_locked
+:lp_burned:lp_locked
 :tax_buy
 :tax_sell
 ",
                 'link' => "<a href=':url'><b>:Label</b></a> ",
+                'has_links' => "\n<u><b>Соцсети:</b></u>\n",
+                'rugpull' => "RUGPULL\n",
                 'is_known_master' => [
                     'yes' => "✅ VERIFIED MASTER",
                     'no' => "⚠️ NON-STANDARD MASTER",
@@ -81,10 +79,18 @@ Click 🔎 for new scan.
                 'lp_burned' => [
                     'yes' => "├✅  <i>LP burned</i>: <b>:value%</b>",
                     'no' => "├⚠️ <i>LP not burned</i>  ",
+                    'warning' => "⚠️ Не вся LP сожжена или меньше 99% заблокировано.
+- Если проект недавно запустился, такое может быть.
+- Возможна не стандартная механика.
+- Подробнее можно посмотреть в  👨‍👦‍👦 холдерах.
+- DYOR
+"
                 ],
                 'lp_locked' => [
-                    'yes' => "├🔒 <i>LP locked</i>: <b>:value% :type :unlocks <i>:dyor</i></b>",
-                    'no' => "├🔒 <i>LP locked</i>: <b>0%</b>",
+                    'yes' => "\n├🔒 <i>LP locked</i>: <b>:value% :type :unlocks <i>:dyor</i></b>",
+                    'no' => "\n├🔒 <i>LP locked</i>: <b>0%</b>",
+                    'burned' => "",
+                    'dyor' => "/ more locks! DYOR",
                 ],
                 'tax_buy' => [
                     'unknown' => "<i>🤷‍♂️ Failed to check jetton</i>",
@@ -96,7 +102,7 @@ Click 🔎 for new scan.
                 'tax_sell' => [
                     'unknown' => "└<i>🤷‍♂️ Failed to check jetton</i>",
                     'no' => "
-<b>CAN'T SELL JETTON</b> 
+<b>CAN'T SELL JETTON</b>
 
 ‼️HONEYPOT‼️SCAM‼️",
                     'ok' => "└<i>✅ Sell tax</i>: <b>No</b>",
@@ -106,7 +112,7 @@ Click 🔎 for new scan.
             ],
             'chart' => [
                 'text' => "
-				
+
 📈 <b>CHART</b> <b>$:symbol</b>
 
 :pools
@@ -121,14 +127,14 @@ Click 🔎 for new scan.
 ├<i>(1h):</i> <b>:price_change_h1%</b>
 ├<i>(6h):</i> <b>:price_change_h6%</b>
 └<i>(24h):</i> <b>:price_change_h24%</b>
- 
+
 <i>Pool created:</i> <b>:created_at</b>
 ",
             ],
             'holders' => [
                 'text' => "
-👨‍👦‍👦 <b>HOLDERS</b> <b>$:symbol</b>		
-				
+👨‍👦‍👦 <b>HOLDERS</b> <b>$:symbol</b>
+
 :holders
 
 ",
@@ -137,27 +143,27 @@ Click 🔎 for new scan.
             ],
             'volume' => [
                 'text' => "
-				
-📊 <b>VOLUME</b> <b>$:symbol</b>	
-				
+
+📊 <b>VOLUME</b> <b>$:symbol</b>
+
 :pools
 
 ",
                 'pool' => "<a href=':link'>:name</a>
 🔈 <u><i>Vol</i></u>
-├<i>(5m): </i> <b>$:volume_m5</b> 
-├<i>(1h): </i> <b>$:volume_h1</b> 
-├<i>(6h): </i> <b>$:volume_h6</b> 
+├<i>(5m): </i> <b>$:volume_m5</b>
+├<i>(1h): </i> <b>$:volume_h1</b>
+├<i>(6h): </i> <b>$:volume_h6</b>
 └<i>(24h): </i> <b>$:volume_h24</b>
 🔼 <u><i>Bought</i></u>
-├<i>(5m): </i> <b>:buys_m5</b> 
-├<i>(1h): </i> <b>:buys_h1</b> 
-├<i>(6h): </i> <b>:buys_h6</b> 
+├<i>(5m): </i> <b>:buys_m5</b>
+├<i>(1h): </i> <b>:buys_h1</b>
+├<i>(6h): </i> <b>:buys_h6</b>
 └<i>(24h): </i> <b>:buys_h24</b>
 🔽 <u><i>Sold</i></u>
-├<i>(5m): </i> <b>:sells_m5</b> 
-├<i>(1h): </i> <b>:sells_h1</b> 
-├<i>(6h): </i> <b>:sells_h6</b> 
+├<i>(5m): </i> <b>:sells_m5</b>
+├<i>(1h): </i> <b>:sells_h1</b>
+├<i>(6h): </i> <b>:sells_h6</b>
 └<i>(24h): </i> <b>:sells_h24</b>
 
 ",

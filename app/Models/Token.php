@@ -30,6 +30,8 @@ use Illuminate\Support\Facades\App;
  * @property boolean $is_known_wallet
  * @property boolean $is_revoked
  *
+ * @property string $description_formatted
+ *
  * @property Pool[] $pools
  */
 class Token extends Model
@@ -96,6 +98,11 @@ class Token extends Model
         return $this->hasMany(Reaction::class);
     }
 
+
+    public function descriptionFormatted(): Attribute
+    {
+        return Attribute::make(get: fn (?string $value, array $attributes) => mb_strcut($this->description, 0, 150) . (mb_strlen($this->description) > 150 ? '...' : ''));
+    }
 
     public function isRevoked(): Attribute
     {

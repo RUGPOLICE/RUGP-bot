@@ -51,9 +51,11 @@ class TokenScanner extends InlineMenu
 
         }
 
-        $start = mb_strpos($address, 'pools/') ? mb_strpos($address, 'pools/') + 6 : 0;
-        $end = mb_strpos($address, '?') ?: mb_strlen($address);
-        $address = mb_substr($address, $start, $end - $start);
+        $address = explode('/', $address);
+        $address = $address[count($address) - 1];
+
+        if (mb_strpos($address, '?') !== false)
+            $address = mb_substr($address, 0, mb_strpos($address, '?'));
 
         $service = App::make(DexScreenerService::class);
         $address = $service->getTokenAddressByPoolAddress($address);

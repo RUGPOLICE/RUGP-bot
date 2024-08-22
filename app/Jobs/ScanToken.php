@@ -15,6 +15,7 @@ use App\Telegram\Handlers\TokenReportHandler;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
 use SergiX44\Nutgram\Nutgram;
@@ -31,15 +32,17 @@ class ScanToken implements ShouldQueue
 
             $this->updatePools($dexScreenerService);
 
-            if (!$this->token->is_scanned)
+            if (!$this->token->is_scanned) {
+
                 $this->updateMetadata($tonApiService);
+                $this->token->is_scanned = true;
+                $this->token->save();
+
+            }
 
             $dex = implode(',', $this->token->pools()->whereNull('tax_buy')->orWhereNull('tax_sell')->get()->pluck('dex')->map(fn (Dex $dex) => $dex->value)->all());
-            if (!$this->token->is_scanned || !$this->token->is_revoked || $dex)
-                $this->simulateTransactions($dex ?: implode(',', Dex::all()));
-
-            $this->token->is_scanned = true;
-            $this->token->save();
+            if (!$this->token->is_revoked || $dex)
+                $this->simulateTransactions($dex);
 
         } catch (ScanningError $e) {
 
@@ -49,6 +52,7 @@ class ScanToken implements ShouldQueue
         }
 
         $this->updateHolders($tonApiService);
+        $this->updatePoolsHolders($this->token->pools, $tonApiService);
 
         foreach ($this->token->pools as $pool)
             $this->checkBurnLock($tonApiService, $tonHubService, $pool);
@@ -100,6 +104,30 @@ class ScanToken implements ShouldQueue
                 'percent' => $this->token->supply ? ($a['balance'] / 1000000000 * 100 / $this->token->supply) : 0,
             ], $tokenHolders);
             $this->token->save();
+
+        }
+    }
+
+    private function updatePoolsHolders($pools, TonApiService $tonApiService): void
+    {
+        foreach ($pools as $pool) {
+
+            $poolHolders = $tonApiService->getJettonHolders($pool->address, 4);
+            if ($poolHolders) {
+
+                $holderAddresses = implode(',', array_map(fn ($a) => $a['address'], $poolHolders));
+                $result = Process::path(base_path('utils/scanner'))->run("node --no-warnings src/convert.js $holderAddresses");
+                $holderAddresses = json_decode($result->output())->addresses;
+
+                $pool->holders = array_map(fn ($a) => [
+                    'address' => $holderAddresses->{$a['address']},
+                    'balance' => $a['balance'] / 1000000000,
+                    'name' => $a['owner']['name'] ?? (!$a['owner']['is_wallet'] ? __('telegram.text.token_scanner.holders.dex_lock_stake') : null),
+                    'percent' => $pool->supply ? ($a['balance'] / 1000000000 * 100 / $pool->supply) : 0,
+                ], $poolHolders);
+                $pool->save();
+
+            }
 
         }
     }
@@ -158,8 +186,9 @@ class ScanToken implements ShouldQueue
                         $lockedAmount = $lockInfo['locked_amount'] / 1000000000;
                         $lockedPercent = $lockInfo['locked_amount'] / $poolMetadata['total_supply'] * 100;
 
+                        $time = Carbon::createFromTimestamp($lockInfo['unlocks_at']);
                         $pool->locked_type = Lock::RAFFLE;
-                        $pool->unlocks_at = Carbon::createFromTimestamp($lockInfo['unlocks_at']);
+                        $pool->unlocks_at = $time > now()->addYears(5) ? now()->addYears(5) : $time;
 
                     }
 
@@ -198,8 +227,12 @@ class ScanToken implements ShouldQueue
     {
         try {
 
-            if ($this->account)
+            if ($this->account) {
+
+                App::setLocale($this->account->language->value);
                 (new TokenReportHandler)->main($bot, $this->token, $this->account->telegram_id, $this->message_id);
+
+            }
 
         } catch (\Throwable $e) {
 
@@ -212,8 +245,12 @@ class ScanToken implements ShouldQueue
     {
         try {
 
-            if ($this->account)
+            if ($this->account) {
+
+                App::setLocale($this->account->language->value);
                 (new TokenReportHandler)->error($bot, $message, $this->account->telegram_id, $this->message_id);
+
+            }
 
         } catch (\Throwable $e) {
 

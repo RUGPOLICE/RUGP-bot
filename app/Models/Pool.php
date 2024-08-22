@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\Dex;
 use App\Enums\Lock;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Casts\AsCollection;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,6 +16,7 @@ use Illuminate\Database\Schema\Blueprint;
  * @property Carbon $created_at
  * @property string $address
  * @property Dex $dex
+ * @property array $holders
  * @property integer $supply
  * @property float $price
  * @property float $fdv
@@ -55,6 +57,7 @@ class Pool extends Model
     protected $fillable = [
         'address',
         'dex',
+        'holders',
         'supply',
         'price',
         'fdv',
@@ -93,6 +96,7 @@ class Pool extends Model
     {
         return [
             'dex' => Dex::class,
+            'holders' => AsCollection::class,
             'locked_type' => Lock::class,
             'unlocks_at' => 'datetime',
         ];
@@ -107,6 +111,7 @@ class Pool extends Model
 
         $table->string('address')->unique();
         $table->string('dex');
+        $table->json('holders')->nullable();
 
         $table->bigInteger('supply')->nullable();
         $table->double('price')->nullable();
@@ -157,7 +162,7 @@ class Pool extends Model
         return Attribute::make(
             get: function (?float $price) {
                 $price = number_format($this->price, 20);
-                return mb_substr($price, 0, mb_strpos($price, '00000') ?: mb_strlen($price));
+                return mb_strcut($price, 0, mb_strpos($price, '.') + 12);
             },
         );
     }

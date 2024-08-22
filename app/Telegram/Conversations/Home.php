@@ -2,16 +2,22 @@
 
 namespace App\Telegram\Conversations;
 
+use App\Models\Token;
+use App\Telegram\Handlers\TokenReportHandler;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Log;
 use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 
 class Home extends ImagedInlineMenu
 {
-    public function start(Nutgram $bot): void
+    public function start(Nutgram $bot, ?string $params = null): void
     {
         if ($bot->message()->text === '/start')
             $bot->deleteMessage($bot->chatId(), $bot->messageId());
+
+        if ($params && $this->resolveParameters($bot, $params))
+            return;
 
         $account = $bot->get('account');
 
@@ -112,7 +118,22 @@ class Home extends ImagedInlineMenu
         $this->end();
         match ($bot->callbackQuery()->data) {
             'token_scanner' => TokenScanner::begin($bot, data: ['referrer' => Home::class]),
+            'wallet_tracker', 'black_box', 'check_wallet', 'academy', 'gpt' => Home::begin($bot),
             'profile' => Profile::begin($bot),
         };
+    }
+
+
+    private function resolveParameters(Nutgram $bot, string $params): bool
+    {
+        $params = explode('_', $params, 2);
+        if (count($params) > 1 && $params[0] === 'r' && ($token = Token::query()->where('address', $params[1])->first())) {
+
+            (new TokenReportHandler)->report($bot, $token, 'main', $bot->chatId(), $bot->messageId());
+            return true;
+
+        }
+
+        return false;
     }
 }
