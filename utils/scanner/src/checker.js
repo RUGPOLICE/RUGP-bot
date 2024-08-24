@@ -6,8 +6,11 @@ import { simulateActions } from './simulation/simulation.js';
 
 export async function checkForHoneypot(address, dex) {
 
-    const client = new TonClient({ endpoint: await getHttpEndpoint({ network: 'mainnet' }) });
-    const clientV4 = new TonClient4({ endpoint: await getHttpV4Endpoint({ network: 'mainnet' }) });
+    // const client = new TonClient({ endpoint: await getHttpEndpoint({ network: 'mainnet' }) });
+    // const clientV4 = new TonClient4({ endpoint: await getHttpV4Endpoint({ network: 'mainnet' }) });
+
+    const client = new TonClient({ endpoint: 'https://toncenter.com/api/v2/jsonRPC' });
+    const clientV4 = new TonClient4({ endpoint: 'https://mainnet-v4.tonhubapi.com' });
 
     const state = await client.getContractState(address);
     if (state.code === null)

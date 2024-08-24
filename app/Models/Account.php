@@ -14,6 +14,7 @@ use Illuminate\Notifications\Notifiable;
  * @property Language $language
  * @property boolean $is_shown_language
  * @property boolean $is_shown_rules
+ * @property boolean $is_hide_warnings
  */
 class Account extends Model
 {
@@ -28,6 +29,7 @@ class Account extends Model
     {
         return [
             'language' => Language::class,
+            'is_hide_warnings' => 'boolean',
         ];
     }
 
@@ -43,7 +45,8 @@ class Account extends Model
         $table->boolean('is_shown_language')->default(false);
         $table->boolean('is_shown_rules')->default(false);
 
-        $table->string('language')->default(Language::RU->value);
+        $table->string('language')->default(Language::EN->value);
+        $table->boolean('is_hide_warnings')->default(false);
     }
 
 

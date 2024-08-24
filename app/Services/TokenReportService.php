@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\Dex;
 use App\Enums\Lock;
 use App\Enums\Reaction;
+use App\Models\Account;
 use App\Models\Token;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -13,7 +14,7 @@ use Illuminate\Support\Facades\Process;
 
 class TokenReportService
 {
-    public function main(Token $token): array
+    public function main(Token $token, ?Account $account = null): array
     {
         $pools = [];
         $links = [];
@@ -32,9 +33,9 @@ class TokenReportService
                     });
                 });
             })
-            ->exists();
+            ->exists() && !$honeypot;
 
-        $holders = $token->holders->slice(0, 10)->filter(fn ($holder) => str_contains($holder['name'], 'MEXC') || str_contains($holder['name'], 'Bybit') || str_contains($holder['name'], 'OKX'))->count();
+        $holders = $token->holders?->slice(0, 10)->filter(fn ($holder) => str_contains($holder['name'], 'MEXC') || str_contains($holder['name'], 'Bybit') || str_contains($holder['name'], 'OKX'))->count();
         $low_pools = $token->pools()->where('h24_volume', '<', 10000)->exists();
         $rugpull_warning = $low_pools && $holders && !$honeypot;
 
@@ -86,20 +87,21 @@ class TokenReportService
                 'supply' => number_format($token->supply ?? 0),
                 'holders_count' => number_format($token->holders_count ?? 0),
                 'pools' => implode('', $pools),
-                'lp_burned_warning' => $lp_burned_warning ? __('telegram.text.token_scanner.report.lp_burned.warning') : '',
+                'lp_burned_warning' => ($lp_burned_warning && !$account->is_hide_warnings) ? __('telegram.text.token_scanner.report.lp_burned.warning') : '',
                 'rugpull_warning' => $rugpull_warning ? __('telegram.text.token_scanner.report.rugpull') : '',
                 'has_links' => $links ? __('telegram.text.token_scanner.report.has_links') : '',
                 'links' => $links ? (implode('', $links) . "\n") : '',
                 'is_known_master' => __('telegram.text.token_scanner.report.is_known_master.' . ($token->is_known_master ? 'yes' : 'no')),
                 'is_known_wallet' => __('telegram.text.token_scanner.report.is_known_wallet.' . ($token->is_known_wallet ? 'yes' : 'no')),
                 'is_revoked' => __('telegram.text.token_scanner.report.is_revoked.' . ($token->is_revoked ? 'yes' : 'no')),
+                'is_revoked_warning' => $account->is_hide_warnings ? '' : __('telegram.text.token_scanner.report.is_revoked_warning.' . ($token->is_revoked ? 'yes' : 'no')),
                 'likes_count' => $token->reactions()->where('type', Reaction::LIKE)->count(),
                 'dislikes_count' => $token->reactions()->where('type', Reaction::DISLIKE)->count(),
             ]),
         ];
     }
 
-    public function chart(Token $token): array
+    public function chart(Token $token, ?Account $account = null): array
     {
         $pools = [];
         foreach ($token->pools as $pool)
@@ -126,10 +128,10 @@ class TokenReportService
         ];
     }
 
-    public function holders(Token $token): array
+    public function holders(Token $token, ?Account $account = null): array
     {
         $holders = [];
-        foreach (array_slice($token->holders->all(), 0, 10) as $holder)
+        foreach (array_slice($token->holders?->all() ?? [], 0, 10) as $holder)
             $holders[] = __('telegram.text.token_scanner.holders.holder', [
                 'address' => $holder['address'],
                 'label' => $holder['name'] ?? mb_strcut($holder['address'], 0, 5) . '...' . mb_strcut($holder['address'], -5),
@@ -152,6 +154,7 @@ class TokenReportService
             if ($pool->holders)
                 $pools[] = __('telegram.text.token_scanner.holders.pool', [
                     'name' => Dex::verbose($pool->dex),
+                    'address' => $pool->address,
                     'holders' => implode('', $poolHolders),
                 ]);
 
@@ -164,11 +167,12 @@ class TokenReportService
                 'symbol' => $token->symbol,
                 'holders' => implode('', $holders),
                 'pools' => implode('', $pools),
+                'warning' => $account->is_hide_warnings ? '' : __('telegram.text.token_scanner.holders.warning'),
             ]),
         ];
     }
 
-    public function volume(Token $token): array
+    public function volume(Token $token, ?Account $account = null): array
     {
         $pools = [];
         foreach ($token->pools as $pool)
@@ -189,6 +193,7 @@ class TokenReportService
                 'sells_h1' => number_format($pool->h1_sells),
                 'sells_h6' => number_format($pool->h6_sells),
                 'sells_h24' => number_format($pool->h24_sells),
+                'warning' => $account->is_hide_warnings ? '' : __('telegram.text.token_scanner.volume.warning'),
             ]);
 
         return [

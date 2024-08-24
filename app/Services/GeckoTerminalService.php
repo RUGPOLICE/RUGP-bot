@@ -26,6 +26,10 @@ class GeckoTerminalService
             try {
 
                 $token_address = str_replace('ton_', '', $pool['relationships']['base_token']['data']['id']);
+                $quote_address = str_replace('ton_', '', $pool['relationships']['quote_token']['data']['id']);
+
+                if ($quote_address !== 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c')
+                    continue;
 
                 yield [
                     'token' => [

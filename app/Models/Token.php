@@ -82,7 +82,7 @@ class Token extends Model
         $table->text('image')->nullable();
         $table->text('description')->nullable();
         $table->integer('holders_count')->nullable();
-        $table->bigInteger('supply')->nullable();
+        $table->unsignedBigInteger('supply')->nullable();
         $table->json('holders')->nullable();
         $table->json('websites')->nullable();
         $table->json('socials')->nullable();

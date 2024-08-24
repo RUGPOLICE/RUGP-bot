@@ -2,10 +2,10 @@
 
 namespace App\Telegram\Conversations;
 
+use App\Enums\Language;
 use App\Models\Token;
 use App\Telegram\Handlers\TokenReportHandler;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Log;
 use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 
@@ -126,8 +126,17 @@ class Home extends ImagedInlineMenu
 
     private function resolveParameters(Nutgram $bot, string $params): bool
     {
-        $params = explode('_', $params, 2);
-        if (count($params) > 1 && $params[0] === 'r' && ($token = Token::query()->where('address', $params[1])->first())) {
+        $params = explode('_', $params, 3);
+        if (count($params) > 1 && in_array($params[0], Language::keys())) {
+
+            $account = $bot->get('account');
+            $account->language = $params[0];
+            $account->save();
+            App::setLocale($params[0]);
+
+        }
+
+        if (count($params) > 2 && $params[1] === 'r' && ($token = Token::query()->where('address', $params[2])->first())) {
 
             (new TokenReportHandler)->report($bot, $token, 'main', $bot->chatId(), $bot->messageId());
             return true;

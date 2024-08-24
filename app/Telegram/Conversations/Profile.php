@@ -17,10 +17,15 @@ class Profile extends ImagedInlineMenu
             ->menuText(
                 __('telegram.text.profile.main', [
                     'language' => __('telegram.buttons.' . $account->language->value),
+                    'is_hide_warnings' => __('telegram.text.profile.warnings.' . ($account->is_hide_warnings ? 'hidden' : 'shown')),
                 ])
             )
             ->addButtonRow(
+                InlineKeyboardButton::make(__('telegram.buttons.rules'), callback_data: 'null@rules'),
+            )
+            ->addButtonRow(
                 InlineKeyboardButton::make(__('telegram.buttons.' . $account->language->value), callback_data: 'main@language'),
+                InlineKeyboardButton::make(__('telegram.buttons.warnings_' . ($account->is_hide_warnings ? 'hidden' : 'shown')), callback_data: 'null@warnings'),
             )
             ->addButtonRow(
                 InlineKeyboardButton::make(__('telegram.buttons.back'), callback_data: 'back@menu'),
@@ -35,9 +40,28 @@ class Profile extends ImagedInlineMenu
 
         $this->end();
         match ($option) {
-            'simulation' => Profile::begin($bot),
+            'profile' => Profile::begin($bot),
             'back' => Home::begin($bot),
         };
+    }
+
+    public function warnings(Nutgram $bot): void
+    {
+        $account = $bot->get('account');
+        $account->is_hide_warnings = !$account->is_hide_warnings;
+        $account->save();
+
+        $this->end();
+        Profile::begin($bot);
+    }
+
+    public function rules(Nutgram $bot): void
+    {
+        $this
+            ->clearButtons()
+            ->menuText(__('telegram.text.rules'))
+            ->addButtonRow(InlineKeyboardButton::make(__('telegram.buttons.back'), callback_data: 'profile@menu'))
+            ->showMenu();
     }
 
     public function language(Nutgram $bot): void

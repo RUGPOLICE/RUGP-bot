@@ -24,12 +24,15 @@ class ScanToken implements ShouldQueue
 {
     use Queueable;
 
+    public int $tries = 1;
+
     public function __construct(public Token $token, public ?Account $account = null, public ?string $message_id = null) {}
 
     public function handle(Nutgram $bot, DexScreenerService $dexScreenerService, TonApiService $tonApiService, TonHubService $tonHubService): void
     {
         try {
 
+            $bot->set('account', $this->account);
             $this->updatePools($dexScreenerService);
 
             if (!$this->token->is_scanned) {
@@ -44,20 +47,25 @@ class ScanToken implements ShouldQueue
             if (!$this->token->is_revoked || $dex)
                 $this->simulateTransactions($dex);
 
+            $this->updateHolders($tonApiService);
+            $this->updatePoolsHolders($this->token->pools, $tonApiService);
+
+            foreach ($this->token->pools as $pool)
+                $this->checkBurnLock($tonApiService, $tonHubService, $pool);
+
+            $this->sendReport($bot);
+
         } catch (ScanningError $e) {
 
             $this->sendError($bot, $e->getMessage());
             Log::error($e->getLogMessage());
 
+        } catch (\Throwable $e) {
+
+            $this->sendError($bot, __('telegram.errors.scan.metadata'));
+            Log::error($e->getMessage());
+
         }
-
-        $this->updateHolders($tonApiService);
-        $this->updatePoolsHolders($this->token->pools, $tonApiService);
-
-        foreach ($this->token->pools as $pool)
-            $this->checkBurnLock($tonApiService, $tonHubService, $pool);
-
-        $this->sendReport($bot);
     }
 
     private function updatePools(DexScreenerService $dexScreenerService): void

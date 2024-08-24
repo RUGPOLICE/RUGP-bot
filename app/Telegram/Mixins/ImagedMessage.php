@@ -34,7 +34,12 @@ class ImagedMessage
                     caption: $text
                 );
 
-            } else return $this->sendMessage($text, ... $options);
+            } else {
+
+                unset($options['image']);
+                return $this->sendMessage($text, ... $options);
+
+            }
 
         };
     }

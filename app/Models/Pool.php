@@ -113,7 +113,7 @@ class Pool extends Model
         $table->string('dex');
         $table->json('holders')->nullable();
 
-        $table->bigInteger('supply')->nullable();
+        $table->unsignedBigInteger('supply')->nullable();
         $table->double('price')->nullable();
         $table->double('fdv')->nullable();
         $table->double('reserve')->nullable();

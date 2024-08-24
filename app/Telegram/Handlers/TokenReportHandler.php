@@ -83,8 +83,8 @@ class TokenReportHandler
             ->addRow(
                 InlineKeyboardButton::make(__('telegram.buttons.report'), callback_data: "reports:token:$token->id:main"),
                 InlineKeyboardButton::make(__('telegram.buttons.chart'), callback_data: "reports:token:$token->id:chart"),
-                InlineKeyboardButton::make(__('telegram.buttons.holders'), callback_data: "reports:token:$token->id:holders"),
                 InlineKeyboardButton::make(__('telegram.buttons.volume'), callback_data: "reports:token:$token->id:volume"),
+                InlineKeyboardButton::make(__('telegram.buttons.holders'), callback_data: "reports:token:$token->id:holders"),
             )
             ->addRow(
                 InlineKeyboardButton::make(Reaction::verbose(Reaction::LIKE), callback_data: "reports:token:$token->id:" . Reaction::LIKE->value),
@@ -107,7 +107,7 @@ class TokenReportHandler
             'reply_to_message_id' => $reply_message_id,
         ];
 
-        $params = $tokenReportService->{$type}($token);
+        $params = $tokenReportService->{$type}($token, $bot->get('account'));
         if (array_key_exists('image', $params))
             $options['image'] = $params['image'];
 
