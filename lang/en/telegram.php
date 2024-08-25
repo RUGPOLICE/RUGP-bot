@@ -33,7 +33,7 @@ BETA 0.1
 <b>💡 GPT</b> - <code>Free GPT to ask about crypto.</code>
 🔜
 
-   <a href='http://rugp.io'>WEB</a>    |    <a href='t.me/rugp_ton'>Telegram chat</a>    |     <a href='https://x.com/rugp_ton'>Twitter</a>
+   <a href='http://rugp.io'>WEB</a>   |    <a href='t.me/rugp_ton'>Telegram chat</a>    |     <a href='https://x.com/rugp_ton'>Twitter</a>
 
 © RUGP - anti-scam community and utilities on TON.
 Please report bot bugs in tg chat. 🙏
