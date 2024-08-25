@@ -58,7 +58,7 @@ class Home extends ImagedInlineMenu
 
         $account = $bot->get('account');
         $account->language = $lang;
-        // $account->is_shown_language = true;
+        $account->is_shown_language = true;
         $account->save();
 
         App::setLocale($lang);
@@ -84,7 +84,7 @@ class Home extends ImagedInlineMenu
             return;
 
         $account = $bot->get('account');
-        // $account->is_shown_rules = true;
+        $account->is_shown_rules = true;
         $account->save();
 
         $this->menuFront($bot);

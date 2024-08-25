@@ -93,8 +93,8 @@ Click 🔎 for new scan.
                     'no' => "⚠️ Кастомный код у кошелька",
                 ],
                 'is_revoked' => [
-                    'yes' => "✅ REWOKE: YES",
-                    'no' => "⚠️ REWOKE: NO</b>",
+                    'yes' => "✅ REWOKE: YES. ",
+                    'no' => "⚠️ REWOKE: NO</b> ",
                 ],
                 'is_revoked_warning' => [
                     'yes' => "Owner can't change supply, change tax or make honeypot",
@@ -255,7 +255,8 @@ Possible reasons: invalid address, deleted scam or no purchases and/or sales of 
         'to_scanner' => "🔎",
         'to_home' => "🏠",
 
-        'warnings_hidden' => "⚠️ show",
-        'warnings_shown' => "⚠️ hide",
+        'warnings_hidden' => "⚠️ hide",
+        'warnings_shown' => "⚠️ show",
+        'rules' => 'Rules',
     ],
 ];
