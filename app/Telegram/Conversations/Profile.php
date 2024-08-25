@@ -24,7 +24,7 @@ class Profile extends ImagedInlineMenu
                 InlineKeyboardButton::make(__('telegram.buttons.rules'), callback_data: 'null@rules'),
             )
             ->addButtonRow(
-                InlineKeyboardButton::make(__('telegram.buttons.' . $account->language->value), callback_data: 'main@language'),
+                InlineKeyboardButton::make(__('telegram.buttons.language'), callback_data: 'main@language'),
                 InlineKeyboardButton::make(__('telegram.buttons.warnings_' . ($account->is_hide_warnings ? 'hidden' : 'shown')), callback_data: 'null@warnings'),
             )
             ->addButtonRow(
@@ -82,7 +82,7 @@ class Profile extends ImagedInlineMenu
             $account = $bot->get('account');
             $languages = array_chunk(Language::keys(), 2);
 
-            $this->clearButtons()->menuText('Выберите язык');
+            $this->clearButtons()->menuText(__('telegram.text.profile.language'));
             foreach ($languages as $language)
                 $this->addButtonRow(... array_map(fn ($lang) => InlineKeyboardButton::make(__('telegram.buttons.' . $lang) . ($account->language->value === $lang ? ' ✅' : ' ✔️'), callback_data: $lang . '@language'), $language));
 

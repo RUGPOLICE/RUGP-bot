@@ -202,6 +202,7 @@ class TokenReportService
                 'name' => $token->name,
                 'symbol' => $token->symbol,
                 'pools' => implode('', $pools),
+                'warning' => $account->is_hide_warnings ? '' : __('telegram.text.token_scanner.volume.warning'),
             ]),
         ];
     }

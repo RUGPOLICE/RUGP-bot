@@ -33,8 +33,6 @@ BETA 0.1
 <b>💡 GPT</b> - <code>Free GPT to ask about crypto.</code>
 🔜
 
-
-
    <a href='http://rugp.io'>WEB</a>    |    <a href='t.me/rugp_ton'>Telegram chat</a>    |     <a href='https://x.com/rugp_ton'>Twitter</a>
 
 © RUGP - anti-scam community and utilities on TON.
@@ -52,22 +50,21 @@ Please report bot bugs in tg chat. 🙏
 <b>ℹ️ INFO</b>
 
 <b>:name | $:symbol</b>
-<b>CA:</b> <code>:address</code>
+<code>:address</code>
 
-📃 <u><b>Description:</b></u>
+<u><b>Description:</b></u>
 <i>:description</i>
 
 :is_known_master
+:is_known_wallet
 
 :is_revoked:is_revoked_warning
-
 <b>🔢 Supply:</b> :supply
 <b>👨‍👦‍👦 Holders:</b> :holders_count
 
 🔄 <u><b>DEX's:</b> </u>
 :pools
-:rugpull_warning
-:lp_burned_warning:has_links:links
+:rugpull_warning:lp_burned_warning:has_links:links
 <u><b>Community trust:</b></u>
 👍 <b>:likes_count</b> / <b>:dislikes_count</b> 👎
 
@@ -82,24 +79,24 @@ Click 🔎 for new scan.
 :lp_burned:lp_locked
 ",
                 'link' => "<a href=':url'><b>:Label</b></a> ",
-                'has_links' => "\n<u><b>Соцсети:</b></u>\n",
+                'has_links' => "<u><b>Socials:</b></u>\n",
                 'rugpull' => "<b>WARNING ⁉️RUGPULL⁉️</b>\n",
                 'is_known_master' => [
                     'yes' => "✅ VERIFIED MASTER",
                     'no' => "⚠️ NON-STANDARD MASTER",
                 ],
                 'is_known_wallet' => [
-                    'yes' => "✅ Проверенный код у кошелька",
-                    'no' => "⚠️ Кастомный код у кошелька",
+                    'yes' => "✅ VERIFIED JETTON",
+                    'no' => "⚠️ NON-STANDARD JETTON",
                 ],
                 'is_revoked' => [
-                    'yes' => "✅ REWOKE: YES. ",
-                    'no' => "⚠️ REWOKE: NO</b> ",
+                    'yes' => "✅ REVOKED.\n",
+                    'no' => "⚠️ NOT REVOKED.\n",
                 ],
                 'is_revoked_warning' => [
-                    'yes' => "Owner can't change supply, change tax or make honeypot",
-                    'no' => "Owner can change supply, change tax or make honeypot.
-Buy only if you trust the project.",
+                    'yes' => "Owner can't change supply, tax or make honeypot.\n",
+                    'no' => "Owner can change supply, tax or make honeypot.
+Buy only if you trust the project.\n",
                 ],
                 'lp_burned' => [
                     'yes' => "├✅  <i>LP burned</i>: <b>:value%</b>",
@@ -112,10 +109,10 @@ Buy only if you trust the project.",
                 ],
                 'lp_locked' => [
                     'yes' => "\n└🔒 <i>LP locked</i>
-      <b>:value% <a href=':link'>:type</a> :unlocks</b>",
+      <b>:value% on <a href=':link'>:type</a></b> :unlocks",
                     'no' => "\n└🔒 <i>LP not locked</i>",
                     'burned' => "",
-                    'unlocks' => "(till :value)",
+                    'unlocks' => "till :value",
                     'dyor' => "/ more locks! DYOR",
                 ],
                 'tax_buy' => [
@@ -169,20 +166,20 @@ Buy only if you trust the project.",
 
 
 ",
-                'pool' => "💧 <u>:name</u> <b>pool liquidity</b> \n\n:holders\n",
+                'pool' => "💧 <a href='https://tonviewer.com/:address?section=holders'><u>:name</u></a> <b>liquidity pool</b> \n\n:holders\n",
                 'holder' => "<b>:percent%</b> -> <a href='tonviewer.com/:address'><i>:label</i></a>\n",
                 'dex_lock_stake' => "DEX/LOCK/STAKE?",
                 'warning' => "🔥 zero-address - burning address.
 🔒 DEX/LOCK/STAKE - tokens were sent to dex, locking, staking, etc. DYOR.
 🔒 tinu-locker - locker address.
-⚠️ MEXC, Bybit or OKX in holders in new weak coin = SCAM coin!"
+⚠️ MEXC, Bybit or OKX as holders in new weak coin = SCAM coin!"
             ],
             'volume' => [
                 'text' => "
 
-📊 <b>ОБЪЕМ</b> <b>$:symbol</b>
+📊 <b>VOLUME</b> <b>$:symbol</b>
 
-:pools
+:pools:warning
 
 ",
                 'pool' => "<a href=':link'>:name</a>
@@ -202,10 +199,9 @@ Buy only if you trust the project.",
 ├<i>(6h): </i> <b>:sells_h6</b>
 └<i>(24h): </i> <b>:sells_h24</b>
 
-:warning
-
 ",
-                'warning' => "⚠️ Check buys/sells ratio! Too many buys and single sales - it could be a SCAM!",
+                'warning' => "⚠️ Check buys/sells ratio! Too many buys and single sales could be a SCAM!
+⚙️ You can switch off warnings at any time in your profile.",
             ],
         ],
         'profile' => [
@@ -213,6 +209,7 @@ Buy only if you trust the project.",
 <b>Language</b>: <i>:language</i>
 <b>Warnings</b>: <i>:is_hide_warnings</i>
 ",
+            'language' => "Choose language",
             'warnings' => [
                 'hidden' => 'Hidden',
                 'shown' => 'Visible',
@@ -239,11 +236,11 @@ Possible reasons: invalid address, deleted scam or no purchases and/or sales of 
         'agree' => "🤝 Agreed",
 
         'token_scanner' => "🔎 Token Scanner",
-        'wallet_tracker' => "👀 Wallet Tracker",
-        'black_box' => "🗃 Black Box",
-        'check_wallet' => "🚨 Check My Wallet",
-        'academy' => "📚 Academy",
-        'gpt' => "💡 GPTo",
+        'wallet_tracker' => "🔜 Wallet Tracker",
+        'black_box' => "🔜 Black Box",
+        'check_wallet' => "🔜 Check My Wallet",
+        'academy' => "🔜 Academy",
+        'gpt' => "🔜 GPTo",
         'profile' => "⚙️ My profile",
 
         'report' => "ℹ️", // Главная в отчете
@@ -255,8 +252,9 @@ Possible reasons: invalid address, deleted scam or no purchases and/or sales of 
         'to_scanner' => "🔎",
         'to_home' => "🏠",
 
-        'warnings_hidden' => "⚠️ hide",
-        'warnings_shown' => "⚠️ show",
-        'rules' => 'Rules',
+        'warnings_hidden' => "⚠️ SHOW",
+        'warnings_shown' => "⚠️ HIDE",
+        'rules' => "TERMS OF USE",
+        'language' => "LANG",
     ],
 ];
