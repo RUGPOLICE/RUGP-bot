@@ -13,8 +13,8 @@ class Home extends ImagedInlineMenu
 {
     public function start(Nutgram $bot, ?string $params = null): void
     {
-        if ($bot->message()->text === '/start')
-            $bot->deleteMessage($bot->chatId(), $bot->messageId());
+        // if ($bot->message()->text === '/start')
+        //     $bot->deleteMessage($bot->chatId(), $bot->messageId());
 
         if ($params && $this->resolveParameters($bot, $params))
             return;
