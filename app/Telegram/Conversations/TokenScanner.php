@@ -8,11 +8,11 @@ use App\Services\DexScreenerService;
 use App\Telegram\Handlers\TokenReportHandler;
 use App\Telegram\Middleware\SpamProtection;
 use Illuminate\Support\Facades\App;
-use SergiX44\Nutgram\Conversations\InlineMenu;
 use SergiX44\Nutgram\Nutgram;
+use SergiX44\Nutgram\Telegram\Properties\ChatAction;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 
-class TokenScanner extends InlineMenu
+class TokenScanner extends ImagedInlineMenu
 {
     public function start(Nutgram $bot, string $referrer): void
     {
@@ -70,6 +70,7 @@ class TokenScanner extends InlineMenu
         $this->clearButtons();
         $this->menuText(__('telegram.text.token_scanner.pending'));
         $this->showMenu();
+        $bot->sendChatAction(ChatAction::TYPING);
 
         $token = Token::query()->firstOrCreate(['address' => $address]);
         ScanToken::dispatch($token, $account, $message_id);

@@ -44,8 +44,8 @@ class ScanToken implements ShouldQueue
             }
 
             $dex = implode(',', $this->token->pools()->whereNull('tax_buy')->orWhereNull('tax_sell')->get()->pluck('dex')->map(fn (Dex $dex) => $dex->value)->all());
-            if (!$this->token->is_revoked || $dex)
-                $this->simulateTransactions($dex);
+            // if (!$this->token->is_revoked || $dex)
+            //     $this->simulateTransactions($dex);
 
             $this->updateHolders($tonApiService);
             $this->updatePoolsHolders($this->token->pools, $tonApiService);
@@ -62,7 +62,7 @@ class ScanToken implements ShouldQueue
 
         } catch (\Throwable $e) {
 
-            $this->sendError($bot, __('telegram.errors.scan.metadata'));
+            $this->sendError($bot, __('telegram.errors.scan.metadata', ['address' => $this->token->address]));
             Log::error($e->getMessage());
 
         }
@@ -101,6 +101,7 @@ class ScanToken implements ShouldQueue
         $tokenHolders = $tonApiService->getJettonHolders($this->token->address);
         if ($tokenHolders) {
 
+            [$tokenHolders, $this->token->holders_count] = $tokenHolders;
             $holderAddresses = implode(',', array_map(fn ($a) => $a['address'], $tokenHolders));
             $result = Process::path(base_path('utils/scanner'))->run("node --no-warnings src/convert.js $holderAddresses");
             $holderAddresses = json_decode($result->output())->addresses;
@@ -123,6 +124,7 @@ class ScanToken implements ShouldQueue
             $poolHolders = $tonApiService->getJettonHolders($pool->address, 4);
             if ($poolHolders) {
 
+                [$poolHolders, $holdersCount] = $poolHolders;
                 $holderAddresses = implode(',', array_map(fn ($a) => $a['address'], $poolHolders));
                 $result = Process::path(base_path('utils/scanner'))->run("node --no-warnings src/convert.js $holderAddresses");
                 $holderAddresses = json_decode($result->output())->addresses;
@@ -168,6 +170,7 @@ class ScanToken implements ShouldQueue
         $poolHolders = $tonApiService->getJettonHolders($pool->address);
         if ($poolHolders) {
 
+            [$poolHolders, $holdersCount] = $poolHolders;
             $holderAddress = $poolHolders[0]['owner']['address'];
             $poolMetadata = $tonApiService->getJetton($pool->address);
 

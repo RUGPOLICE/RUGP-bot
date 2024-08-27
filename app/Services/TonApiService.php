@@ -30,6 +30,6 @@ class TonApiService
         if (isset($response['error']))
             return null;
 
-        return $response['addresses'];
+        return [$response['addresses'], $response['total']];
     }
 }
