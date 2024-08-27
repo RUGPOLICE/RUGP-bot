@@ -44,33 +44,25 @@ Please report bot bugs in tg chat. 🙏
             'pending' => "🔎 Scanning. The report will be sent to you shortly.",
             'report' => [
                 'text' => "
-
-
-
 <b>ℹ️ INFO</b>
 
 <b>:name | $:symbol</b>
-<code>:address</code>
-
-<u><b>Description:</b></u>
-<i>:description</i>
+<code>:address</code>:description_title<i>:description</i>
 
 :is_known_master
 :is_known_wallet
 
 :is_revoked:is_revoked_warning
+
 <b>🔢 Supply:</b> :supply
 <b>👨‍👦‍👦 Holders:</b> :holders_count
 
-🔄 <u><b>DEX's:</b> </u>
-:pools
-:rugpull_warning:lp_burned_warning:has_links:links
+🔄 <u><b>DEX's:</b></u>
+:pools:rugpull_warning:lp_burned_warning:links_title:links
 <u><b>Community trust:</b></u>
 👍 <b>:likes_count</b> / <b>:dislikes_count</b> 👎
 
-Click 🔎 for new scan.
-
-",
+:is_finished",
                 'pool' => "
 <a href=':link'><i><b>:name</b></i></a>:
 ├💵 Price: <b>$:price</b>
@@ -79,43 +71,50 @@ Click 🔎 for new scan.
 :lp_burned:lp_locked
 ",
                 'link' => "<a href=':url'><b>:Label</b></a> ",
-                'has_links' => "<u><b>Socials:</b></u>\n",
-                'rugpull' => "<b>WARNING ⁉️RUGPULL⁉️</b>\n",
+                'links_title' => "\n\n<u><b>Socials:</b></u>\n",
+                'description_title' => "\n\n<u><b>Description:</b></u>\n",
+                'is_finished' => "Click 🔎 for new scan.",
+                'rugpull' => "\n<b>WARNING ⁉️RUGPULL⁉️</b>\n",
                 'is_known_master' => [
                     'yes' => "✅ VERIFIED MASTER",
                     'no' => "⚠️ NON-STANDARD MASTER",
+                    'scan' => "🔎 SCAN MASTER",
                 ],
                 'is_known_wallet' => [
                     'yes' => "✅ VERIFIED JETTON",
                     'no' => "⚠️ NON-STANDARD JETTON",
+                    'scan' => "🔎 SCAN JETTON",
                 ],
                 'is_revoked' => [
-                    'yes' => "✅ REVOKED.\n",
-                    'no' => "⚠️ NOT REVOKED.\n",
+                    'yes' => "✅ REVOKED.",
+                    'no' => "⚠️ NOT REVOKED.",
                 ],
                 'is_revoked_warning' => [
-                    'yes' => "Owner can't change supply, tax or make honeypot.\n",
-                    'no' => "Owner can change supply, tax or make honeypot.
-Buy only if you trust the project.\n",
+                    'yes' => "\nOwner can't change supply, tax or make honeypot.",
+                    'no' => "\nOwner can change supply, tax or make honeypot.\nBuy only if you trust the project.",
                 ],
                 'lp_burned' => [
                     'yes' => "├✅  <i>LP burned</i>: <b>:value%</b>",
-                    'no' => "├⚠️ <i>LP not burned</i>  ",
-                    'warning' => "⚠️ Liquidity (LP) not burned or locked.
+                    'no' => "├⚠️ <i>LP not burned</i>",
+                    'scan' => "├🔎 <i>Scan LP Burn</i>",
+                    'unknown' => "├🤷‍♂️ <i>Failed to scan LP Burn</i>",
+                    'warning' => "
+⚠️ Liquidity (LP) not burned or locked.
 - If you trust the project, then it doesn't matter.
-- DYOR --> ♻️.
-
-"
+- DYOR --> ♻️."
                 ],
                 'lp_locked' => [
                     'yes' => "\n└🔒 <i>LP locked</i>
       <b>:value% on <a href=':link'>:type</a></b> :unlocks",
                     'no' => "\n└🔒 <i>LP not locked</i>",
+                    'scan' => "\n└🔎 <i>Scan LP Lock</i>",
+                    'unknown' => "\n└🤷‍♂️ <i>Failed to scan LP Lock</i>",
                     'burned' => "",
                     'unlocks' => "till :value",
                     'dyor' => "/ more locks! DYOR",
                 ],
                 'tax_buy' => [
+                    'scan' => "├<i>🔎️ Scan buy tax</i>",
                     'unknown' => "├<i>🤷‍♂️ Failed to check jetton</i>",
                     'no' => "├<i>🤦🏻 Can't buy jetton</i>",
                     'ok' => "├<i>✅ Buy tax</i>: <b>no</b>",
@@ -123,12 +122,13 @@ Buy only if you trust the project.\n",
                     'danger' => "├<i>🚨 % Buy tax</i>: <b>:value%</b>",
                 ],
                 'tax_sell' => [
+                    'scan' => "├<i>🔎️ Scan sell tax</i>",
                     'unknown' => "└<i>🤷‍♂️ Failed to check jetton</i>",
                     'no' => "
 <b>CAN'T SELL JETTON</b>
 
 ‼️HONEYPOT‼️SCAM‼️",
-                    'ok' => "├<i>✅ Sell tax</i>: <b>нет</b>",
+                    'ok' => "├<i>✅ Sell tax</i>: <b>no</b>",
                     'warning' => "├<i>⚠️ Sell tax</i>: <b>:value%</b>",
                     'danger' => "├<i>❌ Sell tax</i>: <b>:value%</b>",
                 ],
@@ -225,6 +225,7 @@ Possible reasons: invalid address, deleted scam or no purchases and/or sales of 
         'scan' => [
             'metadata' => "🚧 Can't scan :address. Please try later",
             'simulator' => "🚧 Can't scan :address. Please try later",
+            'fail' => "🚧 Internal error while scanning :address. Please try later",
         ]
     ],
     'buttons' => [

@@ -113,7 +113,7 @@ class Pool extends Model
         $table->string('dex');
         $table->json('holders')->nullable();
 
-        $table->unsignedBigInteger('supply')->nullable();
+        $table->double('supply')->nullable();
         $table->double('price')->nullable();
         $table->double('fdv')->nullable();
         $table->double('reserve')->nullable();
@@ -138,11 +138,11 @@ class Pool extends Model
         $table->integer('h24_buys')->nullable();
         $table->integer('h24_sells')->nullable();
 
-        $table->bigInteger('burned_amount')->nullable();
+        $table->double('burned_amount')->nullable();
         $table->decimal('burned_percent')->nullable();
 
         $table->integer('locked_type')->nullable();
-        $table->bigInteger('locked_amount')->nullable();
+        $table->double('locked_amount')->nullable();
         $table->decimal('locked_percent')->nullable();
         $table->boolean('locked_dyor')->nullable();
         $table->timestamp('unlocks_at')->nullable();

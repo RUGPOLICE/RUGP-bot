@@ -4,4 +4,5 @@
 use App\Jobs\ExplorePools;
 use Illuminate\Support\Facades\Schedule;
 
-// wd Schedule::job(new ExplorePools, connection: 'redis')->everyTenMinutes();
+// Schedule::job(new ExplorePools, connection: 'redis')->everyTenMinutes();
+Schedule::command('queue:prune-batches')->daily();

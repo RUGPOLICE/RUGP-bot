@@ -57,4 +57,5 @@ for i, ax in enumerate(axs):
     for label in ax.get_xticklabels(which='major'):
         label.set_horizontalalignment('center')
 
+fig.autofmt_xdate()
 plt.savefig(sys.argv[1], transparent=True, format='png')

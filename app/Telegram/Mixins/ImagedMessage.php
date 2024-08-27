@@ -2,7 +2,10 @@
 
 namespace App\Telegram\Mixins;
 
+use Illuminate\Support\Facades\App;
+use SergiX44\Nutgram\Telegram\Exceptions\TelegramException;
 use SergiX44\Nutgram\Telegram\Properties\ParseMode;
+use SergiX44\Nutgram\Telegram\Types\Input\InputMediaPhoto;
 use SergiX44\Nutgram\Telegram\Types\Internal\InputFile;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardMarkup;
 
@@ -10,21 +13,25 @@ class ImagedMessage
 {
     public function sendImagedMessage(): \Closure
     {
-        return function (string $text, InlineKeyboardMarkup $buttons, array $options = [], ?int $chat_id = null, ?int $message_id = null) {
+        return function (string $text, ?InlineKeyboardMarkup $buttons = null, array $options = [], ?int $chat_id = null, ?int $message_id = null) {
+
+            $account = $this->get('account');
+            App::setLocale($account->language->value);
 
             if ($chat_id && $message_id)
                 $this->deleteMessage($chat_id, $message_id);
 
-            $options['reply_markup'] = $buttons;
-            $options['parse_mode'] = ParseMode::HTML;
-            // $options['show_caption_above_media'] = true;
-
             if ($chat_id)
                 $options['chat_id'] = $chat_id;
 
+            $options['reply_markup'] = $buttons;
+            $options['parse_mode'] = ParseMode::HTML;
+
             if (array_key_exists('image', $options) && $options['image']) {
 
+                // $options['show_caption_above_media'] = true;
                 $image = $options['image'];
+
                 unset($options['image']);
                 unset($options['link_preview_options']);
 
@@ -46,38 +53,55 @@ class ImagedMessage
 
     public function editImagedMessage(): \Closure
     {
-        return function (string $text, InlineKeyboardMarkup $buttons, array $options = [], ?int $chat_id = null, ?int $message_id = null) {
+        return function (string $text, ?InlineKeyboardMarkup $buttons = null, array $options = [], ?int $chat_id = null, ?int $message_id = null) {
 
-            $options['reply_markup'] = $buttons;
-            $options['parse_mode'] = ParseMode::HTML;
+            $account = $this->get('account');
+            App::setLocale($account->language->value);
 
             if ($chat_id) $options['chat_id'] = $chat_id;
             if ($message_id) $options['message_id'] = $message_id;
 
-            if (array_key_exists('image', $options) && $options['image']) {
+            $options['reply_markup'] = $buttons;
+            $options['parse_mode'] = ParseMode::HTML;
+            unset($options['reply_to_message_id']);
 
-                // $options['show_caption_above_media'] = true;
-                $image = $options['image'];
+            try {
 
-                unset($options['image']);
-                unset($options['link_preview_options']);
-                unset($options['message_effect_id']);
+                if (array_key_exists('image', $options) && $options['image']) {
 
-                return $this->editMessageCaption(
-                    ... $options,
-                    caption: $text
-                );
+                    // $options['show_caption_above_media'] = true;
+                    $image = $options['image'];
 
-            } else {
+                    unset($options['image']);
+                    unset($options['link_preview_options']);
+                    unset($options['message_effect_id']);
+                    unset($options['parse_mode']);
 
-                unset($options['image']);
-                return $this->editMessageText(
-                    $text,
-                    ... $options
-                );
+                    return $this->editMessageMedia(
+                        ... $options,
+                        media: InputMediaPhoto::make(
+                            media: mb_strpos($image, 'https') !== false ? $image : InputFile::make(fopen($image, 'r+')),
+                            caption: $text,
+                            parse_mode: ParseMode::HTML,
+                        ),
+                    );
 
+                } else {
+
+                    unset($options['image']);
+                    return $this->editMessageText(
+                        $text,
+                        ... $options
+                    );
+
+                }
+
+            } catch (TelegramException $e) {
+                if (!str_contains($e->getMessage(), 'message is not modified'))
+                    throw new TelegramException($e->getMessage());
             }
 
+            return null;
         };
     }
 }

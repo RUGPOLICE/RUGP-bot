@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Services\DexScreenerService;
 use Illuminate\Database\Eloquent\Casts\AsCollection;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
@@ -22,7 +23,7 @@ use Illuminate\Support\Facades\App;
  * @property string $description
  * @property integer $holders_count
  * @property integer $supply
- * @property array $holders
+ * @property \Illuminate\Support\Collection $holders
  * @property array $websites
  * @property array $socials
  *
@@ -32,7 +33,7 @@ use Illuminate\Support\Facades\App;
  *
  * @property string $description_formatted
  *
- * @property Pool[] $pools
+ * @property Collection $pools
  */
 class Token extends Model
 {
@@ -82,7 +83,7 @@ class Token extends Model
         $table->text('image')->nullable();
         $table->text('description')->nullable();
         $table->integer('holders_count')->nullable();
-        $table->unsignedBigInteger('supply')->nullable();
+        $table->double('supply')->nullable();
         $table->json('holders')->nullable();
         $table->json('websites')->nullable();
         $table->json('socials')->nullable();

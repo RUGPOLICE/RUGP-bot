@@ -2,12 +2,22 @@
 
 namespace App\Telegram\Conversations;
 
-use App\Jobs\ScanToken;
+use App\Exceptions\ScanningError;
+use App\Jobs\Scanner\CheckBurnLock;
+use App\Jobs\Scanner\SendReport;
+use App\Jobs\Scanner\SimulateTransactions;
+use App\Jobs\Scanner\UpdateHolders;
+use App\Jobs\Scanner\UpdateLiquidity;
+use App\Jobs\Scanner\UpdateMetadata;
+use App\Jobs\Scanner\UpdatePools;
 use App\Models\Token;
 use App\Services\DexScreenerService;
 use App\Telegram\Handlers\TokenReportHandler;
 use App\Telegram\Middleware\SpamProtection;
+use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Log;
 use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\Telegram\Properties\ChatAction;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
@@ -40,7 +50,6 @@ class TokenScanner extends ImagedInlineMenu
         if (!(new SpamProtection)($bot))
             return;
 
-        $account = $bot->get('account');
         $message_id = $bot->messageId();
         $address = $bot->message()->text;
 
@@ -67,18 +76,24 @@ class TokenScanner extends ImagedInlineMenu
 
         }
 
-        $this->clearButtons();
-        $this->menuText(__('telegram.text.token_scanner.pending'));
-        $this->showMenu();
-        $bot->sendChatAction(ChatAction::TYPING);
+        $message_id = $bot->sendImagedMessage(
+            __('telegram.text.token_scanner.pending'),
+            options: [
+                'image' => public_path('img/home.png'),
+                'reply_to_message_id' => $message_id,
+            ]
+        )->message_id;
 
         $token = Token::query()->firstOrCreate(['address' => $address]);
-        ScanToken::dispatch($token, $account, $message_id);
+        SendReport::dispatch($token, $bot->get('account'), $this->bot->chatId(), $message_id);
+
+        $this->end();
+        $bot->sendChatAction(ChatAction::TYPING);
     }
 
     private function restartWithMessage(Nutgram $bot, string $message): void
     {
-        $bot->sendMessage($message, reply_to_message_id: $bot->messageId());
+        $bot->sendImagedMessage($message, reply_to_message_id: $bot->messageId());
         $this->end();
         self::begin($bot);
     }

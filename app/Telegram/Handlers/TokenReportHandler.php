@@ -3,30 +3,21 @@
 namespace App\Telegram\Handlers;
 
 use App\Enums\Reaction;
+use App\Models\Account;
 use App\Models\Token;
 use App\Services\TokenReportService;
 use App\Telegram\Conversations\Home;
 use App\Telegram\Conversations\TokenScanner;
 use Illuminate\Support\Facades\App;
+use Nutgram\Laravel\Facades\Telegram;
 use SergiX44\Nutgram\Nutgram;
-use SergiX44\Nutgram\Telegram\Properties\ParseMode;
+use SergiX44\Nutgram\Telegram\Properties\ChatAction;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardMarkup;
 use SergiX44\Nutgram\Telegram\Types\Message\LinkPreviewOptions;
 
 class TokenReportHandler
 {
-    public function error(Nutgram $bot, string $message, string $chat_id, int $reply_message_id): void
-    {
-        $bot->sendMessage(
-            $message,
-            chat_id: $chat_id,
-            parse_mode: ParseMode::HTML,
-            link_preview_options: LinkPreviewOptions::make(is_disabled: true),
-            reply_to_message_id: $reply_message_id,
-        );
-    }
-
     public function route(Nutgram $bot, string $token, string $type): void
     {
         $bot->answerCallbackQuery();
@@ -63,7 +54,6 @@ class TokenReportHandler
                 $token,
                 $type,
                 chat_id: $bot->callbackQuery()->message->chat->id,
-                reply_message_id: $bot->callbackQuery()->message->reply_to_message->message_id,
                 message_id: $bot->callbackQuery()->message->message_id
             );
 
@@ -71,15 +61,51 @@ class TokenReportHandler
 
     }
 
-    public function main(Nutgram $bot, Token $token, ?int $chat_id = null, ?int $reply_message_id = null, ?int $message_id = null): void
+    public function pending(Token $token, Account $account, int $chat_id, int $message_id, bool $is_finished): void
     {
-        $this->report($bot, $token, 'main', $chat_id, $reply_message_id, $message_id);
+        Telegram::set('account', $account);
+        $tokenReportService = App::make(TokenReportService::class);
+
+        $params = $tokenReportService->main($token, $account, $is_finished);
+        $options = ['link_preview_options' => LinkPreviewOptions::make(is_disabled: true)];
+
+        if (array_key_exists('image', $params))
+            $options['image'] = $params['image'];
+
+        Telegram::editImagedMessage($params['text'], buttons: $is_finished ? self::getButtons($token) : null, options: $options, chat_id: $chat_id, message_id: $message_id);
+        if (!$is_finished) Telegram::sendChatAction(ChatAction::TYPING->value, chat_id: $chat_id);
+    }
+
+    public function error(Account $account, string $message, string $chat_id, int $message_id): void
+    {
+        Telegram::set('account', $account);
+        Telegram::editImagedMessage(
+            $message,
+            chat_id: $chat_id,
+            message_id: $message_id,
+        );
     }
 
     public function report(Nutgram $bot, Token $token, string $type, ?int $chat_id = null, ?int $reply_message_id = null, ?int $message_id = null): void
     {
         $tokenReportService = App::make(TokenReportService::class);
-        $markup = InlineKeyboardMarkup::make()
+        $options = [
+            'link_preview_options' => LinkPreviewOptions::make(is_disabled: true),
+            'reply_to_message_id' => $reply_message_id,
+        ];
+
+        $params = $tokenReportService->{$type}($token, $bot->get('account'));
+        if (array_key_exists('image', $params))
+            $options['image'] = $params['image'];
+
+        if (!$message_id) $bot->sendImagedMessage($params['text'], self::getButtons($token), $options, $chat_id, $message_id);
+        else $bot->editImagedMessage($params['text'], self::getButtons($token), $options, $chat_id, $message_id);
+
+    }
+
+    private static function getButtons(Token $token): InlineKeyboardMarkup
+    {
+        return InlineKeyboardMarkup::make()
             ->addRow(
                 InlineKeyboardButton::make(__('telegram.buttons.report'), callback_data: "reports:token:$token->id:main"),
                 InlineKeyboardButton::make(__('telegram.buttons.chart'), callback_data: "reports:token:$token->id:chart"),
@@ -92,26 +118,5 @@ class TokenReportHandler
                 InlineKeyboardButton::make(__('telegram.buttons.to_scanner'), callback_data: "reports:token:$token->id:back"),
                 InlineKeyboardButton::make(__('telegram.buttons.to_home'), callback_data: "reports:token:$token->id:home"),
             );
-
-        $likes_count = $token->reactions()->where('type', Reaction::LIKE)->count();
-        $dislikes_count = $token->reactions()->where('type', Reaction::DISLIKE)->count();
-        $message_effect_id = match ($likes_count <=> $dislikes_count) {
-            0 => null,
-            -1 => 5104858069142078462, // dislike
-            1 => 5107584321108051014, // like
-        };
-
-        $options = [
-            'link_preview_options' => LinkPreviewOptions::make(is_disabled: true),
-            'message_effect_id' => $message_effect_id,
-            'reply_to_message_id' => $reply_message_id,
-        ];
-
-        $params = $tokenReportService->{$type}($token, $bot->get('account'));
-        if (array_key_exists('image', $params))
-            $options['image'] = $params['image'];
-
-        $bot->sendImagedMessage($params['text'], $markup, $options, $chat_id, $message_id);
-
     }
 }

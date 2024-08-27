@@ -9,17 +9,16 @@ use App\Models\Account;
 use App\Models\Token;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
 
 class TokenReportService
 {
-    public function main(Token $token, ?Account $account = null): array
+    public function main(Token $token, ?Account $account = null, bool $is_finished = true): array
     {
         $pools = [];
         $links = [];
 
-        $honeypot = $token->pools()->where('tax_sell', '<', 0)->exists();
+        $honeypot = $token->pools()->where('tax_sell', '<', 0)->exists() && $is_finished;
         $lp_burned_warning = $token->pools()
             ->where(function (Builder $query) {
                 $query->whereNull('burned_percent');
@@ -33,11 +32,11 @@ class TokenReportService
                     });
                 });
             })
-            ->exists() && !$honeypot;
+            ->exists() && !$honeypot && $is_finished;
 
         $holders = $token->holders?->slice(0, 10)->filter(fn ($holder) => str_contains($holder['name'], 'MEXC') || str_contains($holder['name'], 'Bybit') || str_contains($holder['name'], 'OKX'))->count();
         $low_pools = $token->pools()->where('h24_volume', '<', 10000)->exists();
-        $rugpull_warning = $low_pools && $holders && !$honeypot;
+        $rugpull_warning = $low_pools && $holders && !$honeypot && $is_finished;
 
         foreach ($token->pools as $pool) {
 
@@ -47,13 +46,28 @@ class TokenReportService
             $dyor = $pool->locked_dyor ? __('telegram.text.token_scanner.report.lp_locked.dyor') : '';
             $unlocks = $pool->unlocks_at ? __('telegram.text.token_scanner.report.lp_locked.unlocks', ['value' => $pool->unlocks_at->translatedFormat('d M Y')]) : '';
 
-            if ($pool->tax_buy === null) $tax_buy = __('telegram.text.token_scanner.report.tax_buy.unknown');
+            if ($honeypot) $lp_burned = '';
+            else if (!$is_finished) $lp_burned = __('telegram.text.token_scanner.report.lp_burned.scan');
+            else if ($pool->burned_amount === null) $lp_burned = __('telegram.text.token_scanner.report.lp_burned.unknown');
+            else if ($pool->burned_amount) $lp_burned = __('telegram.text.token_scanner.report.lp_burned.yes', ['value' => $burned_percent]);
+            else $lp_burned = __('telegram.text.token_scanner.report.lp_burned.no');
+
+            if ($honeypot) $lp_locked = '';
+            else if (!$is_finished) $lp_locked = __('telegram.text.token_scanner.report.lp_locked.scan');
+            else if ($pool->burned_amount === null && $pool->locked_amount === null) $lp_locked = __('telegram.text.token_scanner.report.lp_locked.unknown');
+            else if ($pool->burned_percent > 99) $lp_locked = __('telegram.text.token_scanner.report.lp_locked.burned', ['value' => $burned_percent]);
+            else if ($pool->locked_amount) $lp_locked = __('telegram.text.token_scanner.report.lp_locked.yes', ['value' => $locked_percent, 'type' => $type, 'unlocks' => $unlocks, 'dyor' => $dyor, 'link' => $pool->locked_type ? Lock::link($pool->locked_type, $pool->address) : null]);
+            else $lp_locked = __('telegram.text.token_scanner.report.lp_locked.no');
+
+            if (!$is_finished) $tax_buy = __('telegram.text.token_scanner.report.tax_buy.scan');
+            else if ($pool->tax_buy === null) $tax_buy = __('telegram.text.token_scanner.report.tax_buy.unknown');
             else if ($pool->tax_buy < 0) $tax_buy = __('telegram.text.token_scanner.report.tax_buy.no');
             else if ($pool->tax_buy > 30) $tax_buy = __('telegram.text.token_scanner.report.tax_buy.danger', ['value' => $pool->tax_buy]);
             else if ($pool->tax_buy > 0) $tax_buy = __('telegram.text.token_scanner.report.tax_buy.warning', ['value' => $pool->tax_buy]);
             else $tax_buy = __('telegram.text.token_scanner.report.tax_buy.ok');
 
-            if ($pool->tax_sell === null) $tax_sell = __('telegram.text.token_scanner.report.tax_sell.unknown');
+            if (!$is_finished) $tax_sell = __('telegram.text.token_scanner.report.tax_sell.scan');
+            else if ($pool->tax_sell === null) $tax_sell = __('telegram.text.token_scanner.report.tax_sell.unknown');
             else if ($pool->tax_sell < 0) $tax_sell = __('telegram.text.token_scanner.report.tax_sell.no');
             else if ($pool->tax_sell > 30) $tax_sell = __('telegram.text.token_scanner.report.tax_sell.danger', ['value' => $pool->tax_sell]);
             else if ($pool->tax_sell > 0) $tax_sell = __('telegram.text.token_scanner.report.tax_sell.warning', ['value' => $pool->tax_sell]);
@@ -63,8 +77,8 @@ class TokenReportService
                 'link' => Dex::link($pool->dex, $pool->address),
                 'name' => Dex::verbose($pool->dex),
                 'price' => $pool->price_formatted,
-                'lp_burned' => $honeypot ? '' : __('telegram.text.token_scanner.report.lp_burned.' . ($pool->burned_amount ? 'yes' : 'no'), ['value' => $burned_percent]),
-                'lp_locked' => $honeypot ? '' : __('telegram.text.token_scanner.report.lp_locked.' . ($pool->burned_percent > 99 ? 'burned' : ($pool->locked_amount ? 'yes' : 'no')), ['value' => $locked_percent, 'type' => $type, 'unlocks' => $unlocks, 'dyor' => $dyor, 'link' => $pool->locked_type ? Lock::link($pool->locked_type, $pool->address) : null]),
+                'lp_burned' => $lp_burned,
+                'lp_locked' => $lp_locked,
                 'tax_buy' => $tax_buy,
                 'tax_sell' => $tax_sell,
             ]);
@@ -83,20 +97,29 @@ class TokenReportService
                 'name' => $token->name,
                 'symbol' => $token->symbol,
                 'address' => $token->address,
+
+                'description_title' => $token->description ? __('telegram.text.token_scanner.report.description_title') : '',
                 'description' => $token->description_formatted,
-                'supply' => number_format($token->supply ?? 0),
-                'holders_count' => number_format($token->holders_count ?? 0),
+
+                'supply' => number_format($token->supply / 1000000000),
+                'holders_count' => number_format($token->holders_count),
                 'pools' => implode('', $pools),
+
                 'lp_burned_warning' => ($lp_burned_warning && !$account->is_hide_warnings) ? __('telegram.text.token_scanner.report.lp_burned.warning') : '',
                 'rugpull_warning' => $rugpull_warning ? __('telegram.text.token_scanner.report.rugpull') : '',
-                'has_links' => $links ? __('telegram.text.token_scanner.report.has_links') : '',
+
+                'links_title' => $links ? __('telegram.text.token_scanner.report.links_title') : '',
                 'links' => $links ? (implode('', $links) . "\n") : '',
-                'is_known_master' => __('telegram.text.token_scanner.report.is_known_master.' . ($token->is_known_master ? 'yes' : 'no')),
-                'is_known_wallet' => __('telegram.text.token_scanner.report.is_known_wallet.' . ($token->is_known_wallet ? 'yes' : 'no')),
+
+                'is_known_master' => __('telegram.text.token_scanner.report.is_known_master.' . ($token->is_known_master ? 'yes' : ($is_finished ? 'no' : 'scan'))),
+                'is_known_wallet' => __('telegram.text.token_scanner.report.is_known_wallet.' . ($token->is_known_wallet ? 'yes' : ($is_finished ? 'no' : 'scan'))),
+
                 'is_revoked' => __('telegram.text.token_scanner.report.is_revoked.' . ($token->is_revoked ? 'yes' : 'no')),
                 'is_revoked_warning' => $account->is_hide_warnings ? '' : __('telegram.text.token_scanner.report.is_revoked_warning.' . ($token->is_revoked ? 'yes' : 'no')),
+
                 'likes_count' => $token->reactions()->where('type', Reaction::LIKE)->count(),
                 'dislikes_count' => $token->reactions()->where('type', Reaction::DISLIKE)->count(),
+                'is_finished' => $is_finished ? __('telegram.text.token_scanner.report.is_finished') : '',
             ]),
         ];
     }
