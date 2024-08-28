@@ -97,7 +97,6 @@ Please report bot bugs in tg chat. 🙏
                     'yes' => "├✅  <i>LP burned</i>: <b>:value%</b>",
                     'no' => "├⚠️ <i>LP not burned</i>",
                     'scan' => "├🔎 <i>Scan LP Burn</i>",
-                    'unknown' => "├🤷‍♂️ <i>Failed to scan LP Burn</i>",
                     'warning' => "
 ⚠️ Liquidity (LP) not burned or locked.
 - If you trust the project, then it doesn't matter.
@@ -108,7 +107,6 @@ Please report bot bugs in tg chat. 🙏
       <b>:value% on <a href=':link'>:type</a></b> :unlocks",
                     'no' => "\n└🔒 <i>LP not locked</i>",
                     'scan' => "\n└🔎 <i>Scan LP Lock</i>",
-                    'unknown' => "\n└🤷‍♂️ <i>Failed to scan LP Lock</i>",
                     'burned' => "",
                     'unlocks' => "till :value",
                     'dyor' => "/ more locks! DYOR",

@@ -48,13 +48,11 @@ class TokenReportService
 
             if ($honeypot) $lp_burned = '';
             else if (!$is_finished) $lp_burned = __('telegram.text.token_scanner.report.lp_burned.scan');
-            else if ($pool->burned_amount === null) $lp_burned = __('telegram.text.token_scanner.report.lp_burned.unknown');
             else if ($pool->burned_amount) $lp_burned = __('telegram.text.token_scanner.report.lp_burned.yes', ['value' => $burned_percent]);
             else $lp_burned = __('telegram.text.token_scanner.report.lp_burned.no');
 
             if ($honeypot) $lp_locked = '';
             else if (!$is_finished) $lp_locked = __('telegram.text.token_scanner.report.lp_locked.scan');
-            else if ($pool->burned_amount === null && $pool->locked_amount === null) $lp_locked = __('telegram.text.token_scanner.report.lp_locked.unknown');
             else if ($pool->burned_percent > 99) $lp_locked = __('telegram.text.token_scanner.report.lp_locked.burned', ['value' => $burned_percent]);
             else if ($pool->locked_amount) $lp_locked = __('telegram.text.token_scanner.report.lp_locked.yes', ['value' => $locked_percent, 'type' => $type, 'unlocks' => $unlocks, 'dyor' => $dyor, 'link' => $pool->locked_type ? Lock::link($pool->locked_type, $pool->address) : null]);
             else $lp_locked = __('telegram.text.token_scanner.report.lp_locked.no');
