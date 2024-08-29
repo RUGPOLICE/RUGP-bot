@@ -40,7 +40,7 @@ Please report bot bugs in tg chat. 🙏
 
 ",
         'token_scanner' => [
-            'main' => "👇 Enter a token, pool address or dex link.",
+            'main' => "👇 Enter a token name with $, token address, pool address or dex link.",
             'pending' => "🔎 Scanning. The report will be sent to you shortly.",
             'report' => [
                 'text' => "
@@ -128,12 +128,12 @@ Please report bot bugs in tg chat. 🙏
                 ],
                 'alerts' => [
                     'is_warn_honeypot' => "\n‼️HONEYPOT‼️SCAM‼️\n",
-                    'is_warn_rugpull' => "\nWARNING ⁉️RUGPULL⁉️\n",
-                    'is_warn_original' => "\n✔️ Original Jetton\n",
+                    'is_warn_rugpull' => "\n⁉️WARNING, Potential RUGPULL⁉️\n",
+                    'is_warn_original' => "\n✅✅ORIGINAL COIN✅✅\n",
                     'is_warn_scam' => "\n‼️SCAM‼️\n",
                     'is_warn_liquidity_stonfi' => "\n‼️Can't sell‼️\n",
-                    'is_warn_liquidity_dedust' => "\nWarning, low liquidity!\n",
-                    'is_warn_liquidity' => "\nWarning, low liquidity!\n",
+                    'is_warn_liquidity_dedust' => "\n‼️Warning, low liquidity‼️\n",
+                    'is_warn_liquidity' => "\n‼️Warning, low liquidity‼️\n",
                 ],
             ],
             'chart' => [

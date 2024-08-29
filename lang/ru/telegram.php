@@ -40,7 +40,7 @@ BETA 0.1
 
 ",
         'token_scanner' => [
-            'main' => "👇 Введите адрес токена, пула или ссылку с биржи.",
+            'main' => "👇 Введите название с <b>$</b>, адрес токена, пула или ссылку с биржи.",
             'pending' => "🔎 Сканирую. Отчет будет отправлен вам сообщением, как только будет готов.",
             'report' => [
                 'text' => "
@@ -128,12 +128,12 @@ BETA 0.1
                 ],
                 'alerts' => [
                     'is_warn_honeypot' => "\n‼️HONEYPOT‼️SCAM‼️\n",
-                    'is_warn_rugpull' => "\nОСТОРОЖНО ⁉️RUGPULL⁉️\n",
-                    'is_warn_original' => "\n✔️Оригинальный токен\n",
+                    'is_warn_rugpull' => "\n⁉️ОСТОРОЖНО, ВЕРОЯТНО RUGPULL⁉️\n",
+                    'is_warn_original' => "\n✅✅ОРИГИНАЛЬНЫЙ ТОКЕН✅✅\n",
                     'is_warn_scam' => "\n‼️SCAM‼️\n",
-                    'is_warn_liquidity_stonfi' => "\n‼️Невозможно продать‼️\n",
-                    'is_warn_liquidity_dedust' => "\nОсторожно, низкая ликвидность!\n",
-                    'is_warn_liquidity' => "\nОсторожно, низкая ликвидность!\n",
+                    'is_warn_liquidity_stonfi' => "\n‼️НЕВОЗМОЖНО ПРОДАТЬ‼️\n",
+                    'is_warn_liquidity_dedust' => "\n‼️ОСТОРОЖНО, НИЗКАЯ ЛИКВИДНОСТЬ‼️\n",
+                    'is_warn_liquidity' => "\n‼️ОСТОРОЖНО, НИЗКАЯ ЛИКВИДНОСТЬ‼️\n",
                 ],
             ],
             'chart' => [
