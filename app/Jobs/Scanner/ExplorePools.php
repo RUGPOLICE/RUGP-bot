@@ -1,12 +1,14 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Jobs\Scanner;
 
+use App\Jobs\ScanToken;
 use App\Models\Pool;
 use App\Models\Token;
 use App\Services\GeckoTerminalService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Bus;
 
 class ExplorePools implements ShouldQueue
 {
@@ -19,7 +21,19 @@ class ExplorePools implements ShouldQueue
 
             $token = Token::query()->firstOrCreate(['address' => $pool['token']['address']]);
             Pool::query()->updateOrCreate(['address' => $pool['pool']['address']], $pool['pool'] + ['token_id' => $token->id]);
-            ScanToken::dispatch($token)->delay($delay = $delay->addSeconds(5));
+
+            Bus::chain([
+                Bus::batch([
+                    new UpdateMetadata($token),
+                    new UpdatePools($token)
+                ]),
+                Bus::batch([
+                    new SimulateTransactions($token),
+                    new UpdateHolders($token),
+                    new UpdateLiquidity($token),
+                    new CheckBurnLock($token),
+                ])->allowFailures(),
+            ])->dispatch()->delay($delay = $delay->addSeconds(5));
 
         }
 

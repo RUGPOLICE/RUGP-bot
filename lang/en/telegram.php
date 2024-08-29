@@ -58,7 +58,7 @@ Please report bot bugs in tg chat. 🙏
 <b>👨‍👦‍👦 Holders:</b> :holders_count
 
 🔄 <u><b>DEX's:</b></u>
-:pools:rugpull_warning:lp_burned_warning:links_title:links
+:pools:alert:lp_burned_warning:links_title:links
 <u><b>Community trust:</b></u>
 👍 <b>:likes_count</b> / <b>:dislikes_count</b> 👎
 
@@ -71,19 +71,18 @@ Please report bot bugs in tg chat. 🙏
 :lp_burned:lp_locked
 ",
                 'link' => "<a href=':url'><b>:Label</b></a> ",
-                'links_title' => "\n\n<u><b>Socials:</b></u>\n",
+                'links_title' => "\n<u><b>Socials:</b></u>\n",
                 'description_title' => "\n\n<u><b>Description:</b></u>\n",
                 'is_finished' => "Click 🔎 for new scan.",
-                'rugpull' => "\n<b>WARNING ⁉️RUGPULL⁉️</b>\n",
                 'is_known_master' => [
                     'yes' => "✅ VERIFIED MASTER",
                     'no' => "⚠️ NON-STANDARD MASTER",
-                    'scan' => "🔎 SCAN MASTER",
+                    'scan' => "🔎 Scanning...",
                 ],
                 'is_known_wallet' => [
                     'yes' => "✅ VERIFIED JETTON",
                     'no' => "⚠️ NON-STANDARD JETTON",
-                    'scan' => "🔎 SCAN JETTON",
+                    'scan' => "🔎 Scanning...",
                 ],
                 'is_revoked' => [
                     'yes' => "✅ REVOKED.",
@@ -96,23 +95,23 @@ Please report bot bugs in tg chat. 🙏
                 'lp_burned' => [
                     'yes' => "├✅  <i>LP burned</i>: <b>:value%</b>",
                     'no' => "├⚠️ <i>LP not burned</i>",
-                    'scan' => "├🔎 <i>Scan LP Burn</i>",
+                    'scan' => "├🔎 <i>Scanning...</i>",
                     'warning' => "
 ⚠️ Liquidity (LP) not burned or locked.
 - If you trust the project, then it doesn't matter.
-- DYOR --> ♻️."
+- DYOR --> ♻️.
+"
                 ],
                 'lp_locked' => [
-                    'yes' => "\n└🔒 <i>LP locked</i>
-      <b>:value% on <a href=':link'>:type</a></b> :unlocks",
+                    'yes' => "\n└🔒 <i>LP locked</i>\n<b>:value% on <a href=':link'>:type</a></b> :unlocks",
                     'no' => "\n└🔒 <i>LP not locked</i>",
-                    'scan' => "\n└🔎 <i>Scan LP Lock</i>",
+                    'scan' => "\n└🔎 <i>Scanning...</i>",
                     'burned' => "",
                     'unlocks' => "till :value",
                     'dyor' => "/ more locks! DYOR",
                 ],
                 'tax_buy' => [
-                    'scan' => "├<i>🔎️ Scan buy tax</i>",
+                    'scan' => "├<i>🔎️ Scanning...</i>",
                     'unknown' => "├<i>🤷‍♂️ Failed to check jetton</i>",
                     'no' => "├<i>🤦🏻 Can't buy jetton</i>",
                     'ok' => "├<i>✅ Buy tax</i>: <b>no</b>",
@@ -120,17 +119,22 @@ Please report bot bugs in tg chat. 🙏
                     'danger' => "├<i>🚨 % Buy tax</i>: <b>:value%</b>",
                 ],
                 'tax_sell' => [
-                    'scan' => "├<i>🔎️ Scan sell tax</i>",
-                    'unknown' => "└<i>🤷‍♂️ Failed to check jetton</i>",
-                    'no' => "
-<b>CAN'T SELL JETTON</b>
-
-‼️HONEYPOT‼️SCAM‼️",
+                    'scan' => "├<i>🔎️ Scanning...</i>",
+                    'unknown' => "├<i>🤷‍♂️ Failed to check jetton</i>",
+                    'no' => "└<i>🤦🏻 Can't sell jetton</i>",
                     'ok' => "├<i>✅ Sell tax</i>: <b>no</b>",
                     'warning' => "├<i>⚠️ Sell tax</i>: <b>:value%</b>",
                     'danger' => "├<i>❌ Sell tax</i>: <b>:value%</b>",
                 ],
-
+                'alerts' => [
+                    'is_warn_honeypot' => "\n‼️HONEYPOT‼️SCAM‼️\n",
+                    'is_warn_rugpull' => "\nWARNING ⁉️RUGPULL⁉️\n",
+                    'is_warn_original' => "\n✔️ Original Jetton\n",
+                    'is_warn_scam' => "\n‼️SCAM‼️\n",
+                    'is_warn_liquidity_stonfi' => "\n‼️Can't sell‼️\n",
+                    'is_warn_liquidity_dedust' => "\nWarning, low liquidity!\n",
+                    'is_warn_liquidity' => "\nWarning, low liquidity!\n",
+                ],
             ],
             'chart' => [
                 'text' => "
@@ -217,6 +221,7 @@ Please report bot bugs in tg chat. 🙏
     'errors' => [
         'address' => [
             'invalid' => "🤷‍♂️ Wrong address",
+            'symbol' => "🤷‍♂️ Jetton not found. Try to enter jetton address",
             'empty' => "🤷‍♂️ Nothing found.
 Possible reasons: invalid address, deleted scam or no purchases and/or sales of a token for a long time.",
         ],

@@ -65,6 +65,7 @@ class SendReport implements ShouldQueue
 
         })->finally(function (Batch $batch) use ($token, $account, $chat_id, $report_message_id) {
 
+            App::call([new UpdateStatistics($token, $account), 'handle']);
             (new TokenReportHandler)->pending($token, $account, $chat_id, $report_message_id, is_finished: true);
 
         })->allowFailures()->dispatch();

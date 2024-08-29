@@ -20,7 +20,7 @@ class UpdatePools implements ShouldQueue
 
     public int $tries = 2;
 
-    public function __construct(public Token $token, public Account $account) {}
+    public function __construct(public Token $token, public ?Account $account = null) {}
 
     public function middleware(): array
     {

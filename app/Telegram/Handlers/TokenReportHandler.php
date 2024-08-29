@@ -81,6 +81,7 @@ class TokenReportHandler
         Telegram::set('account', $account);
         Telegram::editImagedMessage(
             $message,
+            options: ['image' => public_path('img/scan.png')],
             chat_id: $chat_id,
             message_id: $message_id,
         );

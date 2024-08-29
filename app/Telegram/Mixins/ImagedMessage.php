@@ -13,7 +13,7 @@ class ImagedMessage
 {
     public function sendImagedMessage(): \Closure
     {
-        return function (string $text, ?InlineKeyboardMarkup $buttons = null, array $options = [], ?int $chat_id = null, ?int $message_id = null) {
+        return function (string $text, ?InlineKeyboardMarkup $buttons = null, array $options = [], ?int $chat_id = null, ?int $message_id = null, ?int $reply_to_message_id = null) {
 
             $account = $this->get('account');
             App::setLocale($account->language->value);
@@ -23,6 +23,9 @@ class ImagedMessage
 
             if ($chat_id)
                 $options['chat_id'] = $chat_id;
+
+            if ($reply_to_message_id)
+                $options['reply_to_message_id'] = $reply_to_message_id;
 
             $options['reply_markup'] = $buttons;
             $options['parse_mode'] = ParseMode::HTML;
@@ -90,8 +93,8 @@ class ImagedMessage
 
                     unset($options['image']);
                     return $this->editMessageText(
-                        $text,
-                        ... $options
+                        ... $options,
+                        text: $text,
                     );
 
                 }

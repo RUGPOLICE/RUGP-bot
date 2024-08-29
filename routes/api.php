@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('telegram', [\App\Http\Controllers\Api\TelegramController::class, 'handle']);
 
 Route::prefix('/v1')
-    ->middleware(['auth:sanctum'])
+    ->middleware(['auth:sanctum', \App\Http\Middleware\Localized::class])
     ->group(function () {
 
         Route::prefix('/{network}')->group(function () {

@@ -7,8 +7,8 @@ use App\Enums\Lock;
 use App\Enums\Reaction;
 use App\Models\Account;
 use App\Models\Token;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Process;
 
 class TokenReportService
@@ -18,25 +18,23 @@ class TokenReportService
         $pools = [];
         $links = [];
 
-        $honeypot = $token->pools()->where('tax_sell', '<', 0)->exists() && $is_finished;
-        $lp_burned_warning = $token->pools()
-            ->where(function (Builder $query) {
-                $query->whereNull('burned_percent');
-                $query->orWhere('burned_percent', '<', 99);
-                $query->orWhere(function (Builder $query) {
-                    $query->where('burned_percent', '<', 99);
-                    $query->whereNull('locked_percent');
-                    $query->orWhere(function (Builder $query) {
-                        $query->where('locked_percent', '<', 99);
-                        $query->where('unlocks_at', '>', now());
-                    });
-                });
-            })
-            ->exists() && !$honeypot && $is_finished;
+        $alert = '';
+        $alerts = [
+            'is_warn_honeypot',
+            'is_warn_rugpull',
+            'is_warn_original',
+            'is_warn_scam',
+            'is_warn_liquidity_stonfi',
+            'is_warn_liquidity_dedust',
+            'is_warn_liquidity',
+        ];
 
-        $holders = $token->holders?->slice(0, 10)->filter(fn ($holder) => str_contains($holder['name'], 'MEXC') || str_contains($holder['name'], 'Bybit') || str_contains($holder['name'], 'OKX'))->count();
-        $low_pools = $token->pools()->where('h24_volume', '<', 10000)->exists();
-        $rugpull_warning = $low_pools && $holders && !$honeypot && $is_finished;
+        if ($is_finished)
+            foreach ($alerts as $str)
+                if ($token->$str) {
+                    $alert = __("telegram.text.token_scanner.report.alerts.$str");
+                    break;
+                }
 
         foreach ($token->pools as $pool) {
 
@@ -46,12 +44,12 @@ class TokenReportService
             $dyor = $pool->locked_dyor ? __('telegram.text.token_scanner.report.lp_locked.dyor') : '';
             $unlocks = $pool->unlocks_at ? __('telegram.text.token_scanner.report.lp_locked.unlocks', ['value' => $pool->unlocks_at->translatedFormat('d M Y')]) : '';
 
-            if ($honeypot) $lp_burned = '';
+            if ($token->is_warn_honeypot) $lp_burned = '';
             else if (!$is_finished) $lp_burned = __('telegram.text.token_scanner.report.lp_burned.scan');
             else if ($pool->burned_amount) $lp_burned = __('telegram.text.token_scanner.report.lp_burned.yes', ['value' => $burned_percent]);
             else $lp_burned = __('telegram.text.token_scanner.report.lp_burned.no');
 
-            if ($honeypot) $lp_locked = '';
+            if ($token->is_warn_honeypot) $lp_locked = '';
             else if (!$is_finished) $lp_locked = __('telegram.text.token_scanner.report.lp_locked.scan');
             else if ($pool->burned_percent > 99) $lp_locked = __('telegram.text.token_scanner.report.lp_locked.burned', ['value' => $burned_percent]);
             else if ($pool->locked_amount) $lp_locked = __('telegram.text.token_scanner.report.lp_locked.yes', ['value' => $locked_percent, 'type' => $type, 'unlocks' => $unlocks, 'dyor' => $dyor, 'link' => $pool->locked_type ? Lock::link($pool->locked_type, $pool->address) : null]);
@@ -90,7 +88,7 @@ class TokenReportService
             $links[] = __('telegram.text.token_scanner.report.link', ['url' => $social['url'], 'label' => $social['type']]);
 
         return [
-            'image' => $token->image,
+            'image' => Http::get($token->image)->status() === 200 ? $token->image : public_path('img/blank.png'),
             'text' => __('telegram.text.token_scanner.report.text', [
                 'name' => $token->name,
                 'symbol' => $token->symbol,
@@ -102,9 +100,7 @@ class TokenReportService
                 'supply' => number_format($token->supply / 1000000000),
                 'holders_count' => number_format($token->holders_count),
                 'pools' => implode('', $pools),
-
-                'lp_burned_warning' => ($lp_burned_warning && !$account->is_hide_warnings) ? __('telegram.text.token_scanner.report.lp_burned.warning') : '',
-                'rugpull_warning' => $rugpull_warning ? __('telegram.text.token_scanner.report.rugpull') : '',
+                'alert' => $alert,
 
                 'links_title' => $links ? __('telegram.text.token_scanner.report.links_title') : '',
                 'links' => $links ? (implode('', $links) . "\n") : '',
@@ -114,6 +110,7 @@ class TokenReportService
 
                 'is_revoked' => __('telegram.text.token_scanner.report.is_revoked.' . ($token->is_revoked ? 'yes' : 'no')),
                 'is_revoked_warning' => $account->is_hide_warnings ? '' : __('telegram.text.token_scanner.report.is_revoked_warning.' . ($token->is_revoked ? 'yes' : 'no')),
+                'lp_burned_warning' => $account->is_hide_warnings ? '' : __('telegram.text.token_scanner.report.lp_burned.warning'),
 
                 'likes_count' => $token->reactions()->where('type', Reaction::LIKE)->count(),
                 'dislikes_count' => $token->reactions()->where('type', Reaction::DISLIKE)->count(),

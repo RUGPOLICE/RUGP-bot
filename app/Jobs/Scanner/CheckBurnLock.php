@@ -36,58 +36,62 @@ class CheckBurnLock implements ShouldQueue
             if ($poolHolders) {
 
                 [$poolHolders, $holdersCount] = $poolHolders;
-                $holderAddress = $poolHolders[0]['owner']['address'];
+                if ($holdersCount) {
 
-                if ($holderAddress === '0:0000000000000000000000000000000000000000000000000000000000000000') {
+                    $holderAddress = $poolHolders[0]['owner']['address'];
 
-                    $pool->burned_amount = $poolHolders[0]['balance'];
-                    $pool->burned_percent = $poolHolders[0]['balance'] / $pool->supply * 100;
+                    if ($holderAddress === '0:0000000000000000000000000000000000000000000000000000000000000000') {
 
-                } else {
+                        $pool->burned_amount = $poolHolders[0]['balance'];
+                        $pool->burned_percent = $poolHolders[0]['balance'] / $pool->supply * 100;
 
-                    $result = Process::path(base_path('utils/scanner'))->run("node --no-warnings src/convert.js $holderAddress");
-                    $holderAddress = json_decode($result->output())->addresses->{$holderAddress};
+                    } else {
 
-                    $lockedAmount = null;
-                    $lockedPercent = null;
+                        $result = Process::path(base_path('utils/scanner'))->run("node --no-warnings src/convert.js $holderAddress");
+                        $holderAddress = json_decode($result->output())->addresses->{$holderAddress};
 
-                    $lockInfo = $tonHubService->getContractData($holderAddress);
-                    if ($lockInfo) {
+                        $lockedAmount = null;
+                        $lockedPercent = null;
 
-                        $lockedAmount = $lockInfo['locked_amount'];
-                        $lockedPercent = $lockInfo['locked_amount'] / $pool->supply * 100;
+                        $lockInfo = $tonHubService->getContractData($holderAddress);
+                        if ($lockInfo) {
 
-                        $time = Carbon::createFromTimestamp($lockInfo['unlocks_at']);
-                        $pool->locked_type = Lock::RAFFLE;
-                        $pool->unlocks_at = $time > now()->addYears(5) ? now()->addYears(5) : $time;
+                            $lockedAmount = $lockInfo['locked_amount'];
+                            $lockedPercent = $lockInfo['locked_amount'] / $pool->supply * 100;
+
+                            $time = Carbon::createFromTimestamp($lockInfo['unlocks_at']);
+                            $pool->locked_type = Lock::RAFFLE;
+                            $pool->unlocks_at = $time > now()->addYears(5) ? now()->addYears(5) : $time;
+
+                        }
+
+                        $toninuAmount = array_reduce(
+                            array_filter($poolHolders, fn ($item) => ($item['owner']['name'] ?? '') === 'tinu-locker.ton'),
+                            fn ($acc, $item) => $acc + $item['balance'],
+                            0
+                        );
+
+                        if ($toninuAmount) {
+
+                            $lockedAmount = $toninuAmount;
+                            $lockedPercent = $toninuAmount / $pool->supply * 100;
+                            $pool->locked_type = Lock::TONINU;
+
+                        }
+
+                        $isSmallLock = $lockedPercent && $lockedPercent < 100;
+                        $hasLargeHolders = boolval(array_filter($poolHolders, fn ($item) => ($item['balance'] / $pool->supply * 100) > 5));
+                        $isUnlocked = $pool->unlocks_at && $pool->unlocks_at < now();
+
+                        $pool->locked_dyor = $isSmallLock && $hasLargeHolders || $isUnlocked;
+                        $pool->locked_amount = $lockedAmount;
+                        $pool->locked_percent = $lockedPercent;
 
                     }
 
-                    $toninuAmount = array_reduce(
-                        array_filter($poolHolders, fn ($item) => ($item['owner']['name'] ?? '') === 'tinu-locker.ton'),
-                        fn ($acc, $item) => $acc + $item['balance'],
-                        0
-                    );
-
-                    if ($toninuAmount) {
-
-                        $lockedAmount = $toninuAmount;
-                        $lockedPercent = $toninuAmount / $pool->supply * 100;
-                        $pool->locked_type = Lock::TONINU;
-
-                    }
-
-                    $isSmallLock = $lockedPercent && $lockedPercent < 100;
-                    $hasLargeHolders = boolval(array_filter($poolHolders, fn ($item) => ($item['balance'] / $pool->supply * 100) > 5));
-                    $isUnlocked = $pool->unlocks_at && $pool->unlocks_at < now();
-
-                    $pool->locked_dyor = $isSmallLock && $hasLargeHolders || $isUnlocked;
-                    $pool->locked_amount = $lockedAmount;
-                    $pool->locked_percent = $lockedPercent;
+                    $pool->save();
 
                 }
-
-                $pool->save();
 
             }
 

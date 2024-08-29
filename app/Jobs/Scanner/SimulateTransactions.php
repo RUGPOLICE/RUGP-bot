@@ -30,15 +30,15 @@ class SimulateTransactions implements ShouldQueue
 
     public function handle(): void
     {
-        if (!$this->token->is_revoked) {
+        $failed = $this->token->pools()->where(function (Builder $query) { $query->whereNull('tax_buy')->orWhereNull('tax_sell'); })->exists();
+        if (!$this->token->is_revoked || $failed) {
 
-            Log::info($this->token->address);
             $dex = implode(',', Dex::all());
             $result = Process::path(base_path('utils/scanner'))->run("node --no-warnings src/main.js {$this->token->address} $dex");
             $report = json_decode($result->output());
 
             if (!$report->success)
-                throw new SimulationError($this->token);
+                throw new SimulationError($this->token, $report->message);
 
             $this->token->is_known_master = $report->isKnownMaster;
             $this->token->is_known_wallet = $report->isKnownWallet;

@@ -33,18 +33,22 @@ class UpdateLiquidity implements ShouldQueue
             if ($poolHolders) {
 
                 [$poolHolders, $holdersCount] = $poolHolders;
-                $holderAddresses = implode(',', array_map(fn ($a) => $a['address'], $poolHolders));
+                if ($holdersCount) {
 
-                $result = Process::path(base_path('utils/scanner'))->run("node --no-warnings src/convert.js $holderAddresses");
-                $holderAddresses = json_decode($result->output())->addresses;
+                    $holderAddresses = implode(',', array_map(fn ($a) => $a['address'], $poolHolders));
 
-                $pool->holders = array_map(fn ($a) => [
-                    'address' => $holderAddresses->{$a['address']},
-                    'balance' => $a['balance'] / 1000000000,
-                    'name' => $a['owner']['name'] ?? (!$a['owner']['is_wallet'] ? __('telegram.text.token_scanner.holders.dex_lock_stake') : null),
-                    'percent' => $pool->supply ? ($a['balance'] * 100 / $pool->supply) : 0,
-                ], $poolHolders);
-                $pool->save();
+                    $result = Process::path(base_path('utils/scanner'))->run("node --no-warnings src/convert.js $holderAddresses");
+                    $holderAddresses = json_decode($result->output())->addresses;
+
+                    $pool->holders = array_map(fn ($a) => [
+                        'address' => $holderAddresses->{$a['address']},
+                        'balance' => $a['balance'] / 1000000000,
+                        'name' => $a['owner']['name'] ?? (!$a['owner']['is_wallet'] ? __('telegram.text.token_scanner.holders.dex_lock_stake') : null),
+                        'percent' => $pool->supply ? ($a['balance'] * 100 / $pool->supply) : 0,
+                    ], $poolHolders);
+                    $pool->save();
+
+                }
 
             }
 

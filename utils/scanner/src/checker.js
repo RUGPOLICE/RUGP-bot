@@ -38,12 +38,14 @@ export async function checkForHoneypot(address, dex) {
             taxBuy: simulation.dedust?.buy,
             taxSell: simulation.dedust?.sell,
             taxTransfer: simulation.dedust?.transfer,
+            stack: simulation.dedust,
         },
         stonfi: {
             pool: simulation.stonfi?.pool?.toString(),
             taxBuy: simulation.stonfi?.buy,
             taxSell: simulation.stonfi?.sell,
             taxTransfer: simulation.stonfi?.transfer,
+            stack: simulation.stonfi,
         },
     };
 

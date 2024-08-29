@@ -18,7 +18,7 @@ class UpdateMetadata implements ShouldQueue
 
     public int $tries = 2;
 
-    public function __construct(public Token $token, public Account $account) {}
+    public function __construct(public Token $token, public ?Account $account = null) {}
 
     public function middleware(): array
     {
@@ -39,6 +39,7 @@ class UpdateMetadata implements ShouldQueue
             $this->token->description = $tokenMetadata['metadata']['description'] ?? null;
             $this->token->holders_count = $tokenMetadata['holders_count'];
             $this->token->supply = $tokenMetadata['total_supply'];
+            $this->token->is_warn_original = $tokenMetadata['verification'] === 'whitelist';
             $this->token->is_scanned = true;
             $this->token->save();
 

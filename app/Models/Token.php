@@ -31,6 +31,15 @@ use Illuminate\Support\Facades\App;
  * @property boolean $is_known_wallet
  * @property boolean $is_revoked
  *
+ * @property boolean $is_warn_honeypot
+ * @property boolean $is_warn_rugpull
+ * @property boolean $is_warn_original
+ * @property boolean $is_warn_scam
+ * @property boolean $is_warn_liquidity_stonfi
+ * @property boolean $is_warn_liquidity_dedust
+ * @property boolean $is_warn_liquidity
+ * @property boolean $is_warn_burned
+ *
  * @property string $description_formatted
  *
  * @property Collection $pools
@@ -51,6 +60,14 @@ class Token extends Model
         'holders',
         'websites',
         'socials',
+        'is_warn_honeypot',
+        'is_warn_rugpull',
+        'is_warn_original',
+        'is_warn_scam',
+        'is_warn_liquidity_stonfi',
+        'is_warn_liquidity_dedust',
+        'is_warn_liquidity',
+        'is_warn_burned',
     ];
 
     public function casts(): array
@@ -61,6 +78,14 @@ class Token extends Model
             'socials' => 'array',
             'is_known_master' => 'boolean',
             'is_known_wallet' => 'boolean',
+            'is_warn_honeypot' => 'boolean',
+            'is_warn_rugpull' => 'boolean',
+            'is_warn_original' => 'boolean',
+            'is_warn_scam' => 'boolean',
+            'is_warn_liquidity_stonfi' => 'boolean',
+            'is_warn_liquidity_dedust' => 'boolean',
+            'is_warn_liquidity' => 'boolean',
+            'is_warn_burned' => 'boolean',
         ];
     }
 
@@ -87,6 +112,15 @@ class Token extends Model
         $table->json('holders')->nullable();
         $table->json('websites')->nullable();
         $table->json('socials')->nullable();
+
+        $table->boolean('is_warn_honeypot')->default(false);
+        $table->boolean('is_warn_rugpull')->default(false);
+        $table->boolean('is_warn_original')->default(false);
+        $table->boolean('is_warn_scam')->default(false);
+        $table->boolean('is_warn_liquidity_stonfi')->default(false);
+        $table->boolean('is_warn_liquidity_dedust')->default(false);
+        $table->boolean('is_warn_liquidity')->default(false);
+        $table->boolean('is_warn_burned')->default(false);
     }
 
     public function pools(): \Illuminate\Database\Eloquent\Relations\HasMany
@@ -113,8 +147,27 @@ class Token extends Model
 
     public static function getAddress(string $address): array
     {
+        if ($address[0] === '$') {
+
+            $token = Token::query()
+                ->where('symbol', mb_substr($address, 1))
+                ->orderByDesc('is_warn_original')
+                ->orderByDesc('holders_count')
+                ->first();
+
+            if ($token) return ['success' => true, 'address' => $token->address];
+            return ['success' => false, 'error' => __('telegram.errors.address.symbol')];
+
+        }
+
         if (mb_strlen($address) < 48)
             return ['success' => false, 'error' => __('telegram.errors.address.invalid')];
+
+        $address = explode('/', $address);
+        $address = $address[count($address) - 1];
+
+        if (mb_strpos($address, '?') !== false)
+            $address = mb_substr($address, 0, mb_strpos($address, '?'));
 
         $service = App::make(DexScreenerService::class);
         $address = $service->getTokenAddressByPoolAddress($address);
