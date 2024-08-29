@@ -42,6 +42,7 @@ class SimulateTransactions implements ShouldQueue
 
             $this->token->is_known_master = $report->isKnownMaster;
             $this->token->is_known_wallet = $report->isKnownWallet;
+            $this->token->save();
 
             foreach ($this->token->pools as $pool) {
 

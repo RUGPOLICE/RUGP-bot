@@ -33,16 +33,20 @@ class UpdateHolders implements ShouldQueue
             [$tokenHolders, $this->token->holders_count] = $tokenHolders;
             $holderAddresses = implode(',', array_map(fn ($a) => $a['address'], $tokenHolders));
 
-            $result = Process::path(base_path('utils/scanner'))->run("node --no-warnings src/convert.js $holderAddresses");
-            $holderAddresses = json_decode($result->output())->addresses;
+            if ($this->token->holders_count) {
 
-            $this->token->holders = array_map(fn ($a) => [
-                'address' => $holderAddresses->{$a['address']},
-                'balance' => $a['balance'] / 1000000000,
-                'name' => $a['owner']['name'] ?? (!$a['owner']['is_wallet'] ? __('telegram.text.token_scanner.holders.dex_lock_stake') : null),
-                'percent' => $this->token->supply ? ($a['balance'] * 100 / $this->token->supply) : 0,
-            ], $tokenHolders);
-            $this->token->save();
+                $result = Process::path(base_path('utils/scanner'))->run("node --no-warnings src/convert.js $holderAddresses");
+                $holderAddresses = json_decode($result->output())->addresses;
+
+                $this->token->holders = array_map(fn ($a) => [
+                    'address' => $holderAddresses->{$a['address']},
+                    'balance' => $a['balance'] / 1000000000,
+                    'name' => $a['owner']['name'] ?? (!$a['owner']['is_wallet'] ? __('telegram.text.token_scanner.holders.dex_lock_stake') : null),
+                    'percent' => $this->token->supply ? ($a['balance'] * 100 / $this->token->supply) : 0,
+                ], $tokenHolders);
+                $this->token->save();
+
+            }
 
         }
     }
