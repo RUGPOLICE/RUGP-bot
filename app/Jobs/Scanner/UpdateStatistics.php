@@ -3,8 +3,8 @@
 namespace App\Jobs\Scanner;
 
 use App\Enums\Dex;
+use App\Enums\Language;
 use App\Jobs\Middleware\Localized;
-use App\Models\Account;
 use App\Models\Token;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -17,7 +17,7 @@ class UpdateStatistics implements ShouldQueue
 
     public int $tries = 1;
 
-    public function __construct(public Token $token, public ?Account $account = null) {}
+    public function __construct(public Token $token, public Language $language) {}
 
     public function middleware(): array
     {
@@ -83,17 +83,12 @@ class UpdateStatistics implements ShouldQueue
 
     private function checkBurned(): bool
     {
-        return $this->token->pools()
+        return !$this->token->pools()
             ->where(function (Builder $query) {
-                $query->whereNull('burned_percent');
-                $query->orWhere('burned_percent', '<', 95);
+                $query->where('burned_percent', '>=', 95);
                 $query->orWhere(function (Builder $query) {
-                    $query->where('burned_percent', '<', 95);
-                    $query->whereNull('locked_percent');
-                    $query->orWhere(function (Builder $query) {
-                        $query->where('locked_percent', '<', 95);
-                        $query->where('unlocks_at', '>', now());
-                    });
+                    $query->where('locked_percent', '>=', 95);
+                    $query->where('unlocks_at', '>', now());
                 });
             })
             ->exists();

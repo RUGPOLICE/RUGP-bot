@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Enums\Dex;
+use App\Enums\Language;
 use App\Enums\Lock;
 use App\Enums\Reaction;
 use App\Exceptions\ScanningError;
@@ -15,6 +16,7 @@ use App\Jobs\Scanner\UpdateMetadata;
 use App\Jobs\Scanner\UpdatePools;
 use App\Jobs\Scanner\UpdateStatistics;
 use App\Models\Token;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
 
 class TokenController extends Controller
@@ -27,9 +29,11 @@ class TokenController extends Controller
             if (!$address['success'])
                 return response()->json($address);
 
+            $language = Language::key(App::getLocale());
             $token = Token::query()->firstOrCreate(['address' => $address['address']]);
-            UpdateMetadata::dispatchSync($token);
-            UpdatePools::dispatchSync($token);
+
+            UpdateMetadata::dispatchSync($token, $language);
+            UpdatePools::dispatchSync($token, $language);
 
             $jobs = [
                 SimulateTransactions::class,
@@ -42,7 +46,7 @@ class TokenController extends Controller
             foreach ($jobs as $job) {
                 try {
 
-                    $job::dispatchSync($token);
+                    $job::dispatchSync($token, $language);
 
                 } catch (ScanningError $e) {
 
@@ -156,15 +160,17 @@ class TokenController extends Controller
             if (!$address['success'])
                 return response()->json($address);
 
+            $language = Language::key(App::getLocale());
             $token = Token::query()->firstOrCreate(['address' => $address['address']]);
-            UpdateMetadata::dispatchSync($token);
-            UpdatePools::dispatchSync($token);
+
+            UpdateMetadata::dispatchSync($token, $language);
+            UpdatePools::dispatchSync($token, $language);
 
             $jobs = [SimulateTransactions::class, UpdateStatistics::class];
             foreach ($jobs as $job) {
                 try {
 
-                    $job::dispatchSync($token);
+                    $job::dispatchSync($token, $language);
 
                 } catch (ScanningError $e) {
 

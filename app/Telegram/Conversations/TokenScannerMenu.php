@@ -10,12 +10,12 @@ use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\Telegram\Properties\ChatAction;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 
-class TokenScanner extends ImagedInlineMenu
+class TokenScannerMenu extends ImagedInlineMenu
 {
     public function start(Nutgram $bot, string $referrer): void
     {
         $buttons = match ($referrer) {
-            Home::class => [
+            HomeMenu::class => [
                 InlineKeyboardButton::make(__('telegram.buttons.back'), callback_data: 'back@menu'),
             ],
             TokenReportHandler::class => [
@@ -33,7 +33,7 @@ class TokenScanner extends ImagedInlineMenu
     {
         $this->end();
         match ($bot->callbackQuery()->data) {
-            'back' => Home::begin($bot),
+            'back' => HomeMenu::begin($bot),
         };
     }
 
@@ -42,6 +42,7 @@ class TokenScanner extends ImagedInlineMenu
         if (!(new SpamProtection)($bot))
             return;
 
+        $account = $bot->get('account');
         $message_id = $bot->messageId();
         $address = $bot->message()->text;
 
@@ -62,7 +63,7 @@ class TokenScanner extends ImagedInlineMenu
         )->message_id;
 
         $token = Token::query()->firstOrCreate(['address' => $address['address']]);
-        SendReport::dispatch($token, $bot->get('account'), $this->bot->chatId(), $message_id);
+        SendReport::dispatch($token, $account, $account->language, $message_id);
 
         $this->end();
         $bot->sendChatAction(ChatAction::TYPING);
@@ -72,6 +73,6 @@ class TokenScanner extends ImagedInlineMenu
     {
         $bot->sendImagedMessage($message, reply_to_message_id: $bot->messageId());
         $this->end();
-        self::begin($bot, data: ['referrer' => Home::class]);
+        self::begin($bot, data: ['referrer' => HomeMenu::class]);
     }
 }

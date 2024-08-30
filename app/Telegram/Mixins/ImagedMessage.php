@@ -8,15 +8,13 @@ use SergiX44\Nutgram\Telegram\Properties\ParseMode;
 use SergiX44\Nutgram\Telegram\Types\Input\InputMediaPhoto;
 use SergiX44\Nutgram\Telegram\Types\Internal\InputFile;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardMarkup;
+use SergiX44\Nutgram\Telegram\Types\Keyboard\ReplyKeyboardMarkup;
 
 class ImagedMessage
 {
     public function sendImagedMessage(): \Closure
     {
-        return function (string $text, ?InlineKeyboardMarkup $buttons = null, array $options = [], ?int $chat_id = null, ?int $message_id = null, ?int $reply_to_message_id = null) {
-
-            $account = $this->get('account');
-            App::setLocale($account->language->value);
+        return function (string $text, InlineKeyboardMarkup|ReplyKeyboardMarkup|null $buttons = null, array $options = [], ?int $chat_id = null, ?int $message_id = null, ?int $reply_to_message_id = null) {
 
             if ($chat_id && $message_id)
                 $this->deleteMessage($chat_id, $message_id);
@@ -56,10 +54,7 @@ class ImagedMessage
 
     public function editImagedMessage(): \Closure
     {
-        return function (string $text, ?InlineKeyboardMarkup $buttons = null, array $options = [], ?int $chat_id = null, ?int $message_id = null) {
-
-            $account = $this->get('account');
-            App::setLocale($account->language->value);
+        return function (string $text, InlineKeyboardMarkup|ReplyKeyboardMarkup|null $buttons = null, array $options = [], ?int $chat_id = null, ?int $message_id = null) {
 
             if ($chat_id) $options['chat_id'] = $chat_id;
             if ($message_id) $options['message_id'] = $message_id;

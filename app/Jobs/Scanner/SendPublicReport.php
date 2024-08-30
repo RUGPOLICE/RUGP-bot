@@ -5,7 +5,7 @@ namespace App\Jobs\Scanner;
 use App\Enums\Language;
 use App\Exceptions\ScanningError;
 use App\Jobs\Middleware\Localized;
-use App\Models\Account;
+use App\Models\Chat;
 use App\Models\Token;
 use App\Telegram\Handlers\TokenReportHandler;
 use Illuminate\Bus\Batch;
@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Log;
 use Nutgram\Laravel\Facades\Telegram;
 use SergiX44\Nutgram\Nutgram;
 
-class SendReport implements ShouldQueue
+class SendPublicReport implements ShouldQueue
 {
     use Queueable;
 
@@ -25,9 +25,10 @@ class SendReport implements ShouldQueue
 
     public function __construct(
         public Token $token,
-        public Account $account,
+        public Chat $chat,
         public Language $language,
         public int $report_message_id,
+        public string $type,
     ) {}
 
     public function middleware(): array
@@ -38,9 +39,10 @@ class SendReport implements ShouldQueue
     public function handle(): void
     {
         $token = $this->token;
-        $account = $this->account;
+        $chat = $this->chat;
         $language = $this->language;
         $report_message_id = $this->report_message_id;
+        $type = $this->type;
 
         try {
 
@@ -49,7 +51,7 @@ class SendReport implements ShouldQueue
 
         } catch (\Throwable $e) {
 
-            SendReport::error($e, $token, $account, $language, $report_message_id);
+            SendPublicReport::error($e, $token, $chat, $language, $report_message_id);
             return;
 
         }
@@ -61,25 +63,25 @@ class SendReport implements ShouldQueue
             new UpdateLiquidity($token, $language),
             new CheckBurnLock($token, $language),
 
-        ])->progress(function (Batch $batch) use ($token, $account, $report_message_id) {
+        ])->progress(function (Batch $batch) use ($token, $chat, $report_message_id, $type) {
 
-            $bot = app(Nutgram::class);
-            (new TokenReportHandler)->pending($bot, $token, $account, $report_message_id, type: 'main', is_finished: false, show_buttons: false);
+            $group = new Nutgram(config('nutgram.group_token'));
+            (new TokenReportHandler)->pending($group, $token, $chat, $report_message_id, type: $type, is_finished: false, show_buttons: false);
 
-        })->finally(function (Batch $batch) use ($token, $account, $language, $report_message_id) {
+        })->finally(function (Batch $batch) use ($token, $chat, $language, $report_message_id, $type) {
 
             App::call([new UpdateStatistics($token, $language), 'handle']);
-            $bot = app(Nutgram::class);
-            (new TokenReportHandler)->pending($bot, $token, $account, $report_message_id, type: 'main', is_finished: true, show_buttons: true);
+            $group = new Nutgram(config('nutgram.group_token'));
+            (new TokenReportHandler)->pending($group, $token, $chat, $report_message_id, type: $type, is_finished: true, show_buttons: false);
 
         })->allowFailures()->dispatch();
     }
 
-    public static function error(\Throwable $e, Token $token, Account $account, Language $language, int $report_message_id): void
+    public static function error(\Throwable $e, Token $token, Chat $chat, Language $language, int $report_message_id): void
     {
-        $bot = app(Nutgram::class);
-        $bot->set('language', $language->value);
-        $bot->set('account', $account);
+        $group = new Nutgram(config('nutgram.group_token'));
+        $group->set('language', $language->value);
+        $group->set('chat', $chat);
 
         $message = __('telegram.errors.scan.fail', ['address' => $token->address]);
         $log_message = "Scan Token Fail: $token->address ({$e->getMessage()})";
@@ -91,7 +93,7 @@ class SendReport implements ShouldQueue
 
         }
 
-        (new TokenReportHandler)->error($bot, $message, $account->telegram_id, $report_message_id);
+        (new TokenReportHandler)->error($group, $message, $chat->chat_id, $report_message_id);
         Log::error($log_message);
     }
 }

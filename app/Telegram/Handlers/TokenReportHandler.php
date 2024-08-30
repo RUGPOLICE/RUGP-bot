@@ -3,13 +3,15 @@
 namespace App\Telegram\Handlers;
 
 use App\Enums\Reaction;
+use App\Jobs\Scanner\SendPublicReport;
+use App\Jobs\Scanner\SendReport;
 use App\Models\Account;
+use App\Models\Chat;
 use App\Models\Token;
 use App\Services\TokenReportService;
-use App\Telegram\Conversations\Home;
-use App\Telegram\Conversations\TokenScanner;
+use App\Telegram\Conversations\HomeMenu;
+use App\Telegram\Conversations\TokenScannerMenu;
 use Illuminate\Support\Facades\App;
-use Nutgram\Laravel\Facades\Telegram;
 use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\Telegram\Properties\ChatAction;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
@@ -24,14 +26,14 @@ class TokenReportHandler
 
         if ($type === 'back') {
 
-            TokenScanner::begin($bot, data: ['referrer' => TokenReportHandler::class]);
+            TokenScannerMenu::begin($bot, data: ['referrer' => TokenReportHandler::class]);
             return;
 
         }
 
         if ($type === 'home') {
 
-            Home::begin($bot);
+            HomeMenu::begin($bot);
             return;
 
         }
@@ -61,30 +63,44 @@ class TokenReportHandler
 
     }
 
-    public function pending(Token $token, Account $account, int $chat_id, int $message_id, bool $is_finished): void
+    public function error(Nutgram $bot, string $message, string $chat_id, int $message_id): void
     {
-        Telegram::set('account', $account);
-        $tokenReportService = App::make(TokenReportService::class);
-
-        $params = $tokenReportService->main($token, $account, $is_finished);
-        $options = ['link_preview_options' => LinkPreviewOptions::make(is_disabled: true)];
-
-        if (array_key_exists('image', $params))
-            $options['image'] = $params['image'];
-
-        Telegram::editImagedMessage($params['text'], buttons: $is_finished ? self::getButtons($token) : null, options: $options, chat_id: $chat_id, message_id: $message_id);
-        if (!$is_finished) Telegram::sendChatAction(ChatAction::TYPING->value, chat_id: $chat_id);
-    }
-
-    public function error(Account $account, string $message, string $chat_id, int $message_id): void
-    {
-        Telegram::set('account', $account);
-        Telegram::editImagedMessage(
+        $bot->editImagedMessage(
             $message,
             options: ['image' => public_path('img/scan.png')],
             chat_id: $chat_id,
             message_id: $message_id,
         );
+    }
+
+    public function pending(Nutgram $bot, Token $token, Account|Chat $sendable, int $message_id, string $type, bool $is_finished, bool $show_buttons): void
+    {
+        $bot->set('language', $sendable->language->value);
+        if ($sendable instanceof Account) {
+
+            $bot->set('account', $sendable);
+            $chat_id = $sendable->telegram_id;
+            $is_show_warnings = !$sendable->is_hide_warnings;
+            $for_group = false;
+
+        } else {
+
+            $bot->set('chat', $sendable);
+            $chat_id = $sendable->chat_id;
+            $is_show_warnings = $sendable->is_show_warnings;
+            $for_group = true;
+
+        }
+
+        $tokenReportService = App::make(TokenReportService::class);
+        $params = $tokenReportService->{$type}($token, $is_show_warnings, $is_finished, $for_group);
+        $options = ['link_preview_options' => LinkPreviewOptions::make(is_disabled: true)];
+
+        if (array_key_exists('image', $params))
+            $options['image'] = $params['image'];
+
+        $bot->editImagedMessage($params['text'], buttons: $show_buttons ? self::getButtons($token) : null, options: $options, chat_id: $chat_id, message_id: $message_id);
+        if (!$is_finished) $bot->sendChatAction(ChatAction::TYPING->value, chat_id: $chat_id);
     }
 
     public function report(Nutgram $bot, Token $token, string $type, ?int $chat_id = null, ?int $reply_message_id = null, ?int $message_id = null): void
@@ -95,14 +111,59 @@ class TokenReportHandler
             'reply_to_message_id' => $reply_message_id,
         ];
 
-        $params = $tokenReportService->{$type}($token, $bot->get('account'));
+        $params = $tokenReportService->{$type}($token, !$bot->get('account')->is_hide_warnings);
         if (array_key_exists('image', $params))
             $options['image'] = $params['image'];
 
         if (!$message_id) $bot->sendImagedMessage($params['text'], self::getButtons($token), $options, $chat_id, $message_id);
         else $bot->editImagedMessage($params['text'], self::getButtons($token), $options, $chat_id, $message_id);
-
     }
+
+
+    public function publicMain(Nutgram $bot, string $search): void
+    {
+        $this->public($bot, $search, 'main');
+    }
+
+    public function publicPrice(Nutgram $bot, string $search): void
+    {
+        $this->public($bot, $search, 'chart');
+    }
+
+    public function publicVolume(Nutgram $bot, string $search): void
+    {
+        $this->public($bot, $search, 'volume');
+    }
+
+    public function publicHolders(Nutgram $bot, string $search): void
+    {
+        $this->public($bot, $search, 'holders');
+    }
+
+    public function public(Nutgram $bot, string $search, string $type): void
+    {
+        $address = Token::getAddress($search);
+        if (!$address['success']) {
+
+            $bot->sendImagedMessage($address['error']);
+            return;
+
+        }
+
+        $chat = $bot->get('chat');
+        $message_id = $bot->sendImagedMessage(
+            __('telegram.text.token_scanner.pending'),
+            options: [
+                'image' => public_path('img/scan.png'),
+                'reply_to_message_id' => $bot->messageId(),
+            ]
+        )->message_id;
+
+        $token = Token::query()->firstOrCreate(['address' => $address['address']]);
+        SendPublicReport::dispatch($token, $chat, $chat->language, $message_id, $type);
+        $bot->sendChatAction(ChatAction::TYPING);
+    }
+
 
     private static function getButtons(Token $token): InlineKeyboardMarkup
     {

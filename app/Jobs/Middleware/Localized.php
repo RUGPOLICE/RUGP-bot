@@ -9,9 +9,7 @@ class Localized
 {
     public function handle(object $job, Closure $next): void
     {
-        if (isset($job->account))
-            App::setLocale($job->account->language->value);
-
+        App::setLocale($job->language?->value ?? config('app.fallback_locale'));
         $next($job);
     }
 }

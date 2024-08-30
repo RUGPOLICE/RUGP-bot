@@ -42,6 +42,10 @@ Please report bot bugs in tg chat. 🙏
         'token_scanner' => [
             'main' => "👇 Enter a token name with $, token address, pool address or dex link.",
             'pending' => "🔎 Scanning. The report will be sent to you shortly.",
+            "watermark" => "
+<a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugpoliceton'>Telegram</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
+© RUGP
+",
             'report' => [
                 'text' => "
 <b>ℹ️ INFO</b>
@@ -61,8 +65,7 @@ Please report bot bugs in tg chat. 🙏
 :pools:alert:lp_burned_warning:links_title:links
 <u><b>Community trust:</b></u>
 👍 <b>:likes_count</b> / <b>:dislikes_count</b> 👎
-
-:is_finished",
+:is_finished:watermark",
                 'pool' => "
 <a href=':link'><i><b>:name</b></i></a>:
 ├💵 Price: <b>$:price</b>
@@ -73,7 +76,7 @@ Please report bot bugs in tg chat. 🙏
                 'link' => "<a href=':url'><b>:Label</b></a> ",
                 'links_title' => "\n<u><b>Socials:</b></u>\n",
                 'description_title' => "\n\n<u><b>Description:</b></u>\n",
-                'is_finished' => "Click 🔎 for new scan.",
+                'is_finished' => "\nClick 🔎 for new scan.",
                 'is_known_master' => [
                     'yes' => "✅ VERIFIED MASTER",
                     'no' => "⚠️ NON-STANDARD MASTER",
@@ -142,6 +145,7 @@ Please report bot bugs in tg chat. 🙏
 📈 <b>PRICE</b> <b>$:symbol</b>
 
 :pools
+:watermark
 ",
                 'pool' => "
 <a href=':link'>:name</a>
@@ -165,8 +169,7 @@ Please report bot bugs in tg chat. 🙏
 
 :holders
 :pools:warning
-
-
+:watermark
 ",
                 'pool' => "💧 <a href='https://tonviewer.com/:address?section=holders'><u>:name</u></a> <b>liquidity pool</b> \n\n:holders\n",
                 'holder' => "<b>:percent%</b> -> <a href='tonviewer.com/:address'><i>:label</i></a>\n",
@@ -181,8 +184,8 @@ Please report bot bugs in tg chat. 🙏
 
 📊 <b>VOLUME</b> <b>$:symbol</b>
 
-:pools:warning
-
+:pools:warning:warnings
+:watermark
 ",
                 'pool' => "<a href=':link'>:name</a>
 🔈 <u><i>Vol</i></u>
@@ -202,8 +205,8 @@ Please report bot bugs in tg chat. 🙏
 └<i>(24h): </i> <b>:sells_h24</b>
 
 ",
-                'warning' => "⚠️ Check buys/sells ratio! Too many buys and single sales could be a SCAM!
-⚙️ You can switch off warnings at any time in your profile.",
+                'warning' => "⚠️ Check buys/sells ratio! Too many buys and single sales could be a SCAM!",
+                'warnings' => "\n⚙️ You can switch off warnings at any time in your profile.",
             ],
         ],
         'profile' => [
@@ -215,6 +218,24 @@ Please report bot bugs in tg chat. 🙏
             'warnings' => [
                 'hidden' => 'Hidden',
                 'shown' => 'Visible',
+            ],
+        ],
+        'settings' => [
+            'main' => "
+🔎 Token Scanner - Инструмент для получения информации о токене (проверка на скам, холдеры, цена, объем).
+BETA 0.1
+
+Warnings: <b>:is_show_warnings</b>
+Language: <b>:language</b>
+
+<a href='http://rugp.io'>WEB</a>   |    <a href='t.me/rugp_ton'>Telegram chat</a>    |     <a href='https://x.com/rugp_ton'>Twitter</a>
+
+© RUGP - анти-скам сообщество и полезные инструменты для TON.
+Если нашли баг в боте, просьба сообщить в tg чат проекта. 🙏
+",
+            'is_show_warnings' => [
+                'yes' => "Shown",
+                'no' => "Hidden",
             ],
         ],
     ],

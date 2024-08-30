@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\App;
 use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 
-class Profile extends ImagedInlineMenu
+class ProfileMenu extends ImagedInlineMenu
 {
     public function start(Nutgram $bot): void
     {
@@ -40,8 +40,8 @@ class Profile extends ImagedInlineMenu
 
         $this->end();
         match ($option) {
-            'profile' => Profile::begin($bot),
-            'back' => Home::begin($bot),
+            'profile' => ProfileMenu::begin($bot),
+            'back' => HomeMenu::begin($bot),
         };
     }
 
@@ -52,7 +52,7 @@ class Profile extends ImagedInlineMenu
         $account->save();
 
         $this->end();
-        Profile::begin($bot);
+        ProfileMenu::begin($bot);
     }
 
     public function rules(Nutgram $bot): void

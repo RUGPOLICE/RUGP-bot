@@ -14,4 +14,20 @@ enum Language: string
             self::EN->value,
         ];
     }
+
+    public static function key(string $lang): self
+    {
+        return match ($lang) {
+            self::RU->value => self::RU,
+            self::EN->value => self::EN,
+        };
+    }
+
+    public static function language(string $key): self|string
+    {
+        foreach (self::keys() as $language)
+            if ($language === $key)
+                return $language;
+        return config('app.fallback_locale');
+    }
 }

@@ -2,9 +2,9 @@
 
 namespace App\Jobs\Scanner;
 
+use App\Enums\Language;
 use App\Exceptions\MetadataError;
 use App\Jobs\Middleware\Localized;
-use App\Models\Account;
 use App\Models\Pool;
 use App\Models\Token;
 use App\Services\DexScreenerService;
@@ -20,7 +20,7 @@ class UpdatePools implements ShouldQueue
 
     public int $tries = 2;
 
-    public function __construct(public Token $token, public ?Account $account = null) {}
+    public function __construct(public Token $token, public Language $language) {}
 
     public function middleware(): array
     {

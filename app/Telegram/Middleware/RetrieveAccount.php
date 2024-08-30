@@ -3,22 +3,38 @@
 namespace App\Telegram\Middleware;
 
 use App\Models\Account;
+use App\Models\Chat;
 use Illuminate\Support\Facades\App;
 use SergiX44\Nutgram\Nutgram;
+use SergiX44\Nutgram\Telegram\Properties\ChatType;
 
 class RetrieveAccount
 {
     public function __invoke(Nutgram $bot, $next): void
     {
-        $account = Account::query()->firstOrCreate(
-            ['telegram_id' => $bot->user()->id],
-            ['telegram_username' => $bot->user()->username],
-        );
+        if ($bot->chat()->type === ChatType::PRIVATE || $bot->isCallbackQuery()) {
 
-        $account->refresh();
-        App::setLocale($account->language->value);
+            $account = Account::query()->firstOrCreate(
+                ['telegram_id' => $bot->user()->id],
+                ['telegram_username' => $bot->user()->username],
+            );
 
-        $bot->set('account', $account);
+            $account->refresh();
+            $bot->set('account', $account);
+            $language = $account->language->value;
+
+        } else {
+
+            $chat = Chat::query()->firstOrCreate(['chat_id' => $bot->chatId()]);
+            $chat->refresh();
+
+            $bot->set('chat', $chat);
+            $language = $chat->language->value;
+
+        }
+
+        $bot->set('language', $language);
+        App::setLocale($language);
         $next($bot);
     }
 }

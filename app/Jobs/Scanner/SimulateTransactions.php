@@ -3,16 +3,15 @@
 namespace App\Jobs\Scanner;
 
 use App\Enums\Dex;
+use App\Enums\Language;
 use App\Exceptions\SimulationError;
 use App\Jobs\Middleware\Localized;
-use App\Models\Account;
 use App\Models\Token;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Middleware\SkipIfBatchCancelled;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
 
 class SimulateTransactions implements ShouldQueue
@@ -21,7 +20,7 @@ class SimulateTransactions implements ShouldQueue
 
     public int $tries = 3;
 
-    public function __construct(public Token $token, public ?Account $account = null) {}
+    public function __construct(public Token $token, public Language $language) {}
 
     public function middleware(): array
     {

@@ -6,10 +6,11 @@ use App\Enums\Language;
 use App\Models\Token;
 use App\Telegram\Handlers\TokenReportHandler;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Log;
 use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 
-class Home extends ImagedInlineMenu
+class HomeMenu extends ImagedInlineMenu
 {
     public function start(Nutgram $bot, ?string $params = null): void
     {
@@ -117,9 +118,9 @@ class Home extends ImagedInlineMenu
     {
         $this->end();
         match ($bot->callbackQuery()->data) {
-            'token_scanner' => TokenScanner::begin($bot, data: ['referrer' => Home::class]),
-            'wallet_tracker', 'black_box', 'check_wallet', 'academy', 'gpt' => Home::begin($bot),
-            'profile' => Profile::begin($bot),
+            'token_scanner' => TokenScannerMenu::begin($bot, data: ['referrer' => HomeMenu::class]),
+            'wallet_tracker', 'black_box', 'check_wallet', 'academy', 'gpt' => HomeMenu::begin($bot),
+            'profile' => ProfileMenu::begin($bot),
         };
     }
 

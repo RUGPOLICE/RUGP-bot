@@ -2,8 +2,8 @@
 
 namespace App\Jobs\Scanner;
 
+use App\Enums\Language;
 use App\Jobs\Middleware\Localized;
-use App\Models\Account;
 use App\Models\Token;
 use App\Services\TonApiService;
 use Illuminate\Bus\Batchable;
@@ -18,7 +18,7 @@ class UpdateHolders implements ShouldQueue
 
     public int $tries = 1;
 
-    public function __construct(public Token $token, public ?Account $account = null) {}
+    public function __construct(public Token $token, public Language $language) {}
 
     public function middleware(): array
     {
