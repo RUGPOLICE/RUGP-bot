@@ -63,7 +63,7 @@ class CommandsHandler
         $bot->setMyCommands([
             BotCommand::make('start', 'Обновить бота'),
             BotCommand::make('commands', 'Обновить команды'),
-        ], scope: new BotCommandScopeChat(env('TELEGRAM_LOG_CHAT_ID')));
+        ], scope: new BotCommandScopeChat(config('nutgram.developers')));
 
         $bot->sendImagedMessage('Commands have been updated', reply_to_message_id: $bot->messageId());
     }
