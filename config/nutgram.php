@@ -27,4 +27,5 @@ return [
 
     'group_token' => env('TELEGRAM_GROUP_TOKEN'),
     'group_bot_name' => env('TELEGRAM_GROUP_BOT_NAME'),
+    'developers' => env('TELEGRAM_LOG_CHAT_ID'),
 ];
