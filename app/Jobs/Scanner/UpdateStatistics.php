@@ -88,7 +88,10 @@ class UpdateStatistics implements ShouldQueue
                 $query->where('burned_percent', '>=', 95);
                 $query->orWhere(function (Builder $query) {
                     $query->where('locked_percent', '>=', 95);
-                    $query->where('unlocks_at', '>', now());
+                    $query->where(function (Builder $query) {
+                        $query->where('unlocks_at', '>', now());
+                        $query->orWhereNull('unlocks_at');
+                    });
                 });
             })
             ->exists();
