@@ -222,20 +222,19 @@ Please report bot bugs in tg chat. 🙏
         ],
         'settings' => [
             'main' => "
-🔎 Token Scanner - Инструмент для получения информации о токене (проверка на скам, холдеры, цена, объем).
+🔎 Token Scanner - Scam check + Complete information about the token.
 BETA 0.1
+<a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugp_ton'>Telegram chat</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
+
+
+<u>SETTINGS</u>
 
 Warnings: <b>:is_show_warnings</b>
 Language: <b>:language</b>
-
-<a href='http://rugp.io'>WEB</a>   |    <a href='t.me/rugp_ton'>Telegram chat</a>    |     <a href='https://x.com/rugp_ton'>Twitter</a>
-
-© RUGP - анти-скам сообщество и полезные инструменты для TON.
-Если нашли баг в боте, просьба сообщить в tg чат проекта. 🙏
 ",
             'is_show_warnings' => [
-                'yes' => "Shown",
-                'no' => "Hidden",
+                'yes' => "ON",
+                'no' => "OFF",
             ],
         ],
     ],
