@@ -21,7 +21,7 @@ class CheckBurnLock implements ShouldQueue
 
     public int $tries = 1;
 
-    public function __construct(public Token $token, public Language $language) {}
+    public function __construct(public Token $token, public ?Language $language = null) {}
 
     public function middleware(): array
     {

@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Telegram\Handlers\GroupStartHandler;
+use App\Telegram\Handlers\PublicTokenReportHandler;
 use App\Telegram\Handlers\SettingsHandler;
-use App\Telegram\Handlers\TokenReportHandler;
 use App\Telegram\Middleware\ForAdmins;
 use App\Telegram\Middleware\PrivateHandler;
 use App\Telegram\Middleware\PublicHandler;
@@ -41,10 +41,10 @@ class TelegramController extends Controller
             $bot->onCommand('start', GroupStartHandler::class)->middleware(PrivateHandler::class);
             $bot->group(function (Nutgram $bot) {
 
-                $bot->onText('(\$.*|EQ.{46})', [TokenReportHandler::class, 'publicMain']);
-                $bot->onCommand('p (\$.*|EQ.{46})', [TokenReportHandler::class, 'publicPrice']);
-                $bot->onCommand('v (\$.*|EQ.{46})', [TokenReportHandler::class, 'publicVolume']);
-                $bot->onCommand('h (\$.*|EQ.{46})', [TokenReportHandler::class, 'publicHolders']);
+                $bot->onText('(\$.*|EQ.{46})', [PublicTokenReportHandler::class, 'publicMain']);
+                $bot->onCommand('p (\$.*|EQ.{46})', [PublicTokenReportHandler::class, 'publicPrice']);
+                $bot->onCommand('v (\$.*|EQ.{46})', [PublicTokenReportHandler::class, 'publicVolume']);
+                $bot->onCommand('h (\$.*|EQ.{46})', [PublicTokenReportHandler::class, 'publicHolders']);
 
                 $bot->onMyChatMember(function (Nutgram $bot) {
                     if ($bot->chatMember()->new_chat_member->status == ChatMemberStatus::MEMBER)

@@ -3,8 +3,6 @@
 namespace App\Telegram\Handlers;
 
 use App\Enums\Reaction;
-use App\Jobs\Scanner\SendPublicReport;
-use App\Jobs\Scanner\SendReport;
 use App\Models\Account;
 use App\Models\Chat;
 use App\Models\Token;
@@ -13,7 +11,6 @@ use App\Telegram\Conversations\HomeMenu;
 use App\Telegram\Conversations\TokenScannerMenu;
 use Illuminate\Support\Facades\App;
 use SergiX44\Nutgram\Nutgram;
-use SergiX44\Nutgram\Telegram\Properties\ChatAction;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardMarkup;
 use SergiX44\Nutgram\Telegram\Types\Message\LinkPreviewOptions;
@@ -117,51 +114,6 @@ class TokenReportHandler
 
         if (!$message_id) $bot->sendImagedMessage($params['text'], self::getButtons($token), $options, $chat_id, $message_id);
         else $bot->editImagedMessage($params['text'], self::getButtons($token), $options, $chat_id, $message_id);
-    }
-
-
-    public function publicMain(Nutgram $bot, string $search): void
-    {
-        $this->public($bot, $search, 'main');
-    }
-
-    public function publicPrice(Nutgram $bot, string $search): void
-    {
-        $this->public($bot, $search, 'chart');
-    }
-
-    public function publicVolume(Nutgram $bot, string $search): void
-    {
-        $this->public($bot, $search, 'volume');
-    }
-
-    public function publicHolders(Nutgram $bot, string $search): void
-    {
-        $this->public($bot, $search, 'holders');
-    }
-
-    public function public(Nutgram $bot, string $search, string $type): void
-    {
-        $address = Token::getAddress($search);
-        if (!$address['success']) {
-
-            $bot->sendImagedMessage($address['error']);
-            return;
-
-        }
-
-        $chat = $bot->get('chat');
-        $message_id = $bot->sendImagedMessage(
-            __('telegram.text.token_scanner.pending'),
-            options: [
-                'image' => public_path('img/scan.png'),
-                'reply_to_message_id' => $bot->messageId(),
-            ]
-        )->message_id;
-
-        $token = Token::query()->firstOrCreate(['address' => $address['address']]);
-        SendPublicReport::dispatch($token, $chat, $chat->language, $message_id, $type);
-        $bot->sendChatAction(ChatAction::TYPING);
     }
 
 
