@@ -7,7 +7,7 @@ use App\Exceptions\MetadataError;
 use App\Jobs\Middleware\Localized;
 use App\Models\Pool;
 use App\Models\Token;
-use App\Services\DexScreenerService;
+use App\Services\GeckoTerminalService;
 use App\Services\TonApiService;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -27,17 +27,20 @@ class UpdatePools implements ShouldQueue
         return [new SkipIfBatchCancelled, new Localized];
     }
 
-    public function handle(DexScreenerService $dexScreenerService, TonApiService $tonApiService): void
+    public function handle(GeckoTerminalService $geckoTerminalService, TonApiService $tonApiService): void
     {
-        foreach ($dexScreenerService->getPoolsByTokenAddress($this->token->address) as $pool) {
+        $tokenMetadata = $geckoTerminalService->getTokenInfo($this->token->address);
+        if (!$tokenMetadata) throw new MetadataError($this->token);
 
-            $poolMetadata = $tonApiService->getJetton($pool['pool']['address']);
+        $this->token->update($tokenMetadata);
+        foreach ($geckoTerminalService->getPoolsByTokenAddress($this->token->address) as $pool) {
+
+            $poolMetadata = $tonApiService->getJetton($pool['address']);
             if (!$poolMetadata) throw new MetadataError($this->token);
 
-            $this->token->update($pool['token']);
             Pool::query()->updateOrCreate(
-                ['address' => $pool['pool']['address']],
-                $pool['pool'] + ['token_id' => $this->token->id, 'supply' => $poolMetadata['total_supply']]
+                ['address' => $pool['address']],
+                $pool + ['token_id' => $this->token->id, 'supply' => $poolMetadata['total_supply']]
             );
 
         }

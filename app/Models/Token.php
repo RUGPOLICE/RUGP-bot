@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Services\DexScreenerService;
+use App\Services\GeckoTerminalService;
 use Illuminate\Database\Eloquent\Casts\AsCollection;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
@@ -169,8 +169,8 @@ class Token extends Model
         if (mb_strpos($address, '?') !== false)
             $address = mb_substr($address, 0, mb_strpos($address, '?'));
 
-        $service = App::make(DexScreenerService::class);
-        $address = $service->getTokenAddressByPoolAddress($address);
+        $service = App::make(GeckoTerminalService::class);
+        $address = $service->getTokenAddressByQuery($address);
 
         if (!$address)
             return ['success' => false, 'error' => __('telegram.errors.address.empty')];

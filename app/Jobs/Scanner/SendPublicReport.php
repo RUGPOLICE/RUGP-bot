@@ -49,6 +49,9 @@ class SendPublicReport implements ShouldQueue
             App::call([new UpdateMetadata($token, $language), 'handle']);
             App::call([new UpdatePools($token, $language), 'handle']);
 
+            $group = new Nutgram(config('nutgram.group_token'));
+            (new TokenReportHandler)->pending($group, $token, $chat, $report_message_id, type: $type, is_finished: false, show_buttons: false);
+
         } catch (\Throwable $e) {
 
             SendPublicReport::error($e, $token, $chat, $language, $report_message_id);
@@ -63,12 +66,7 @@ class SendPublicReport implements ShouldQueue
             new UpdateLiquidity($token, $language),
             new CheckBurnLock($token, $language),
 
-        ])->progress(function (Batch $batch) use ($token, $chat, $report_message_id, $type) {
-
-            $group = new Nutgram(config('nutgram.group_token'));
-            (new TokenReportHandler)->pending($group, $token, $chat, $report_message_id, type: $type, is_finished: false, show_buttons: false);
-
-        })->finally(function (Batch $batch) use ($token, $chat, $language, $report_message_id, $type) {
+        ])->finally(function (Batch $batch) use ($token, $chat, $language, $report_message_id, $type) {
 
             App::call([new UpdateStatistics($token, $language), 'handle']);
             $group = new Nutgram(config('nutgram.group_token'));

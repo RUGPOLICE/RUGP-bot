@@ -35,7 +35,7 @@ class SendReport implements ShouldQueue
         return [new Localized];
     }
 
-    public function handle(): void
+    public function handle(Nutgram $bot): void
     {
         $token = $this->token;
         $account = $this->account;
@@ -46,6 +46,7 @@ class SendReport implements ShouldQueue
 
             App::call([new UpdateMetadata($token, $language), 'handle']);
             App::call([new UpdatePools($token, $language), 'handle']);
+            (new TokenReportHandler)->pending($bot, $token, $account, $report_message_id, type: 'main', is_finished: false, show_buttons: false);
 
         } catch (\Throwable $e) {
 
@@ -61,12 +62,7 @@ class SendReport implements ShouldQueue
             new UpdateLiquidity($token, $language),
             new CheckBurnLock($token, $language),
 
-        ])->progress(function (Batch $batch) use ($token, $account, $report_message_id) {
-
-            $bot = app(Nutgram::class);
-            (new TokenReportHandler)->pending($bot, $token, $account, $report_message_id, type: 'main', is_finished: false, show_buttons: false);
-
-        })->finally(function (Batch $batch) use ($token, $account, $language, $report_message_id) {
+        ])->finally(function (Batch $batch) use ($token, $account, $language, $report_message_id) {
 
             App::call([new UpdateStatistics($token, $language), 'handle']);
             $bot = app(Nutgram::class);
