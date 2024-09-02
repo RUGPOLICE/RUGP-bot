@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Telegram\Handlers\GroupStartHandler;
 use App\Telegram\Handlers\SettingsHandler;
 use App\Telegram\Handlers\TokenReportHandler;
 use App\Telegram\Middleware\ForAdmins;
+use App\Telegram\Middleware\PrivateHandler;
 use App\Telegram\Middleware\PublicHandler;
 use App\Telegram\Middleware\RetrieveAccount;
 use Illuminate\Support\Facades\Log;
@@ -34,8 +36,9 @@ class TelegramController extends Controller
         try {
 
             $bot = new Nutgram(config('nutgram.group_token'), new Configuration(botName: config('nutgram.group_bot_name')));
-
             $bot->middleware(RetrieveAccount::class);
+
+            $bot->onCommand('start', GroupStartHandler::class)->middleware(PrivateHandler::class);
             $bot->group(function (Nutgram $bot) {
 
                 $bot->onText('(\$.*|EQ.{46})', [TokenReportHandler::class, 'publicMain']);

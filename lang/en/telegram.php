@@ -237,6 +237,15 @@ Language: <b>:language</b>
                 'no' => "OFF",
             ],
         ],
+        'group' => "
+🔎 Token Scanner - Scam check + Complete information about the token.
+BETA 0.1
+<a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugp_ton'>Telegram chat</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
+
+Add bot to your group with admin rights.
+
+Main bot - - > @rugpbot
+",
     ],
     'errors' => [
         'address' => [
