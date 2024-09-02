@@ -63,7 +63,7 @@ class TokenScannerMenu extends ImagedInlineMenu
         )->message_id;
 
         $token = Token::query()->firstOrCreate(['address' => $address['address']]);
-        SendReport::dispatch($token, $account, $account->language, $message_id);
+        SendReport::dispatch($token, $account, $account->language, $message_id)->delay(now()->addSeconds(2));
 
         $this->end();
         $bot->sendChatAction(ChatAction::TYPING);

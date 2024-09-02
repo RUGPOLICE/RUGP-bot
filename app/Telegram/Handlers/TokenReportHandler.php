@@ -22,7 +22,7 @@ class TokenReportHandler
 {
     public function route(Nutgram $bot, string $token, string $type): void
     {
-        $bot->answerCallbackQuery();
+        $bot->asResponse()->answerCallbackQuery();
 
         if ($type === 'back') {
 
@@ -100,7 +100,7 @@ class TokenReportHandler
             $options['image'] = $params['image'];
 
         $bot->editImagedMessage($params['text'], buttons: $show_buttons ? self::getButtons($token) : null, options: $options, chat_id: $chat_id, message_id: $message_id);
-        if (!$is_finished) $bot->sendChatAction(ChatAction::TYPING->value, chat_id: $chat_id);
+        // if (!$is_finished) $bot->sendChatAction(ChatAction::TYPING->value, chat_id: $chat_id);
     }
 
     public function report(Nutgram $bot, Token $token, string $type, ?int $chat_id = null, ?int $reply_message_id = null, ?int $message_id = null): void

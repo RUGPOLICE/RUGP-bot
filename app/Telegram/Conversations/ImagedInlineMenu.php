@@ -10,11 +10,11 @@ class ImagedInlineMenu extends InlineMenu
 {
     protected function doOpen(string $text, InlineKeyboardMarkup $buttons, array $opt): Message|null
     {
-        return $this->bot->sendImagedMessage($text, $buttons, $opt);
+        return $this->bot->asResponse()->sendImagedMessage($text, $buttons, $opt);
     }
 
     protected function doUpdate(string $text, ?int $chatId, ?int $messageId, InlineKeyboardMarkup $buttons, array $opt): bool|Message|null
     {
-        return $this->bot->sendImagedMessage($text, $buttons, $opt, $chatId, $messageId);
+        return $this->bot->asResponse()->sendImagedMessage($text, $buttons, $opt, $chatId, $messageId);
     }
 }
