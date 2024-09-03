@@ -6,6 +6,7 @@ use App\Enums\Language;
 use App\Exceptions\MetadataError;
 use App\Jobs\Middleware\Localized;
 use App\Models\Token;
+use App\Services\GeckoTerminalService;
 use App\Services\TonApiService;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -25,7 +26,7 @@ class UpdateMetadata implements ShouldQueue
         return [new SkipIfBatchCancelled, new Localized];
     }
 
-    public function handle(TonApiService $tonApiService): void
+    public function handle(TonApiService $tonApiService, GeckoTerminalService $geckoTerminalService): void
     {
         if (!$this->token->is_scanned) {
 
@@ -44,5 +45,8 @@ class UpdateMetadata implements ShouldQueue
             $this->token->save();
 
         }
+
+        if (!$this->token->scanned_at || $this->token->scanned_at <= now()->subDay())
+            $this->token->update($geckoTerminalService->getToken($this->token->address) + ['scanned_at' => now()]);
     }
 }

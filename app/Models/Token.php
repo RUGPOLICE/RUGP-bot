@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\GeckoTerminalService;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\AsCollection;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\App;
  * @property integer $id
  * @property string $address
  * @property boolean $is_scanned
+ * @property Carbon $scanned_at
  *
  * @property string $name
  * @property string $symbol
@@ -74,6 +76,7 @@ class Token extends Model
     {
         return [
             'holders' => AsCollection::class,
+            'scanned_at' => 'datetime',
             'websites' => 'array',
             'socials' => 'array',
             'is_known_master' => 'boolean',

@@ -81,6 +81,19 @@ class GeckoTerminalService
         return null;
     }
 
+    public function getToken(string $address): array
+    {
+        $response = $this->get("/networks/ton/tokens/$address")->json();
+        if (!isset($response['data']) || !$response['data'])
+            return [];
+
+        return [
+            'name' => $response['data']['attributes']['name'],
+            'symbol' => $response['data']['attributes']['symbol'],
+            'supply' => $response['data']['attributes']['total_supply'],
+        ];
+    }
+
     public function getTokenInfo(string $address): array
     {
         $response = $this->get("/networks/ton/tokens/$address/info")->json();
