@@ -44,7 +44,7 @@ class PublicTokenReportHandler
         $address = Token::getAddress($search);
         if (!$address['success']) {
 
-            $this->send($bot, $address['error'], ['image' => public_path('img/scan.png')]);
+            $this->send($bot, $address['error']);
             return;
 
         }
@@ -56,7 +56,7 @@ class PublicTokenReportHandler
 
         } catch (\Throwable $e) {
 
-            $this->send($bot, __('telegram.errors.scan.fail', ['address' => $address['address']]), ['image' => public_path('img/scan.png')]);
+            $this->send($bot, __('telegram.errors.scan.fail', ['address' => $address['address']]));
             return;
 
         }
