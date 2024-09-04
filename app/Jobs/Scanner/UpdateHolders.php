@@ -10,6 +10,7 @@ use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Middleware\SkipIfBatchCancelled;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Process;
 
 class UpdateHolders implements ShouldQueue
@@ -27,6 +28,10 @@ class UpdateHolders implements ShouldQueue
 
     public function handle(TonApiService $tonApiService): void
     {
+        $key = 'UpdateHolders:' . $this->token->address;
+        if (Cache::has($key)) return;
+        Cache::set($key, 'scanned', 60 * 10);
+
         $tokenHolders = $tonApiService->getJettonHolders($this->token->address);
         if ($tokenHolders) {
 

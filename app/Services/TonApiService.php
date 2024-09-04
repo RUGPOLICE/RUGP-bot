@@ -11,7 +11,8 @@ class TonApiService
 
     public function get(string $endpoint, array $query = []): Response
     {
-        $key = config('services.ton.api_key');
+        $keys = config('services.ton.keys');
+        $key = $keys[array_rand($keys)];
         return Http::withHeader('Authorization', "Bearer $key")->get(self::BaseURL . $endpoint, $query);
     }
 

@@ -13,6 +13,7 @@ use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Middleware\SkipIfBatchCancelled;
+use Illuminate\Support\Facades\Cache;
 
 class UpdatePools implements ShouldQueue
 {
@@ -34,6 +35,10 @@ class UpdatePools implements ShouldQueue
 
         $this->token->update($tokenMetadata);
         foreach ($geckoTerminalService->getPoolsByTokenAddress($this->token->address) as $pool) {
+
+            $key = 'UpdatePools:' . $pool['address'];
+            if (Cache::has($key)) continue;
+            Cache::set($key, 'scanned', 60 * 10);
 
             $poolMetadata = $tonApiService->getJetton($pool['address']);
             if (!$poolMetadata) throw new MetadataError($this->token);

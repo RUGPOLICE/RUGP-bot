@@ -57,6 +57,8 @@ class PublicTokenReportHandler
         } catch (\Throwable $e) {
 
             $this->send($bot, __('telegram.errors.scan.fail', ['address' => $address['address']]));
+            Log::error($e->getMessage());
+            Log::error($e->getTraceAsString());
             return;
 
         }
@@ -75,7 +77,6 @@ class PublicTokenReportHandler
             SimulateTransactions::class,
             UpdateHolders::class,
             UpdateLiquidity::class,
-            CheckBurnLock::class,
             UpdateStatistics::class,
         ];
 

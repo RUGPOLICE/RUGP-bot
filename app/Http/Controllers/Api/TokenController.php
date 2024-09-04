@@ -39,7 +39,6 @@ class TokenController extends Controller
                 SimulateTransactions::class,
                 UpdateHolders::class,
                 UpdateLiquidity::class,
-                CheckBurnLock::class,
                 UpdateStatistics::class,
             ];
 

@@ -60,7 +60,6 @@ class SendReport implements ShouldQueue
             new SimulateTransactions($token, $language),
             new UpdateHolders($token, $language),
             new UpdateLiquidity($token, $language),
-            new CheckBurnLock($token, $language),
 
         ])->finally(function (Batch $batch) use ($token, $account, $language, $report_message_id) {
 

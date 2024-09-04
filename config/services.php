@@ -36,7 +36,11 @@ return [
     ],
 
     'ton' => [
-        'api_key' => env('TON_API_KEY'),
+        'keys' => explode(',', env('TON_API_KEY', '')),
+    ],
+
+    'openai' => [
+        'key' => env('OPENAI_KEY'),
     ],
 
 ];
