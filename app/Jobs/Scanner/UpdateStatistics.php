@@ -5,6 +5,7 @@ namespace App\Jobs\Scanner;
 use App\Enums\Dex;
 use App\Enums\Language;
 use App\Jobs\Middleware\Localized;
+use App\Models\Chat;
 use App\Models\Token;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -17,7 +18,7 @@ class UpdateStatistics implements ShouldQueue
 
     public int $tries = 1;
 
-    public function __construct(public Token $token, public ?Language $language = null) {}
+    public function __construct(public Token $token, public ?Language $language = null, public ?Chat $chat = null) {}
 
     public function middleware(): array
     {
@@ -34,6 +35,13 @@ class UpdateStatistics implements ShouldQueue
         $this->token->is_warn_liquidity_dedust = $this->checkLiquidityDedust();
         $this->token->is_warn_liquidity = $this->checkLiquidity();
         $this->token->is_warn_burned = $this->checkBurned();
+
+        if ($this->token->isDirty(['is_warn_honeypot', 'is_warn_rugpull', 'is_warn_scam'])) {
+            $delay = now();
+            foreach (Chat::query()->where('is_show_scam', true)->whereNot('id', $this->chat?->id)->get() as $chat)
+                SendScamPost::dispatch($this->token, $chat, $chat->language)->delay($delay = $delay->addSecond());
+        }
+
         $this->token->save();
     }
 

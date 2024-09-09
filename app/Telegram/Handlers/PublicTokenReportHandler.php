@@ -9,6 +9,7 @@ use App\Jobs\Scanner\UpdateLiquidity;
 use App\Jobs\Scanner\UpdateMetadata;
 use App\Jobs\Scanner\UpdatePools;
 use App\Jobs\Scanner\UpdateStatistics;
+use App\Models\Chat;
 use App\Models\Token;
 use App\Services\TokenReportService;
 use Illuminate\Support\Facades\App;
@@ -51,7 +52,7 @@ class PublicTokenReportHandler
         try {
 
             $token = Token::query()->firstOrCreate(['address' => $address['address']]);
-            $this->scan($token);
+            $this->scan($token, $bot->get('chat'));
 
         } catch (\Throwable $e) {
 
@@ -62,27 +63,27 @@ class PublicTokenReportHandler
 
         }
 
-        [$message, $options] = $this->getReport($bot, $token, $bot->messageId(), $type);
+        [$message, $options] = $this->getReport($bot, $token, $type);
         $this->send($bot, $message, $options);
     }
 
 
-    private function scan(Token $token): void
+    private function scan(Token $token, ?Chat $chat = null): void
     {
         UpdateMetadata::dispatchSync($token);
         UpdatePools::dispatchSync($token);
 
         $jobs = [
-            SimulateTransactions::class,
-            UpdateHolders::class,
-            UpdateLiquidity::class,
-            UpdateStatistics::class,
+            [SimulateTransactions::class, $token],
+            [UpdateHolders::class, $token],
+            [UpdateLiquidity::class, $token],
+            [UpdateStatistics::class, $token, $chat],
         ];
 
         foreach ($jobs as $job) {
             try {
 
-                $job::dispatchSync($token);
+                $job[0]::dispatchSync(... array_slice($job, 1));
 
             } catch (ScanningError $e) {
 
@@ -94,7 +95,7 @@ class PublicTokenReportHandler
         $token->refresh();
     }
 
-    private function getReport(Nutgram $bot, Token $token, int $message_id, string $type): array
+    private function getReport(Nutgram $bot, Token $token, string $type): array
     {
         $chat = $bot->get('chat');
         $tokenReportService = App::make(TokenReportService::class);

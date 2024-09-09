@@ -39,6 +39,8 @@ class CommandsHandler
             BotCommand::make('settings', 'Specify bot settings for chat'),
             BotCommand::make('show_warnings', 'Show warnings'),
             BotCommand::make('hide_warnings', 'Hide warnings'),
+            BotCommand::make('show_scam_posts', 'Show scam notifications'),
+            BotCommand::make('hide_scam_posts', 'Hide scam notifications'),
             ... array_map(fn ($locale) => BotCommand::make('set_' . $locale . '_language', 'Edit language'), \App\Enums\Language::keys()),
         ], scope: new BotCommandScopeAllChatAdministrators(), language_code: 'en');
 
@@ -57,6 +59,8 @@ class CommandsHandler
             BotCommand::make('settings', 'Указать настройки для чата'),
             BotCommand::make('show_warnings', 'Показывать предупреждения'),
             BotCommand::make('hide_warnings', 'Скрывать предупреждения'),
+            BotCommand::make('show_scam_posts', 'Уведомлять о скам токенах'),
+            BotCommand::make('hide_scam_posts', 'Не уведомлять о скам токенах'),
             ... array_map(fn ($locale) => BotCommand::make('set_' . $locale . '_language', 'Установить язык'), \App\Enums\Language::keys()),
         ], scope: new BotCommandScopeAllChatAdministrators(), language_code: 'ru');
 

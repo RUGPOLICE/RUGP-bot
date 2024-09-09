@@ -230,9 +230,14 @@ BETA 0.1
 <u>SETTINGS</u>
 
 Warnings: <b>:is_show_warnings</b>
+Scam notifications: <b>:is_show_scam</b>
 Language: <b>:language</b>
 ",
             'is_show_warnings' => [
+                'yes' => "ON",
+                'no' => "OFF",
+            ],
+            'is_show_scam' => [
                 'yes' => "ON",
                 'no' => "OFF",
             ],

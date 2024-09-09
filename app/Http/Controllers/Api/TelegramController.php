@@ -56,6 +56,8 @@ class TelegramController extends Controller
                     $bot->onCommand('settings', SettingsHandler::class);
                     $bot->onCommand('show_warnings', [SettingsHandler::class, 'showWarnings']);
                     $bot->onCommand('hide_warnings', [SettingsHandler::class, 'hideWarnings']);
+                    $bot->onCommand('show_scam_posts', [SettingsHandler::class, 'showScamPosts']);
+                    $bot->onCommand('hide_scam_posts', [SettingsHandler::class, 'hideScamPosts']);
 
                     foreach (\App\Enums\Language::keys() as $locale)
                         $bot->onCommand('set_' . $locale . '_language', [SettingsHandler::class, 'set' . ucfirst($locale) . 'Language']);

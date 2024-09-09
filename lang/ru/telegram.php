@@ -230,9 +230,14 @@ BETA 0.1
 <u>ТЕКУЩИЕ НАСТРОЙКИ</u>
 
 Предупреждения: <b>:is_show_warnings</b>
+Уведомления о новых скам токенах: <b>:is_show_scam</b>
 Язык: <b>:language</b>
 ",
             'is_show_warnings' => [
+                'yes' => "ВКЛ",
+                'no' => "ВЫКЛ",
+            ],
+            'is_show_scam' => [
                 'yes' => "ВКЛ",
                 'no' => "ВЫКЛ",
             ],

@@ -4,7 +4,6 @@ namespace App\Telegram\Handlers;
 
 use App\Enums\Language;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Log;
 use SergiX44\Nutgram\Nutgram;
 
 class SettingsHandler
@@ -15,6 +14,7 @@ class SettingsHandler
         $bot->sendImagedMessage(
             __('telegram.text.settings.main', [
                 'is_show_warnings' => __('telegram.text.settings.is_show_warnings.' . ($chat->is_show_warnings ? 'yes' : 'no')),
+                'is_show_scam' => __('telegram.text.settings.is_show_scam.' . ($chat->is_show_scam ? 'yes' : 'no')),
                 'language' => __('telegram.buttons.' . $chat->language->value),
             ]),
             options: ['image' => public_path('img/scan.png'),]
@@ -33,6 +33,22 @@ class SettingsHandler
     {
         $chat = $bot->get('chat');
         $chat->is_show_warnings = false;
+        $chat->save();
+        $this($bot);
+    }
+
+    public function showScamPosts(Nutgram $bot): void
+    {
+        $chat = $bot->get('chat');
+        $chat->is_show_scam = true;
+        $chat->save();
+        $this($bot);
+    }
+
+    public function hideScamPosts(Nutgram $bot): void
+    {
+        $chat = $bot->get('chat');
+        $chat->is_show_scam = false;
         $chat->save();
         $this($bot);
     }

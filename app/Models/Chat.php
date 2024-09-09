@@ -10,6 +10,7 @@ use Illuminate\Database\Schema\Blueprint;
 /**
  * @property int $chat_id
  * @property boolean $is_show_warnings
+ * @property boolean $is_show_scam
  * @property Language $language
  */
 class Chat extends Model
@@ -19,6 +20,7 @@ class Chat extends Model
     protected $fillable = [
         'chat_id',
         'is_show_warnings',
+        'is_show_scam',
         'language',
     ];
 
@@ -26,6 +28,7 @@ class Chat extends Model
     {
         return [
             'is_show_warnings' => 'boolean',
+            'is_show_scam' => 'boolean',
             'language' => Language::class,
         ];
     }
@@ -37,6 +40,7 @@ class Chat extends Model
         $table->timestamps();
         $table->bigInteger('chat_id');
         $table->boolean('is_show_warnings')->default(true);
+        $table->boolean('is_show_scam')->default(false);
         $table->string('language')->default(Language::EN->value);
     }
 }
