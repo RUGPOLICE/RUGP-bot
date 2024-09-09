@@ -77,7 +77,7 @@ class PublicTokenReportHandler
             [SimulateTransactions::class, $token],
             [UpdateHolders::class, $token],
             [UpdateLiquidity::class, $token],
-            [UpdateStatistics::class, $token, $chat],
+            [UpdateStatistics::class, $token, null, $chat],
         ];
 
         foreach ($jobs as $job) {
