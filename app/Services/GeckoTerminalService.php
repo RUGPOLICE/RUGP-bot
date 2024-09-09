@@ -107,16 +107,18 @@ class GeckoTerminalService
                 'url' => $website,
             ];
 
-        $socials = [
-            [
+        $socials = [];
+        if ($response['data']['attributes']['telegram_handle'])
+            $socials[] = [
                 'type' => 'telegram',
                 'url' => 'https://t.me/' . $response['data']['attributes']['telegram_handle'],
-            ],
-            [
+            ];
+
+        if ($response['data']['attributes']['twitter_handle'])
+            $socials[] = [
                 'type' => 'twitter',
                 'url' => 'https://x.com/' . $response['data']['attributes']['twitter_handle'],
-            ],
-        ];
+            ];
 
         return [
             'name' => $response['data']['attributes']['name'],

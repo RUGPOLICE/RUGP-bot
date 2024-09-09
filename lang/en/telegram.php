@@ -246,6 +246,10 @@ Add bot to your group with admin rights.
 
 Main bot - - > @rugpbot
 ",
+        'gpt' => [
+            'main' => "Enter prompt",
+            'error' => "Error. Try again later.",
+        ],
     ],
     'errors' => [
         'address' => [

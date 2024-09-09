@@ -2,7 +2,6 @@
 
 namespace App\Jobs\Scanner;
 
-use App\Jobs\ScanToken;
 use App\Models\Pool;
 use App\Models\Token;
 use App\Services\GeckoTerminalService;
@@ -31,7 +30,6 @@ class ExplorePools implements ShouldQueue
                     new SimulateTransactions($token),
                     new UpdateHolders($token),
                     new UpdateLiquidity($token),
-                    new CheckBurnLock($token),
                 ])->allowFailures(),
             ])->dispatch()->delay($delay = $delay->addSeconds(5));
 

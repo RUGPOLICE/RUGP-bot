@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\App;
 /**
  * @property integer $id
  * @property string $address
- * @property boolean $is_scanned
  * @property Carbon $scanned_at
  *
  * @property string $name
@@ -101,8 +100,6 @@ class Token extends Model
         $table->string('address')->unique();
         $table->boolean('is_known_master')->default(false);
         $table->boolean('is_known_wallet')->default(false);
-
-        $table->boolean('is_scanned')->default(false);
         $table->timestamp('scanned_at')->nullable();
 
         $table->string('name')->nullable();

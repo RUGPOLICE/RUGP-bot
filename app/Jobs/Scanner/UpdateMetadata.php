@@ -28,7 +28,7 @@ class UpdateMetadata implements ShouldQueue
 
     public function handle(TonApiService $tonApiService, GeckoTerminalService $geckoTerminalService): void
     {
-        if (!$this->token->is_scanned) {
+        if (!$this->token->scanned_at || $this->token->scanned_at <= now()->subDay()) {
 
             $tokenMetadata = $tonApiService->getJetton($this->token->address);
             if (!$tokenMetadata) throw new MetadataError($this->token);
@@ -41,12 +41,9 @@ class UpdateMetadata implements ShouldQueue
             $this->token->holders_count = $tokenMetadata['holders_count'];
             $this->token->supply = $tokenMetadata['total_supply'];
             $this->token->is_warn_original = $tokenMetadata['verification'] === 'whitelist';
-            $this->token->is_scanned = true;
+            $this->token->scanned_at = now();
             $this->token->save();
 
         }
-
-        if (!$this->token->scanned_at || $this->token->scanned_at <= now()->subDay())
-            $this->token->update($geckoTerminalService->getToken($this->token->address) + ['scanned_at' => now()]);
     }
 }

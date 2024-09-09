@@ -8,7 +8,6 @@ use App\Enums\Lock;
 use App\Enums\Reaction;
 use App\Exceptions\ScanningError;
 use App\Http\Controllers\Controller;
-use App\Jobs\Scanner\CheckBurnLock;
 use App\Jobs\Scanner\SimulateTransactions;
 use App\Jobs\Scanner\UpdateHolders;
 use App\Jobs\Scanner\UpdateLiquidity;

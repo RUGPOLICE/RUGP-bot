@@ -3,7 +3,6 @@
 namespace App\Telegram\Handlers;
 
 use App\Exceptions\ScanningError;
-use App\Jobs\Scanner\CheckBurnLock;
 use App\Jobs\Scanner\SimulateTransactions;
 use App\Jobs\Scanner\UpdateHolders;
 use App\Jobs\Scanner\UpdateLiquidity;

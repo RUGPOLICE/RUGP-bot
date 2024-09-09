@@ -117,10 +117,13 @@ class HomeMenu extends ImagedInlineMenu
     public function menuBack(Nutgram $bot): void
     {
         $this->end();
+        $bot->asResponse()->answerCallbackQuery();
+
         match ($bot->callbackQuery()->data) {
             'token_scanner' => TokenScannerMenu::begin($bot, data: ['referrer' => HomeMenu::class]),
-            'wallet_tracker', 'black_box', 'check_wallet', 'academy', 'gpt' => HomeMenu::begin($bot),
+            'wallet_tracker', 'black_box', 'check_wallet', 'academy' => HomeMenu::begin($bot),
             'profile' => ProfileMenu::begin($bot),
+            'gpt' => GptMenu::begin($bot),
         };
     }
 
