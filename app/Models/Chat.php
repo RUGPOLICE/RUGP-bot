@@ -40,7 +40,7 @@ class Chat extends Model
         $table->timestamps();
         $table->bigInteger('chat_id');
         $table->boolean('is_show_warnings')->default(true);
-        $table->boolean('is_show_scam')->default(false);
+        $table->boolean('is_show_scam')->default(true);
         $table->string('language')->default(Language::EN->value);
     }
 }
