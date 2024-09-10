@@ -12,6 +12,7 @@ use Illuminate\Notifications\Notifiable;
  * @property string $telegram_id
  * @property string $telegram_username
  * @property Language $language
+ * @property boolean $is_blocked
  * @property boolean $is_shown_language
  * @property boolean $is_shown_rules
  * @property boolean $is_hide_warnings
@@ -29,6 +30,7 @@ class Account extends Model
     {
         return [
             'language' => Language::class,
+            'is_blocked' => 'boolean',
             'is_hide_warnings' => 'boolean',
         ];
     }
@@ -41,6 +43,7 @@ class Account extends Model
 
         $table->string('telegram_id')->unique();
         $table->string('telegram_username')->nullable();
+        $table->boolean('is_blocked')->default(false);
 
         $table->boolean('is_shown_language')->default(false);
         $table->boolean('is_shown_rules')->default(false);

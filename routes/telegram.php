@@ -1,6 +1,7 @@
 <?php
 
 use App\Telegram\Conversations\HomeMenu;
+use App\Telegram\Conversations\PostsMenu;
 use App\Telegram\Handlers\CommandsHandler;
 use App\Telegram\Handlers\TokenReportHandler;
 use App\Telegram\Handlers\UsersHandler;
@@ -21,5 +22,6 @@ $bot->group(function (Nutgram $bot) {
 
     $bot->onCommand('commands', CommandsHandler::class)->middleware(ForDevelopers::class);
     $bot->onCommand('users', UsersHandler::class)->middleware(ForSuperusers::class);
+    $bot->onCommand('post', PostsMenu::class)->middleware(ForSuperusers::class);
 
 })->middleware(PrivateHandler::class);

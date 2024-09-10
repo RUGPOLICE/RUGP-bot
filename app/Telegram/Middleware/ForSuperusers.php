@@ -8,7 +8,7 @@ class ForSuperusers
 {
     public function __invoke(Nutgram $bot, $next): void
     {
-        if (in_array($bot->user()->username, explode(',', config('nutgram.superusers'))))
+        if (in_array($bot->userId(), explode(',', config('nutgram.superusers'))))
             $next($bot);
     }
 }

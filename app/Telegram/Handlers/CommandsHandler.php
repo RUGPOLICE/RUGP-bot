@@ -64,10 +64,18 @@ class CommandsHandler
             ... array_map(fn ($locale) => BotCommand::make('set_' . $locale . '_language', 'Установить язык'), \App\Enums\Language::keys()),
         ], scope: new BotCommandScopeAllChatAdministrators(), language_code: 'ru');
 
+        foreach (explode(',', config('nutgram.superusers')) as $superuser)
+            $bot->setMyCommands([
+                BotCommand::make('start', 'Обновить бота'),
+                BotCommand::make('users', 'Посмотреть кол-во пользователей'),
+                BotCommand::make('post', 'Опубликовать пост'),
+            ], scope: new BotCommandScopeChat($superuser));
+
         $bot->setMyCommands([
             BotCommand::make('start', 'Обновить бота'),
             BotCommand::make('commands', 'Обновить команды'),
             BotCommand::make('users', 'Посмотреть кол-во пользователей'),
+            BotCommand::make('post', 'Опубликовать пост'),
         ], scope: new BotCommandScopeChat(config('nutgram.developers')));
 
         $bot->sendImagedMessage('Commands have been updated', reply_to_message_id: $bot->messageId());

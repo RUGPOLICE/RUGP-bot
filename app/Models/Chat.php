@@ -9,6 +9,7 @@ use Illuminate\Database\Schema\Blueprint;
 
 /**
  * @property int $chat_id
+ * @property boolean $is_blocked
  * @property boolean $is_show_warnings
  * @property boolean $is_show_scam
  * @property Language $language
@@ -27,6 +28,7 @@ class Chat extends Model
     public function casts(): array
     {
         return [
+            'is_blocked' => 'boolean',
             'is_show_warnings' => 'boolean',
             'is_show_scam' => 'boolean',
             'language' => Language::class,
@@ -39,6 +41,7 @@ class Chat extends Model
         $table->id();
         $table->timestamps();
         $table->bigInteger('chat_id');
+        $table->boolean('is_blocked')->default(false);
         $table->boolean('is_show_warnings')->default(true);
         $table->boolean('is_show_scam')->default(true);
         $table->string('language')->default(Language::EN->value);

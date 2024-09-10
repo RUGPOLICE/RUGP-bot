@@ -2,7 +2,6 @@
 
 namespace App\Telegram\Mixins;
 
-use Illuminate\Support\Facades\App;
 use SergiX44\Nutgram\Telegram\Exceptions\TelegramException;
 use SergiX44\Nutgram\Telegram\Properties\ParseMode;
 use SergiX44\Nutgram\Telegram\Types\Input\InputMediaPhoto;
