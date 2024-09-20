@@ -15,6 +15,11 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    'tokens' => [
+        'force' => explode(',', env('APP_FORCE_TOKENS')),
+        'original' => explode(',', env('APP_ORIGINAL_TOKENS')),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

@@ -40,7 +40,7 @@ class UpdateMetadata implements ShouldQueue
             $this->token->description = $tokenMetadata['metadata']['description'] ?? null;
             $this->token->holders_count = $tokenMetadata['holders_count'];
             $this->token->supply = $tokenMetadata['total_supply'];
-            $this->token->is_warn_original = $tokenMetadata['verification'] === 'whitelist';
+            $this->token->is_warn_original = $tokenMetadata['verification'] === 'whitelist' || in_array($this->token->address, config('app.tokens.original'));
             $this->token->scanned_at = now();
             $this->token->save();
 

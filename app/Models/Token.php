@@ -149,12 +149,23 @@ class Token extends Model
     {
         if ($address[0] === '$') {
 
-            $token = Token::query()
-                ->where('symbol', mb_substr($address, 1))
-                ->orderByDesc('is_warn_original')
-                ->orderByDesc('holders_count')
-                ->first();
+            $symbol = mb_substr($address, 1);
+            $token = Token::query()->orderByDesc('is_warn_original')->orderByDesc('holders_count');
 
+            $force = config('app.tokens.force');
+            $forceTokens = [];
+
+            foreach ($force as $item) {
+                [$s, $t] = explode(':', $item);
+                $forceTokens[$s] = $t;
+            }
+
+            if (in_array(strtolower($symbol), array_keys($forceTokens)))
+                $token = $token->where('address', $forceTokens[strtolower($symbol)]);
+            else
+                $token = $token->where('symbol', $symbol);
+
+            $token = $token->first();
             if ($token) return ['success' => true, 'address' => $token->address];
             return ['success' => false, 'error' => __('telegram.errors.address.symbol')];
 

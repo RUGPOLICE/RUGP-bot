@@ -42,9 +42,9 @@ class TelegramController extends Controller
             $bot->group(function (Nutgram $bot) {
 
                 $bot->onText('(\$.*|EQ.{46})', [PublicTokenReportHandler::class, 'publicMain']);
-                $bot->onCommand('p (\$.*|EQ.{46})', [PublicTokenReportHandler::class, 'publicPrice']);
-                $bot->onCommand('v (\$.*|EQ.{46})', [PublicTokenReportHandler::class, 'publicVolume']);
-                $bot->onCommand('h (\$.*|EQ.{46})', [PublicTokenReportHandler::class, 'publicHolders']);
+                $bot->onCommand('p (\EQ.{46}|.+)', [PublicTokenReportHandler::class, 'publicPrice']);
+                $bot->onCommand('v (\EQ.{46}|.+)', [PublicTokenReportHandler::class, 'publicVolume']);
+                $bot->onCommand('h (\EQ.{46}|.+)', [PublicTokenReportHandler::class, 'publicHolders']);
 
                 $bot->onMyChatMember(function (Nutgram $bot) {
                     if ($bot->chatMember()->new_chat_member->status == ChatMemberStatus::MEMBER)

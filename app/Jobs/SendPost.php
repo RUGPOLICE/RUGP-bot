@@ -61,7 +61,7 @@ class SendPost implements ShouldQueue
 
             } catch (\Throwable $e) {
 
-                if (str_contains($e->getMessage(), 'bot was blocked')) {
+                if (str_contains($e->getMessage(), 'bot was blocked') || str_contains($e->getMessage(), 'bot was kicked') || str_contains($e->getMessage(), 'chat not found')) {
 
                     $chat->is_blocked = true;
                     $chat->save();
