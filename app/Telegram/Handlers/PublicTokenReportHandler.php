@@ -41,7 +41,7 @@ class PublicTokenReportHandler
 
     public function public(Nutgram $bot, string $search, string $type): void
     {
-        $address = Token::getAddress(str_starts_with($search, 'EQ') ? $search : "$$search");
+        $address = Token::getAddress($search);
         if (!$address['success']) {
 
             $this->send($bot, $address['error']);
