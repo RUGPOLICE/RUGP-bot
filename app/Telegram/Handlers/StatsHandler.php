@@ -8,7 +8,6 @@ use App\Models\Chat;
 use App\Models\Pool;
 use App\Models\Request;
 use App\Models\Token;
-use Illuminate\Support\Facades\Log;
 use SergiX44\Nutgram\Nutgram;
 
 class StatsHandler
@@ -18,8 +17,8 @@ class StatsHandler
         $accountsCount = Account::query()->count();
         $chatsCount = Chat::query()->count();
 
-        $requestsTelegramCount = Request::query()->where('source', RequestSource::TELEGRAM)->count();
-        $requestsApiCount = Request::query()->where('source', RequestSource::API)->count();
+        $requestsTelegramCount = Request::query()->where('source', RequestSource::TELEGRAM)->where('created_at', '>=', now()->subDay())->count();
+        $requestsApiCount = Request::query()->where('source', RequestSource::API)->where('created_at', '>=', now()->subDay())->count();
 
         $period = now()->startOfMinute()->subDay()->toPeriod(now()->startOfMinute(), 1, 'minutes')->toArray();
 
@@ -58,6 +57,6 @@ class StatsHandler
             ->orWhere('is_warn_liquidity', true)
             ->count();
 
-        $bot->asResponse()->sendImagedMessage("<b>Информация по БД</b>\n\nПользователи: <b>$accountsCount</b>\nГруппы: <b>$chatsCount</b>\n\nТокены: <b>$tokensCount</b>\nПулы: <b>$poolsCount</b>\nСкам: <b>$scamCount</b>\n\n<b>Запросы</b>\n<i>за прошедшие 24 часа</i>\n\nTelegram: <b>$requestsTelegramCount</b>\nНагрузка в среднем: <i>$requestsTelegramRate rpm</i>\n\nAPI: <b>$requestsApiCount</b>\nНагрузка в среднем: <i>$requestsApiRate rpm</i>");
+        $bot->asResponse()->sendImagedMessage("<b>App Statistics</b>\n\nUsers: <b>$accountsCount</b>\nGroups: <b>$chatsCount</b>\n\nTokens: <b>$tokensCount</b>\nPools: <b>$poolsCount</b>\nScam: <b>$scamCount</b>\n\n<b>Requests</b>\n<i>last 24 hours</i>\n\nTelegram: <b>$requestsTelegramCount</b>\nAverage load: <i>$requestsTelegramRate rpm</i>\n\nAPI: <b>$requestsApiCount</b>\nAverage load: <i>$requestsApiRate rpm</i>");
     }
 }
