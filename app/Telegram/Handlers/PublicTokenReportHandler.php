@@ -2,6 +2,8 @@
 
 namespace App\Telegram\Handlers;
 
+use App\Enums\RequestModule;
+use App\Enums\RequestSource;
 use App\Exceptions\ScanningError;
 use App\Jobs\Scanner\SimulateTransactions;
 use App\Jobs\Scanner\UpdateHolders;
@@ -10,6 +12,7 @@ use App\Jobs\Scanner\UpdateMetadata;
 use App\Jobs\Scanner\UpdatePools;
 use App\Jobs\Scanner\UpdateStatistics;
 use App\Models\Chat;
+use App\Models\Request;
 use App\Models\Token;
 use App\Services\TokenReportService;
 use Illuminate\Support\Facades\App;
@@ -62,6 +65,8 @@ class PublicTokenReportHandler
             return;
 
         }
+
+        Request::log($bot->get('chat'), $token, RequestSource::TELEGRAM, RequestModule::SCANNER);
 
         [$message, $options] = $this->getReport($bot, $token, $type);
         $this->send($bot, $message, $options);

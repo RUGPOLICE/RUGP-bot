@@ -67,14 +67,14 @@ class CommandsHandler
         foreach (explode(',', config('nutgram.superusers')) as $superuser)
             $bot->setMyCommands([
                 BotCommand::make('start', 'Обновить бота'),
-                BotCommand::make('users', 'Посмотреть кол-во пользователей'),
+                BotCommand::make('stats', 'Посмотреть статистику'),
                 BotCommand::make('post', 'Опубликовать пост'),
             ], scope: new BotCommandScopeChat($superuser));
 
         $bot->setMyCommands([
             BotCommand::make('start', 'Обновить бота'),
             BotCommand::make('commands', 'Обновить команды'),
-            BotCommand::make('users', 'Посмотреть кол-во пользователей'),
+            BotCommand::make('stats', 'Посмотреть статистику'),
             BotCommand::make('post', 'Опубликовать пост'),
         ], scope: new BotCommandScopeChat(config('nutgram.developers')));
 

@@ -2,7 +2,10 @@
 
 namespace App\Telegram\Conversations;
 
+use App\Enums\RequestModule;
+use App\Enums\RequestSource;
 use App\Jobs\Scanner\SendReport;
+use App\Models\Request;
 use App\Models\Token;
 use App\Telegram\Handlers\TokenReportHandler;
 use App\Telegram\Middleware\SpamProtection;
@@ -64,6 +67,7 @@ class TokenScannerMenu extends ImagedInlineMenu
 
         $token = Token::query()->firstOrCreate(['address' => $address['address']]);
         SendReport::dispatch($token, $account, $account->language, $message_id)->delay(now()->addSeconds(2));
+        Request::log($account, $token, RequestSource::TELEGRAM, RequestModule::SCANNER);
 
         $this->end();
         $bot->sendChatAction(ChatAction::TYPING);

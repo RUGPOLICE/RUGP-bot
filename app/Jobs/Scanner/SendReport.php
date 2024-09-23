@@ -14,7 +14,6 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
-use Nutgram\Laravel\Facades\Telegram;
 use SergiX44\Nutgram\Nutgram;
 
 class SendReport implements ShouldQueue

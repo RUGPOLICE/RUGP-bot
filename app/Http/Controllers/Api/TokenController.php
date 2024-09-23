@@ -6,6 +6,8 @@ use App\Enums\Dex;
 use App\Enums\Language;
 use App\Enums\Lock;
 use App\Enums\Reaction;
+use App\Enums\RequestModule;
+use App\Enums\RequestSource;
 use App\Exceptions\ScanningError;
 use App\Http\Controllers\Controller;
 use App\Jobs\Scanner\SimulateTransactions;
@@ -14,13 +16,14 @@ use App\Jobs\Scanner\UpdateLiquidity;
 use App\Jobs\Scanner\UpdateMetadata;
 use App\Jobs\Scanner\UpdatePools;
 use App\Jobs\Scanner\UpdateStatistics;
+use App\Models\Request;
 use App\Models\Token;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
 
 class TokenController extends Controller
 {
-    public function info(string $network, string $address): \Illuminate\Http\JsonResponse
+    public function info(\Illuminate\Http\Request $request, string $network, string $address): \Illuminate\Http\JsonResponse
     {
         try {
 
@@ -30,6 +33,8 @@ class TokenController extends Controller
 
             $language = Language::key(App::getLocale());
             $token = Token::query()->firstOrCreate(['address' => $address['address']]);
+
+            Request::log($request->user(), $token, RequestSource::API, RequestModule::SCANNER);
 
             UpdateMetadata::dispatchSync($token, $language);
             UpdatePools::dispatchSync($token, $language);
@@ -150,7 +155,7 @@ class TokenController extends Controller
         }
     }
 
-    public function simulate(string $network, string $address): \Illuminate\Http\JsonResponse
+    public function simulate(\Illuminate\Http\Request $request, string $network, string $address): \Illuminate\Http\JsonResponse
     {
         try {
 
@@ -160,6 +165,8 @@ class TokenController extends Controller
 
             $language = Language::key(App::getLocale());
             $token = Token::query()->firstOrCreate(['address' => $address['address']]);
+
+            Request::log($request->user(), $token, RequestSource::API, RequestModule::SCANNER);
 
             UpdateMetadata::dispatchSync($token, $language);
             UpdatePools::dispatchSync($token, $language);
