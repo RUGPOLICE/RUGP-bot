@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class TonApiService
 {
@@ -32,5 +33,18 @@ class TonApiService
             return null;
 
         return [$response['addresses'], $response['total']];
+    }
+
+    public function getContractData(string $address): ?array
+    {
+        $response = $this->get("/blockchain/accounts/$address/methods/get_contract_data")->json();
+        if (isset($response['error']) || $response['exit_code'] !== 0)
+            return null;
+
+        return [
+            'unlocks_at' => intval($response['stack'][3]['num'], 16),
+            'locked_amount' => intval($response['stack'][4]['num'], 16),
+            'total_amount' => intval($response['stack'][8]['num'], 16),
+        ];
     }
 }

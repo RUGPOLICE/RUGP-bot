@@ -8,7 +8,6 @@ use App\Jobs\Middleware\Localized;
 use App\Models\Pool;
 use App\Models\Token;
 use App\Services\TonApiService;
-use App\Services\TonHubService;
 use Carbon\Carbon;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -31,12 +30,12 @@ class UpdateLiquidity implements ShouldQueue
         return [new SkipIfBatchCancelled, new Localized];
     }
 
-    public function handle(TonApiService $tonApiService, TonHubService $tonHubService): void
+    public function handle(TonApiService $tonApiService): void
     {
         foreach ($this->token->pools as $pool) {
 
             $key = 'UpdateLiquidity:' . $pool->address;
-            if (Cache::has($key)) continue;
+            // if (Cache::has($key)) continue;
             Cache::set($key, 'scanned', 60 * 10);
 
             $poolHolders = $tonApiService->getJettonHolders($pool->address, 4);
@@ -46,7 +45,7 @@ class UpdateLiquidity implements ShouldQueue
                 if ($holdersCount) {
 
                     $this->checkLiquidity($pool, $poolHolders);
-                    $this->checkBurnLock($tonHubService, $pool, $poolHolders);
+                    $this->checkBurnLock($tonApiService, $pool, $poolHolders);
 
                 }
 
@@ -70,7 +69,7 @@ class UpdateLiquidity implements ShouldQueue
         $pool->save();
     }
 
-    private function checkBurnLock(TonHubService $tonHubService, Pool $pool, $poolHolders): void
+    private function checkBurnLock(TonApiService $tonApiService, Pool $pool, $poolHolders): void
     {
         $holderAddress = $poolHolders[0]['owner']['address'];
         if ($holderAddress === '0:0000000000000000000000000000000000000000000000000000000000000000') {
@@ -86,7 +85,7 @@ class UpdateLiquidity implements ShouldQueue
             $lockedAmount = null;
             $lockedPercent = null;
 
-            $lockInfo = $tonHubService->getContractData($holderAddress);
+            $lockInfo = $tonApiService->getContractData($holderAddress);
             if ($lockInfo) {
 
                 $lockedAmount = $lockInfo['locked_amount'];

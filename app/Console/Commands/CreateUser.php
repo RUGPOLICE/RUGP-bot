@@ -16,7 +16,7 @@ class CreateUser extends Command
     {
         $user = new User;
         $user->name = $this->argument('name');
-        $user->email = "$this->name@rugp.app";
+        $user->email = "$user->name@rugp.app";
         $user->password = Hash::make($this->argument('password'));
         $user->save();
 
