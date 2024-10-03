@@ -16,6 +16,7 @@ use Illuminate\Notifications\Notifiable;
  * @property boolean $is_shown_language
  * @property boolean $is_shown_rules
  * @property boolean $is_hide_warnings
+ * @property Network $network
  */
 class Account extends Model
 {
@@ -24,6 +25,7 @@ class Account extends Model
     protected $fillable = [
         'telegram_id',
         'telegram_username',
+        'network_id',
     ];
 
     protected function casts(): array
@@ -40,6 +42,7 @@ class Account extends Model
     {
         $table->id();
         $table->timestamps();
+        $table->foreignIdFor(Network::class)->nullable();
 
         $table->string('telegram_id')->unique();
         $table->string('telegram_username')->nullable();
@@ -56,5 +59,10 @@ class Account extends Model
     public function reactions(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Reaction::class);
+    }
+
+    public function network(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Network::class);
     }
 }

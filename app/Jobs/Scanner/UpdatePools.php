@@ -8,7 +8,6 @@ use App\Jobs\Middleware\Localized;
 use App\Models\Pool;
 use App\Models\Token;
 use App\Services\GeckoTerminalService;
-use App\Services\TonApiService;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -28,24 +27,24 @@ class UpdatePools implements ShouldQueue
         return [new SkipIfBatchCancelled, new Localized];
     }
 
-    public function handle(GeckoTerminalService $geckoTerminalService, TonApiService $tonApiService): void
+    public function handle(GeckoTerminalService $geckoTerminalService): void
     {
-        $tokenMetadata = $geckoTerminalService->getTokenInfo($this->token->address);
+        $tokenMetadata = $geckoTerminalService->getTokenInfo($this->token->address, $this->token->network->slug);
         if (!$tokenMetadata) throw new MetadataError($this->token);
 
         $this->token->update($tokenMetadata);
-        foreach ($geckoTerminalService->getPoolsByTokenAddress($this->token->address) as $pool) {
+        foreach ($geckoTerminalService->getPoolsByTokenAddress($this->token->address, $this->token->network->slug) as $pool) {
 
             $key = 'UpdatePools:' . $pool['address'];
             if (Cache::has($key)) continue;
             Cache::set($key, 'scanned', 60 * 10);
 
-            $poolMetadata = $tonApiService->getJetton($pool['address']);
+            $poolMetadata = $this->token->network->service->getJetton($pool['address'], $this->token->network->slug);
             if (!$poolMetadata) throw new MetadataError($this->token);
 
             Pool::query()->updateOrCreate(
                 ['address' => $pool['address']],
-                $pool + ['token_id' => $this->token->id, 'supply' => $poolMetadata['total_supply']]
+                $pool + ['token_id' => $this->token->id, 'supply' => $poolMetadata['supply']]
             );
 
         }

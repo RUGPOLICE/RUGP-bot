@@ -12,6 +12,7 @@ use App\Jobs\Scanner\UpdateMetadata;
 use App\Jobs\Scanner\UpdatePools;
 use App\Jobs\Scanner\UpdateStatistics;
 use App\Models\Chat;
+use App\Models\Network;
 use App\Models\Request;
 use App\Models\Token;
 use App\Services\TokenReportService;
@@ -22,29 +23,29 @@ use SergiX44\Nutgram\Telegram\Types\Message\LinkPreviewOptions;
 
 class PublicTokenReportHandler
 {
-    public function publicMain(Nutgram $bot, string $search): void
+    public function publicMain(Nutgram $bot, string $search, string $explicit_network = ''): void
     {
-        $this->public($bot, $search, 'main');
+        $this->public($bot, $search . $explicit_network, 'main');
     }
 
-    public function publicPrice(Nutgram $bot, string $search): void
+    public function publicPrice(Nutgram $bot, string $search, string $explicit_network = ''): void
     {
-        $this->public($bot, $search, 'chart');
+        $this->public($bot, $search . $explicit_network, 'chart');
     }
 
-    public function publicVolume(Nutgram $bot, string $search): void
+    public function publicVolume(Nutgram $bot, string $search, string $explicit_network = ''): void
     {
-        $this->public($bot, $search, 'volume');
+        $this->public($bot, $search . $explicit_network, 'volume');
     }
 
-    public function publicHolders(Nutgram $bot, string $search): void
+    public function publicHolders(Nutgram $bot, string $search, string $explicit_network = ''): void
     {
-        $this->public($bot, $search, 'holders');
+        $this->public($bot, $search . $explicit_network, 'holders');
     }
 
     public function public(Nutgram $bot, string $search, string $type): void
     {
-        $address = Token::getAddress($search);
+        $address = Token::getAddress($search, $bot->get('chat')?->network);
         if (!$address['success']) {
 
             $this->send($bot, $address['error']);
@@ -54,7 +55,12 @@ class PublicTokenReportHandler
 
         try {
 
+            $network = Network::query()->where('slug', $address['network'])->first();
             $token = Token::query()->firstOrCreate(['address' => $address['address']]);
+
+            $token->network()->associate($network);
+            $token->save();
+
             $this->scan($token, $bot->get('chat'));
 
         } catch (\Throwable $e) {

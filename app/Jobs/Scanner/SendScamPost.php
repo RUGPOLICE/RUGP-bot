@@ -9,9 +9,6 @@ use App\Models\Token;
 use App\Services\TokenReportService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Log;
-use SergiX44\Nutgram\Configuration;
 use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\Telegram\Types\Message\LinkPreviewOptions;
 

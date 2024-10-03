@@ -41,10 +41,10 @@ class TelegramController extends Controller
             $bot->onCommand('start', GroupStartHandler::class)->middleware(PrivateHandler::class);
             $bot->group(function (Nutgram $bot) {
 
-                $bot->onText('(\$.*|EQ.{46})', [PublicTokenReportHandler::class, 'publicMain']);
-                $bot->onCommand('p (\$.*|EQ.{46})', [PublicTokenReportHandler::class, 'publicPrice']);
-                $bot->onCommand('v (\$.*|EQ.{46})', [PublicTokenReportHandler::class, 'publicVolume']);
-                $bot->onCommand('h (\$.*|EQ.{46})', [PublicTokenReportHandler::class, 'publicHolders']);
+                $bot->onText('(\$.*|EQ.{46}|0x.{40}|T.{33}|.{43}|.{44}){explicit_network}', [PublicTokenReportHandler::class, 'publicMain']);
+                $bot->onCommand('p (\$.*|EQ.{46}|0x.{40}|T.{33}|.{43}|.{44}){explicit_network}', [PublicTokenReportHandler::class, 'publicPrice']);
+                $bot->onCommand('v (\$.*|EQ.{46}|0x.{40}|T.{33}|.{43}|.{44}){explicit_network}', [PublicTokenReportHandler::class, 'publicVolume']);
+                $bot->onCommand('h (\$.*|EQ.{46}|0x.{40}|T.{33}|.{43}|.{44}){explicit_network}', [PublicTokenReportHandler::class, 'publicHolders']);
 
                 $bot->onMyChatMember(function (Nutgram $bot) {
                     if ($bot->chatMember()->new_chat_member->status == ChatMemberStatus::MEMBER)
@@ -54,6 +54,7 @@ class TelegramController extends Controller
                 $bot->group(function (Nutgram $bot) {
 
                     $bot->onCommand('settings', SettingsHandler::class);
+                    $bot->onCommand('network {network}', [SettingsHandler::class, 'setNetwork']);
                     $bot->onCommand('show_warnings', [SettingsHandler::class, 'showWarnings']);
                     $bot->onCommand('hide_warnings', [SettingsHandler::class, 'hideWarnings']);
                     $bot->onCommand('show_scam_posts', [SettingsHandler::class, 'showScamPosts']);

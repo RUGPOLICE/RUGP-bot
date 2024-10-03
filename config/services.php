@@ -39,6 +39,10 @@ return [
         'keys' => explode(',', env('TON_API_KEY', '')),
     ],
 
+    'honeypot' => [
+        'key' => explode(',', env('HONEYPOT_IS_KEY', '')),
+    ],
+
     'openai' => [
         'key' => env('OPENAI_KEY'),
     ],

@@ -5,13 +5,11 @@ namespace App\Jobs\Scanner;
 use App\Enums\Language;
 use App\Jobs\Middleware\Localized;
 use App\Models\Token;
-use App\Services\TonApiService;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Middleware\SkipIfBatchCancelled;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Process;
 
 class UpdateHolders implements ShouldQueue
 {
@@ -26,35 +24,13 @@ class UpdateHolders implements ShouldQueue
         return [new SkipIfBatchCancelled, new Localized];
     }
 
-    public function handle(TonApiService $tonApiService): void
+    public function handle(): void
     {
         $key = 'UpdateHolders:' . $this->token->address;
         if (Cache::has($key)) return;
         Cache::set($key, 'scanned', 60 * 10);
 
-        $tokenHolders = $tonApiService->getJettonHolders($this->token->address);
-        if ($tokenHolders) {
-
-            [$tokenHolders, $this->token->holders_count] = $tokenHolders;
-            $holderAddresses = implode(',', array_map(fn ($a) => $a['address'], $tokenHolders));
-
-            if ($this->token->holders_count) {
-
-                $result = Process::path(base_path('utils/scanner'))->run("node --no-warnings src/convert.js $holderAddresses");
-                if ($result = json_decode($result->output())) {
-
-                    $this->token->holders = array_map(fn ($a) => [
-                        'address' => $result->addresses->{$a['address']},
-                        'balance' => $a['balance'] / 1000000000,
-                        'name' => $a['owner']['name'] ?? (!$a['owner']['is_wallet'] ? __('telegram.text.token_scanner.holders.dex_lock_stake') : null),
-                        'percent' => $this->token->supply ? ($a['balance'] * 100 / $this->token->supply) : 0,
-                    ], $tokenHolders);
-                    $this->token->save();
-
-                }
-
-            }
-
-        }
+        $tokenHolders = $this->token->network->service->getJettonHolders($this->token->address, $this->token->supply, $this->token->network->slug);
+        if ($tokenHolders) [$this->token->holders, $this->token->holders_count] = $tokenHolders;
     }
 }

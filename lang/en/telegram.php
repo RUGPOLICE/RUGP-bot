@@ -212,9 +212,12 @@ Please report bot bugs in tg chat. 🙏
         'profile' => [
             'main' => "
 <b>Language</b>: <i>:language</i>
+<b>Network</b>: <i>:network</i>
 <b>Warnings</b>: <i>:is_hide_warnings</i>
 ",
             'language' => "Choose language",
+            'network' => "Choose network",
+            'blank_network' => "None",
             'warnings' => [
                 'hidden' => 'Hidden',
                 'shown' => 'Visible',
@@ -232,6 +235,7 @@ BETA 0.1
 Warnings: <b>:is_show_warnings</b>
 Scam notifications: <b>:is_show_scam</b>
 Language: <b>:language</b>
+Network: <b>:network</b>
 ",
             'is_show_warnings' => [
                 'yes' => "ON",
@@ -241,6 +245,7 @@ Language: <b>:language</b>
                 'yes' => "ON",
                 'no' => "OFF",
             ],
+            'blank_network' => "None",
         ],
         'group' => "
 🔎 Token Scanner - Scam check + Complete information about the token.
@@ -298,5 +303,6 @@ Possible reasons: invalid address, deleted scam or no purchases and/or sales of 
         'warnings_shown' => "⚠️ HIDE",
         'rules' => "TERMS OF USE",
         'language' => "LANG",
+        'network' => "NETWORK",
     ],
 ];

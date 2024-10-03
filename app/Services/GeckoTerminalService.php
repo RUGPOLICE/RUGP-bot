@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Network;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
@@ -10,7 +11,6 @@ use Illuminate\Support\Facades\Log;
 class GeckoTerminalService
 {
     const BaseURL = 'https://api.geckoterminal.com/api/v2';
-    const TON_ADDRESS = 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c';
 
     public function get(string $endpoint, array $query = []): Response
     {
@@ -30,8 +30,8 @@ class GeckoTerminalService
                 $token_address = str_replace('ton_', '', $pool['relationships']['base_token']['data']['id']);
                 $quote_address = str_replace('ton_', '', $pool['relationships']['quote_token']['data']['id']);
 
-                if ($quote_address !== self::TON_ADDRESS)
-                    continue;
+                // if ($quote_address !== self::TON_ADDRESS)
+                //     continue;
 
                 yield [
                     'token' => [
@@ -61,20 +61,21 @@ class GeckoTerminalService
         }
     }
 
-    public function getTokenAddressByQuery(string $query): ?string
+    public function getTokenAddressByQuery(string $query, ?Network $network = null): ?array
     {
-        $response = $this->get('/search/pools', ['query' => $query, 'network' => 'ton'])->json();
+        $response = $this->get('/search/pools', ['query' => $query, 'network' => $network?->slug])->json();
         if (!isset($response['data']) || !$response['data'])
             return null;
 
         foreach ($response['data'] as $pool) {
 
-            $base_token = str_replace('ton_', '', $pool['relationships']['base_token']['data']['id']);
-            $quote_token = str_replace('ton_', '', $pool['relationships']['quote_token']['data']['id']);
+            [$network, $base_token] = explode('_', $pool['relationships']['base_token']['data']['id'], 2);
+            [$network, $quote_token] = explode('_', $pool['relationships']['quote_token']['data']['id'], 2);
             $dex = $pool['relationships']['dex']['data']['id'];
 
-            if (in_array(self::TON_ADDRESS, [$base_token, $quote_token]) && in_array($dex, ['dedust', 'stonfi']))
-                return $base_token === self::TON_ADDRESS ? $quote_token : $base_token;
+            $network = Network::query()->where('slug', $network)->first();
+            if (in_array($network?->token, [$base_token, $quote_token]))
+                return [$network, $base_token === $network->token ? $quote_token : $base_token];
 
         }
 
@@ -94,9 +95,9 @@ class GeckoTerminalService
         ];
     }
 
-    public function getTokenInfo(string $address): array
+    public function getTokenInfo(string $address, string $network = 'ton'): array
     {
-        $response = $this->get("/networks/ton/tokens/$address/info")->json();
+        $response = $this->get("/networks/$network/tokens/$address/info")->json();
         if (!isset($response['data']) || !$response['data'])
             return [];
 
@@ -128,9 +129,9 @@ class GeckoTerminalService
         ];
     }
 
-    public function getPoolsByTokenAddress(string $address): \Generator
+    public function getPoolsByTokenAddress(string $address, string $network = 'ton'): \Generator
     {
-        $response = $this->get("/networks/ton/tokens/$address/pools")->json();
+        $response = $this->get("/networks/$network/tokens/$address/pools")->json();
         if (!isset($response['data']) || !$response['data'])
             return [];
 
@@ -162,10 +163,10 @@ class GeckoTerminalService
                 ];
     }
 
-    public function getOhlcv(string $pool, bool $is_new): ?array
+    public function getOhlcv(string $pool, bool $is_new, string $network = 'ton'): ?array
     {
         $frame = $is_new ? 'hour' : 'day';
-        $response = $this->get("/networks/ton/pools/$pool/ohlcv/$frame", ['limit' => 50]);
+        $response = $this->get("/networks/$network/pools/$pool/ohlcv/$frame", ['limit' => 50]);
         if (!isset($response->json()['data'])) return null;
 
         return array_map(fn ($item) => [
@@ -173,5 +174,17 @@ class GeckoTerminalService
             'close' => $item[4],
             'volume' => $item[5],
         ], array_reverse($response->json()['data']['attributes']['ohlcv_list']));
+    }
+
+    public function getNetworks(int $page = 1): \Generator
+    {
+        do {
+            $response = $this->get('/networks', ['page' => $page++])->json();
+            foreach ($response['data'] as $network)
+                yield [
+                    'slug' => $network['id'],
+                    'name' => $network['attributes']['name'],
+                ];
+        } while ($response['links']['next']);
     }
 }

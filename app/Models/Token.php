@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Log;
 
 /**
  * @property integer $id
@@ -43,6 +44,7 @@ use Illuminate\Support\Facades\App;
  *
  * @property string $description_formatted
  *
+ * @property Network $network
  * @property Collection $pools
  */
 class Token extends Model
@@ -69,6 +71,7 @@ class Token extends Model
         'is_warn_liquidity_dedust',
         'is_warn_liquidity',
         'is_warn_burned',
+        'network_id',
     ];
 
     public function casts(): array
@@ -91,11 +94,12 @@ class Token extends Model
         ];
     }
 
-    public int $migrationOrder = 1;
+    public int $migrationOrder = 2;
     public function migration(Blueprint $table): void
     {
         $table->id();
         $table->timestamps();
+        $table->foreignIdFor(Network::class)->nullable();
 
         $table->string('address')->unique();
         $table->boolean('is_known_master')->default(false);
@@ -123,6 +127,11 @@ class Token extends Model
         $table->boolean('is_warn_burned')->default(false);
     }
 
+    public function network(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Network::class);
+    }
+
     public function pools(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Pool::class);
@@ -145,12 +154,18 @@ class Token extends Model
     }
 
 
-    public static function getAddress(string $address): array
+    public static function getAddress(string $address, ?Network $priority_network = null): array
     {
+        $network = null;
+        @[$address, $explicit_network] = explode(' ', $address);
+
+        if ($priority_network) $network = $priority_network;
+        if ($explicit_network) $network = Network::query()->where('slug', $explicit_network)->orWhere('name', $explicit_network)->first();
+
         if ($address[0] === '$') {
 
             $symbol = mb_substr($address, 1);
-            $token = Token::query()->orderByDesc('is_warn_original')->orderByDesc('holders_count');
+            $token = ($network ?? Network::getDefault())->tokens()->orderByDesc('is_warn_original')->orderByDesc('holders_count');
 
             $force = config('app.tokens.force');
             $forceTokens = [];
@@ -166,13 +181,13 @@ class Token extends Model
                 $token = $token->where('symbol', $symbol);
 
             $token = $token->first();
-            if ($token) return ['success' => true, 'address' => $token->address];
+            if ($token) return ['success' => true, 'address' => $token->address, 'network' => $network->slug];
             return ['success' => false, 'error' => __('telegram.errors.address.symbol')];
 
         }
 
-        if (mb_strlen($address) < 48)
-            return ['success' => false, 'error' => __('telegram.errors.address.invalid')];
+        // if (mb_strlen($address) < 48)
+        //     return ['success' => false, 'error' => __('telegram.errors.address.invalid')];
 
         $address = explode('/', $address);
         $address = $address[count($address) - 1];
@@ -181,11 +196,11 @@ class Token extends Model
             $address = mb_substr($address, 0, mb_strpos($address, '?'));
 
         $service = App::make(GeckoTerminalService::class);
-        $address = $service->getTokenAddressByQuery($address);
+        [$network, $address] = $service->getTokenAddressByQuery($address, $network);
 
         if (!$address)
             return ['success' => false, 'error' => __('telegram.errors.address.empty')];
 
-        return ['success' => true, 'address' => $address];
+        return ['success' => true, 'address' => $address, 'network' => $network->slug];
     }
 }

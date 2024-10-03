@@ -5,7 +5,6 @@ namespace App\Telegram\Middleware;
 use App\Models\Account;
 use App\Models\Chat;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Log;
 use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\Telegram\Properties\ChatType;
 

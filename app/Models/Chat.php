@@ -13,6 +13,7 @@ use Illuminate\Database\Schema\Blueprint;
  * @property boolean $is_show_warnings
  * @property boolean $is_show_scam
  * @property Language $language
+ * @property Network $network
  */
 class Chat extends Model
 {
@@ -23,6 +24,7 @@ class Chat extends Model
         'is_show_warnings',
         'is_show_scam',
         'language',
+        'network_id',
     ];
 
     public function casts(): array
@@ -40,10 +42,17 @@ class Chat extends Model
     {
         $table->id();
         $table->timestamps();
+        $table->foreignIdFor(Network::class)->nullable();
+
         $table->bigInteger('chat_id');
         $table->boolean('is_blocked')->default(false);
         $table->boolean('is_show_warnings')->default(true);
         $table->boolean('is_show_scam')->default(true);
         $table->string('language')->default(Language::EN->value);
+    }
+
+    public function network(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Network::class);
     }
 }

@@ -6,8 +6,6 @@ use App\Enums\Language;
 use App\Exceptions\MetadataError;
 use App\Jobs\Middleware\Localized;
 use App\Models\Token;
-use App\Services\GeckoTerminalService;
-use App\Services\TonApiService;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -26,21 +24,14 @@ class UpdateMetadata implements ShouldQueue
         return [new SkipIfBatchCancelled, new Localized];
     }
 
-    public function handle(TonApiService $tonApiService, GeckoTerminalService $geckoTerminalService): void
+    public function handle(): void
     {
         if (!$this->token->scanned_at || $this->token->scanned_at <= now()->subDay() || !$this->token->is_revoked) {
 
-            $tokenMetadata = $tonApiService->getJetton($this->token->address);
+            $tokenMetadata = $this->token->network->service->getJetton($this->token->address, $this->token->network->slug);
             if (!$tokenMetadata) throw new MetadataError($this->token);
 
-            $this->token->name = $tokenMetadata['metadata']['name'];
-            $this->token->symbol = $tokenMetadata['metadata']['symbol'];
-            $this->token->owner = $tokenMetadata['admin']['address'] ?? null;
-            $this->token->image = $tokenMetadata['metadata']['image'] ?? null;
-            $this->token->description = $tokenMetadata['metadata']['description'] ?? null;
-            $this->token->holders_count = $tokenMetadata['holders_count'];
-            $this->token->supply = $tokenMetadata['total_supply'];
-            $this->token->is_warn_original = $tokenMetadata['verification'] === 'whitelist' || in_array($this->token->address, config('app.tokens.original'));
+            $this->token->update($tokenMetadata);
             $this->token->scanned_at = now();
             $this->token->save();
 

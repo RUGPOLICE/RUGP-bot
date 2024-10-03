@@ -249,7 +249,7 @@ class TokenReportService
         $is_new = $token->pools->map(fn ($pool) => $pool->created_at >= now()->subWeeks(2))->contains(true);
         foreach ($token->pools as $pool) {
 
-            $price = $geckoService->getOhlcv($pool->address, $is_new);
+            $price = $geckoService->getOhlcv($pool->address, $is_new, $token->network->slug);
             $prices[] = implode(':', [
                 Dex::verbose($pool->dex),
                 implode(',', array_map(fn ($item) => Carbon::createFromTimestamp($item['timestamp'])->format('d.m.Y.H.i'), $price)),
@@ -274,7 +274,7 @@ class TokenReportService
         $is_new = $token->pools->map(fn ($pool) => $pool->created_at >= now()->subWeeks(2))->contains(true);
         foreach ($token->pools as $pool) {
 
-            $price = $geckoService->getOhlcv($pool->address, $is_new);
+            $price = $geckoService->getOhlcv($pool->address, $is_new, $token->network->slug);
             $prices[] = implode(':', [
                 Dex::verbose($pool->dex),
                 implode(',', array_map(fn ($item) => Carbon::createFromTimestamp($item['timestamp'])->format('d.m.Y.H.i'), $price)),

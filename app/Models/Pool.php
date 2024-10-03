@@ -102,7 +102,7 @@ class Pool extends Model
         ];
     }
 
-    public int $migrationOrder = 2;
+    public int $migrationOrder = 3;
     public function migration(Blueprint $table): void
     {
         $table->id();

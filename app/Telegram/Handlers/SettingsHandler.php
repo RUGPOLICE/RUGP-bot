@@ -3,6 +3,7 @@
 namespace App\Telegram\Handlers;
 
 use App\Enums\Language;
+use App\Models\Network;
 use Illuminate\Support\Facades\App;
 use SergiX44\Nutgram\Nutgram;
 
@@ -16,6 +17,7 @@ class SettingsHandler
                 'is_show_warnings' => __('telegram.text.settings.is_show_warnings.' . ($chat->is_show_warnings ? 'yes' : 'no')),
                 'is_show_scam' => __('telegram.text.settings.is_show_scam.' . ($chat->is_show_scam ? 'yes' : 'no')),
                 'language' => __('telegram.buttons.' . $chat->language->value),
+                'network' => $chat->network?->name ??__('telegram.text.settings.blank_network'),
             ]),
             options: ['image' => public_path('img/scan.png'),]
         );
@@ -72,6 +74,20 @@ class SettingsHandler
         $chat->save();
 
         App::setLocale($language);
+        $this($bot);
+    }
+
+    public function setNetwork(Nutgram $bot, string $network): void
+    {
+        $network = Network::query()->where('slug', $network)->orWhere('name', $network)->first();
+        if ($network) {
+
+            $chat = $bot->get('chat');
+            $chat->network()->associate($network);
+            $chat->save();
+
+        }
+
         $this($bot);
     }
 }

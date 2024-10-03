@@ -5,6 +5,7 @@ namespace App\Telegram\Conversations;
 use App\Enums\RequestModule;
 use App\Enums\RequestSource;
 use App\Jobs\Scanner\SendReport;
+use App\Models\Network;
 use App\Models\Request;
 use App\Models\Token;
 use App\Telegram\Handlers\TokenReportHandler;
@@ -49,7 +50,7 @@ class TokenScannerMenu extends ImagedInlineMenu
         $message_id = $bot->messageId();
         $address = $bot->message()->text;
 
-        $address = Token::getAddress($address);
+        $address = Token::getAddress($address, $account->network);
         if (!$address['success']) {
 
             $this->restartWithMessage($bot, $address['error']);
@@ -65,7 +66,12 @@ class TokenScannerMenu extends ImagedInlineMenu
             ]
         )->message_id;
 
+        $network = Network::query()->where('slug', $address['network'])->first();
         $token = Token::query()->firstOrCreate(['address' => $address['address']]);
+
+        $token->network()->associate($network);
+        $token->save();
+
         SendReport::dispatch($token, $account, $account->language, $message_id)->delay(now()->addSeconds(2));
         Request::log($account, $token, RequestSource::TELEGRAM, RequestModule::SCANNER);
 
