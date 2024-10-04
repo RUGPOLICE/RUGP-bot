@@ -134,8 +134,6 @@ BETA 0.1
                     'is_warn_rugpull' => "\n⁉️ОСТОРОЖНО, ВЕРОЯТНО RUGPULL⁉️\n",
                     'is_warn_original' => "\n✅✅ОРИГИНАЛЬНЫЙ ТОКЕН✅✅\n",
                     'is_warn_scam' => "\n‼️SCAM‼️\n",
-                    'is_warn_liquidity_stonfi' => "\n‼️НЕВОЗМОЖНО ПРОДАТЬ‼️\n",
-                    'is_warn_liquidity_dedust' => "\n‼️ОСТОРОЖНО, НИЗКАЯ ЛИКВИДНОСТЬ‼️\n",
                     'is_warn_liquidity' => "\n‼️ОСТОРОЖНО, НИЗКАЯ ЛИКВИДНОСТЬ‼️\n",
                 ],
             ],

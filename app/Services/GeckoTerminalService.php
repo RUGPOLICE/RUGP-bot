@@ -69,13 +69,13 @@ class GeckoTerminalService
 
         foreach ($response['data'] as $pool) {
 
-            [$network, $base_token] = explode('_', $pool['relationships']['base_token']['data']['id'], 2);
-            [$network, $quote_token] = explode('_', $pool['relationships']['quote_token']['data']['id'], 2);
+            [$n, $base_token] = explode('_', $pool['relationships']['base_token']['data']['id'], 2);
+            [$n, $quote_token] = explode('_', $pool['relationships']['quote_token']['data']['id'], 2);
             $dex = $pool['relationships']['dex']['data']['id'];
 
-            $network = Network::query()->where('slug', $network)->first();
-            if (in_array($network?->token, [$base_token, $quote_token]))
-                return [$network, $base_token === $network->token ? $quote_token : $base_token];
+            $n = Network::query()->where('slug', $n)->first();
+            if (in_array($n?->token, [$base_token, $quote_token]))
+                return [$network, $base_token === $n->token ? $quote_token : $base_token];
 
         }
 
@@ -129,15 +129,18 @@ class GeckoTerminalService
         ];
     }
 
-    public function getPoolsByTokenAddress(string $address, string $network = 'ton'): \Generator
+    public function getPoolsByTokenAddress(string $address, string $network = 'ton'): ?array
     {
         $response = $this->get("/networks/$network/tokens/$address/pools")->json();
         if (!isset($response['data']) || !$response['data'])
             return [];
 
-        foreach ($response['data'] as $pool)
-            if (in_array($pool['relationships']['dex']['data']['id'], ['dedust', 'stonfi']) && $pool['relationships']['quote_token']['data']['id'] === 'ton_EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c')
-                yield [
+        $network = Network::query()->where('slug', $network)->first();
+        foreach ($response['data'] as $pool) {
+
+            $base = explode('_', $pool['relationships']['quote_token']['data']['id'])[1];
+            if ($network->token === $base)
+                return [
                     'address' => $pool['attributes']['address'],
                     'dex' => $pool['relationships']['dex']['data']['id'],
                     'price' => $pool['attributes']['base_token_price_usd'],
@@ -161,6 +164,10 @@ class GeckoTerminalService
                     'h24_buys' => $pool['attributes']['transactions']['h24']['buys'] ?? null,
                     'h24_sells' => $pool['attributes']['transactions']['h24']['sells'] ?? null,
                 ];
+
+        }
+
+        return null;
     }
 
     public function getOhlcv(string $pool, bool $is_new, string $network = 'ton'): ?array

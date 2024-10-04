@@ -134,8 +134,6 @@ Please report bot bugs in tg chat. 🙏
                     'is_warn_rugpull' => "\n⁉️WARNING, Potential RUGPULL⁉️\n",
                     'is_warn_original' => "\n✅✅ORIGINAL COIN✅✅\n",
                     'is_warn_scam' => "\n‼️SCAM‼️\n",
-                    'is_warn_liquidity_stonfi' => "\n‼️Can't sell‼️\n",
-                    'is_warn_liquidity_dedust' => "\n‼️Warning, low liquidity‼️\n",
                     'is_warn_liquidity' => "\n‼️Warning, low liquidity‼️\n",
                 ],
             ],

@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
-use App\Services\Network\GoplusService;
-use App\Services\Network\NetworkService;
-use App\Services\Network\SolanaService;
-use App\Services\Network\TonService;
+use App\Jobs\Scanner\ScanTokenEthereum;
+use App\Jobs\Scanner\ScanTokenSolana;
+use App\Jobs\Scanner\ScanTokenTon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Foundation\Bus\Dispatchable;
 
 /**
  * @property integer $id
@@ -18,7 +18,7 @@ use Illuminate\Database\Schema\Blueprint;
  * @property string $name
  * @property string $token
  * @property Collection $tokens
- * @property NetworkService $service
+ * @property Dispatchable $job
  * @method static self create()
  */
 class Network extends Model
@@ -48,14 +48,13 @@ class Network extends Model
         return $this->hasMany(Token::class);
     }
 
-    public function service(): Attribute
+    public function job(): Attribute
     {
         return Attribute::make(
             get: fn (mixed $value) => app(match ($this->slug) {
-                'ton' => TonService::class,
-                'eth', 'bsc', 'base', 'tron' => GoplusService::class,
-                'solana' => SolanaService::class,
-                default => NetworkService::class,
+                'solana' => ScanTokenSolana::class,
+                'eth', 'bsc', 'base', 'tron' => ScanTokenEthereum::class,
+                default => ScanTokenTon::class,
             })
         );
     }

@@ -4,14 +4,6 @@ namespace App\Telegram\Handlers;
 
 use App\Enums\RequestModule;
 use App\Enums\RequestSource;
-use App\Exceptions\ScanningError;
-use App\Jobs\Scanner\SimulateTransactions;
-use App\Jobs\Scanner\UpdateHolders;
-use App\Jobs\Scanner\UpdateLiquidity;
-use App\Jobs\Scanner\UpdateMetadata;
-use App\Jobs\Scanner\UpdatePools;
-use App\Jobs\Scanner\UpdateStatistics;
-use App\Models\Chat;
 use App\Models\Network;
 use App\Models\Request;
 use App\Models\Token;
@@ -20,6 +12,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
 use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\Telegram\Types\Message\LinkPreviewOptions;
+use Throwable;
 
 class PublicTokenReportHandler
 {
@@ -61,9 +54,9 @@ class PublicTokenReportHandler
             $token->network()->associate($network);
             $token->save();
 
-            $this->scan($token, $bot->get('chat'));
+            $network->job::dispatchSync($token, $bot->get('chat')->language);
 
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
 
             $this->send($bot, __('telegram.errors.scan.fail', ['address' => $address['address']]));
             Log::error($e->getMessage());
@@ -76,34 +69,6 @@ class PublicTokenReportHandler
 
         [$message, $options] = $this->getReport($bot, $token, $type);
         $this->send($bot, $message, $options);
-    }
-
-
-    private function scan(Token $token, ?Chat $chat = null): void
-    {
-        UpdateMetadata::dispatchSync($token);
-        UpdatePools::dispatchSync($token);
-
-        $jobs = [
-            [SimulateTransactions::class, $token],
-            [UpdateHolders::class, $token],
-            [UpdateLiquidity::class, $token],
-            [UpdateStatistics::class, $token, null, $chat],
-        ];
-
-        foreach ($jobs as $job) {
-            try {
-
-                $job[0]::dispatchSync(... array_slice($job, 1));
-
-            } catch (ScanningError $e) {
-
-                Log::error($e->getLogMessage());
-
-            }
-        }
-
-        $token->refresh();
     }
 
     private function getReport(Nutgram $bot, Token $token, string $type): array

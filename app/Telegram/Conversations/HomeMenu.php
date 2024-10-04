@@ -6,7 +6,6 @@ use App\Enums\Language;
 use App\Models\Token;
 use App\Telegram\Handlers\TokenReportHandler;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Log;
 use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 

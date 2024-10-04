@@ -7,7 +7,6 @@ use App\Models\Token;
 use App\Services\GeckoTerminalService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Bus;
 
 class ExplorePools implements ShouldQueue
 {
@@ -20,18 +19,7 @@ class ExplorePools implements ShouldQueue
 
             $token = Token::query()->firstOrCreate(['address' => $pool['token']['address']]);
             Pool::query()->updateOrCreate(['address' => $pool['pool']['address']], $pool['pool'] + ['token_id' => $token->id]);
-
-            Bus::chain([
-                Bus::batch([
-                    new UpdateMetadata($token),
-                    new UpdatePools($token)
-                ]),
-                Bus::batch([
-                    new SimulateTransactions($token),
-                    new UpdateHolders($token),
-                    new UpdateLiquidity($token),
-                ])->allowFailures(),
-            ])->dispatch()->delay($delay = $delay->addSeconds(5));
+            ScanTokenTon::dispatch($token)->delay($delay = $delay->addSeconds(5));
 
         }
 

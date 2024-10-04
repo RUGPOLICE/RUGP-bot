@@ -5,7 +5,6 @@ namespace App\Telegram\Conversations;
 use App\Jobs\SendPost;
 use App\Models\Post;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardMarkup;

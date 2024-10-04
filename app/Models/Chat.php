@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 
 /**
+ * @property int $id
  * @property int $chat_id
  * @property boolean $is_blocked
  * @property boolean $is_show_warnings

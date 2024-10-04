@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\Dex;
 use App\Enums\Lock;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\AsCollection;
@@ -56,7 +55,6 @@ class Pool extends Model
 
     protected $fillable = [
         'address',
-        'dex',
         'holders',
         'supply',
         'price',
@@ -89,13 +87,13 @@ class Pool extends Model
         'tax_sell',
         'tax_transfer',
         'token_id',
+        'dex_id',
         'created_at',
     ];
 
     public function casts(): array
     {
         return [
-            'dex' => Dex::class,
             'holders' => AsCollection::class,
             'locked_type' => Lock::class,
             'unlocks_at' => 'datetime',
@@ -108,9 +106,9 @@ class Pool extends Model
         $table->id();
         $table->timestamps();
         $table->foreignIdFor(Token::class)->constrained()->cascadeOnDelete();
+        $table->foreignIdFor(Dex::class)->nullable();
 
         $table->string('address')->unique();
-        $table->string('dex');
         $table->json('holders')->nullable();
 
         $table->double('supply')->nullable();
@@ -155,6 +153,11 @@ class Pool extends Model
     public function token(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Token::class);
+    }
+
+    public function dex(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Dex::class);
     }
 
     public function priceFormatted(): Attribute

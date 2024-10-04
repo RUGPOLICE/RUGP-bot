@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Log;
 
 /**
  * @property integer $id
@@ -37,8 +36,6 @@ use Illuminate\Support\Facades\Log;
  * @property boolean $is_warn_rugpull
  * @property boolean $is_warn_original
  * @property boolean $is_warn_scam
- * @property boolean $is_warn_liquidity_stonfi
- * @property boolean $is_warn_liquidity_dedust
  * @property boolean $is_warn_liquidity
  * @property boolean $is_warn_burned
  *
@@ -63,12 +60,12 @@ class Token extends Model
         'holders',
         'websites',
         'socials',
+        'is_known_master',
+        'is_known_wallet',
         'is_warn_honeypot',
         'is_warn_rugpull',
         'is_warn_original',
         'is_warn_scam',
-        'is_warn_liquidity_stonfi',
-        'is_warn_liquidity_dedust',
         'is_warn_liquidity',
         'is_warn_burned',
         'network_id',
@@ -87,8 +84,6 @@ class Token extends Model
             'is_warn_rugpull' => 'boolean',
             'is_warn_original' => 'boolean',
             'is_warn_scam' => 'boolean',
-            'is_warn_liquidity_stonfi' => 'boolean',
-            'is_warn_liquidity_dedust' => 'boolean',
             'is_warn_liquidity' => 'boolean',
             'is_warn_burned' => 'boolean',
         ];
@@ -121,8 +116,6 @@ class Token extends Model
         $table->boolean('is_warn_rugpull')->default(false);
         $table->boolean('is_warn_original')->default(false);
         $table->boolean('is_warn_scam')->default(false);
-        $table->boolean('is_warn_liquidity_stonfi')->default(false);
-        $table->boolean('is_warn_liquidity_dedust')->default(false);
         $table->boolean('is_warn_liquidity')->default(false);
         $table->boolean('is_warn_burned')->default(false);
     }

@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
-use App\Enums\Dex;
 use App\Enums\Lock;
 use App\Enums\Reaction;
 use App\Models\Token;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
 
 class TokenReportService
@@ -23,8 +23,6 @@ class TokenReportService
             'is_warn_rugpull',
             'is_warn_original',
             'is_warn_scam',
-            'is_warn_liquidity_stonfi',
-            'is_warn_liquidity_dedust',
             'is_warn_liquidity',
         ];
 
@@ -35,7 +33,8 @@ class TokenReportService
                     break;
                 }
 
-        $lp_burned_warning = $is_show_warnings && $token->is_warn_burned && $is_finished;
+        $is_ton_network = $token->network->slug === 'ton';
+        $lp_burned_warning = $is_show_warnings && $token->is_warn_burned && $is_finished && $is_ton_network;
         $is_revoked_warning = $is_show_warnings && $is_finished;
 
         foreach ($token->pools as $pool) {
@@ -46,12 +45,12 @@ class TokenReportService
             $dyor = $pool->locked_dyor ? __('telegram.text.token_scanner.report.lp_locked.dyor') : '';
             $unlocks = $pool->unlocks_at ? __('telegram.text.token_scanner.report.lp_locked.unlocks', ['value' => $pool->unlocks_at->translatedFormat('d M Y')]) : '';
 
-            if ($token->is_warn_honeypot) $lp_burned = '';
+            if ($token->is_warn_honeypot || !$is_ton_network) $lp_burned = '';
             else if (!$is_finished) $lp_burned = __('telegram.text.token_scanner.report.lp_burned.scan');
             else if ($pool->burned_amount) $lp_burned = __('telegram.text.token_scanner.report.lp_burned.yes', ['value' => $burned_percent]);
             else $lp_burned = __('telegram.text.token_scanner.report.lp_burned.no');
 
-            if ($token->is_warn_honeypot) $lp_locked = '';
+            if ($token->is_warn_honeypot || !$is_ton_network) $lp_locked = '';
             else if (!$is_finished) $lp_locked = __('telegram.text.token_scanner.report.lp_locked.scan');
             else if ($pool->burned_percent > 99) $lp_locked = __('telegram.text.token_scanner.report.lp_locked.burned', ['value' => $burned_percent]);
             else if ($pool->locked_amount) $lp_locked = __('telegram.text.token_scanner.report.lp_locked.yes', ['value' => $locked_percent, 'type' => $type, 'unlocks' => $unlocks, 'dyor' => $dyor, 'link' => $pool->locked_type ? Lock::link($pool->locked_type, $pool->address) : null]);
@@ -72,8 +71,8 @@ class TokenReportService
             else $tax_sell = __('telegram.text.token_scanner.report.tax_sell.ok');
 
             $pools[] = __('telegram.text.token_scanner.report.pool', [
-                'link' => Dex::link($pool->dex, $pool->address),
-                'name' => Dex::verbose($pool->dex),
+                'link' => $pool->dex->getLink($pool->address),
+                'name' => $pool->dex->name,
                 'price' => $pool->price_formatted,
                 'lp_burned' => $lp_burned,
                 'lp_locked' => $lp_locked,
@@ -90,7 +89,7 @@ class TokenReportService
             $links[] = __('telegram.text.token_scanner.report.link', ['url' => $social['url'], 'label' => $social['type']]);
 
         return [
-            'image' => Http::get($token->image)->status() === 200 ? $token->image : public_path('img/blank.png'),
+            'image' => ($token->image && Http::get($token->image)->status() === 200) ? $token->image : public_path('img/blank.png'),
             'text' => __('telegram.text.token_scanner.report.text', [
                 'name' => $token->name,
                 'symbol' => $token->symbol,
@@ -99,7 +98,7 @@ class TokenReportService
                 'description_title' => $token->description ? __('telegram.text.token_scanner.report.description_title') : '',
                 'description' => $token->description_formatted,
 
-                'supply' => number_format($token->supply / 1000000000),
+                'supply' => number_format($token->supply),
                 'holders_count' => number_format($token->holders_count),
                 'pools' => implode('', $pools),
                 'alert' => $alert,
@@ -127,8 +126,8 @@ class TokenReportService
         $pools = [];
         foreach ($token->pools as $pool)
             $pools[] = __('telegram.text.token_scanner.chart.pool', [
-                'link' => Dex::link($pool->dex, $pool->address),
-                'name' => Dex::verbose($pool->dex),
+                'link' => $pool->dex->getLink($pool->address),
+                'name' => $pool->dex->name,
                 'price' => $pool->price_formatted,
                 'created_at' => $pool->created_at->translatedFormat('d M Y H:i'),
                 'fdv' => number_format($pool->fdv, 2),
@@ -175,7 +174,7 @@ class TokenReportService
 
             if ($pool->holders)
                 $pools[] = __('telegram.text.token_scanner.holders.pool', [
-                    'name' => Dex::verbose($pool->dex),
+                    'name' => $pool->dex->name,
                     'address' => $pool->address,
                     'holders' => implode('', $poolHolders),
                 ]);
@@ -200,8 +199,8 @@ class TokenReportService
         $pools = [];
         foreach ($token->pools as $pool)
             $pools[] = __('telegram.text.token_scanner.volume.pool', [
-                'link' => Dex::link($pool->dex, $pool->address),
-                'name' => Dex::verbose($pool->dex),
+                'link' => $pool->dex->getLink($pool->address),
+                'name' => $pool->dex->name,
                 'price' => $pool->price_formatted,
                 'created_at' => $pool->created_at->translatedFormat('d M Y H:i'),
                 'volume_m5' => number_format($pool->m5_volume, 2),
@@ -251,7 +250,7 @@ class TokenReportService
 
             $price = $geckoService->getOhlcv($pool->address, $is_new, $token->network->slug);
             $prices[] = implode(':', [
-                Dex::verbose($pool->dex),
+                $pool->dex->name,
                 implode(',', array_map(fn ($item) => Carbon::createFromTimestamp($item['timestamp'])->format('d.m.Y.H.i'), $price)),
                 implode(',', array_map(fn ($item) => $item['close'], $price)),
             ]);
@@ -276,7 +275,7 @@ class TokenReportService
 
             $price = $geckoService->getOhlcv($pool->address, $is_new, $token->network->slug);
             $prices[] = implode(':', [
-                Dex::verbose($pool->dex),
+                $pool->dex->name,
                 implode(',', array_map(fn ($item) => Carbon::createFromTimestamp($item['timestamp'])->format('d.m.Y.H.i'), $price)),
                 implode(',', array_map(fn ($item) => $item['volume'], $price)),
             ]);

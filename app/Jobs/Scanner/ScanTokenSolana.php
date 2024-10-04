@@ -10,42 +10,56 @@ use App\Jobs\Middleware\Localized;
 use App\Models\Chat;
 use App\Models\Pool;
 use App\Models\Token;
+use App\Services\GeckoTerminalService;
+use App\Services\Network\TonService;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Middleware\SkipIfBatchCancelled;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
-class ScanToken implements ShouldQueue
+class ScanTokenSolana implements ShouldQueue
 {
     use Batchable, Queueable;
 
     public int $tries = 1;
 
-    public function __construct(public Token $token, public ?Language $language = null) {}
+    public function __construct(
+        public Token $token,
+        public ?Language $language = null,
+        public ?Chat $source = null,
+    ) {}
 
     public function middleware(): array
     {
         return [new SkipIfBatchCancelled, new Localized];
     }
 
-    public function handle(): void
+    /**
+     * @throws MetadataError
+     */
+    public function handle(GeckoTerminalService $geckoTerminalService, TonService $tonService): void
     {
-        $this->updateMetadata();
-        $this->updatePools();
-        $this->updateHolders();
-        $this->updateLiquidity();
-        $this->simulateTransactions();
+        $this->updateMetadata($tonService);
+        $this->updatePools($geckoTerminalService, $tonService);
+        $this->updateHolders($tonService);
+        $this->updateLiquidity($tonService);
+        $this->simulateTransactions($tonService);
         $this->updateStatistics();
     }
 
 
-    private function updateMetadata(): void
+    /**
+     * @throws MetadataError
+     */
+    private function updateMetadata(TonService $tonService): void
     {
         if (!$this->token->scanned_at || $this->token->scanned_at <= now()->subDay() || !$this->token->is_revoked) {
 
-            $tokenMetadata = $this->token->network->service->getJetton($this->token->address, $this->token->network->slug);
+            $tokenMetadata = $tonService->getJetton($this->token->address);
             if (!$tokenMetadata) throw new MetadataError($this->token);
 
             $this->token->update($tokenMetadata);
@@ -55,7 +69,10 @@ class ScanToken implements ShouldQueue
         }
     }
 
-    private function updatePools(): void
+    /**
+     * @throws MetadataError
+     */
+    private function updatePools(GeckoTerminalService $geckoTerminalService, TonService $tonService): void
     {
         $tokenMetadata = $geckoTerminalService->getTokenInfo($this->token->address, $this->token->network->slug);
         if (!$tokenMetadata) throw new MetadataError($this->token);
@@ -63,69 +80,102 @@ class ScanToken implements ShouldQueue
         $this->token->update($tokenMetadata);
         foreach ($geckoTerminalService->getPoolsByTokenAddress($this->token->address, $this->token->network->slug) as $pool) {
 
-            $key = 'UpdatePools:' . $pool['address'];
-            if (Cache::has($key)) continue;
-            Cache::set($key, 'scanned', 60 * 10);
+            $key = "update-pools:{$pool['address']}";
+            if (!Cache::has($key)) {
 
-            $poolMetadata = $this->token->network->service->getJetton($pool['address'], $this->token->network->slug);
-            if (!$poolMetadata) throw new MetadataError($this->token);
+                Cache::set($key, 'scanned', 60 * 10);
 
-            Pool::query()->updateOrCreate(
-                ['address' => $pool['address']],
-                $pool + ['token_id' => $this->token->id, 'supply' => $poolMetadata['supply']]
-            );
+                $poolMetadata = $tonService->getJetton($pool['address']);
+                if (!$poolMetadata) throw new MetadataError($this->token);
 
-        }
-    }
-
-    private function updateHolders(): void
-    {
-        $key = 'UpdateHolders:' . $this->token->address;
-        if (Cache::has($key)) return;
-        Cache::set($key, 'scanned', 60 * 10);
-
-        $tokenHolders = $this->token->network->service->getJettonHolders($this->token->address, $this->token->supply, $this->token->network->slug);
-        if ($tokenHolders) [$this->token->holders, $this->token->holders_count] = $tokenHolders;
-    }
-
-    private function updateLiquidity(): void
-    {
-        foreach ($this->token->pools as $pool) {
-
-            $key = 'UpdateLiquidity:' . $pool->address;
-            if (Cache::has($key)) continue;
-            Cache::set($key, 'scanned', 60 * 10);
-
-            $poolHolders = $this->token->network->service->getJettonHolders($pool->address, $pool->supply, 4, $this->token->network->slug);
-            if ($poolHolders) {
-
-                [$poolHolders, $holdersCount] = $poolHolders;
-                if ($holdersCount) $pool->update($this->token->network->service->getLock($pool->address, $pool->supply, $poolHolders, $this->token->network->slug));
+                Pool::query()->updateOrCreate(
+                    ['address' => $pool['address']],
+                    $pool + ['token_id' => $this->token->id, 'supply' => $poolMetadata['supply']]
+                );
 
             }
 
         }
     }
 
-    private function simulateTransactions(): void
+    private function updateHolders(TonService $tonService): void
+    {
+        $key = "update-holders:{$this->token->address}";
+        if (!Cache::has($key)) {
+
+            Cache::set($key, 'scanned', 60 * 10);
+
+            try {
+
+                $tokenHolders = $tonService->getJettonHolders($this->token->address, $this->token->supply);
+                if ($tokenHolders) [$this->token->holders, $this->token->holders_count] = $tokenHolders;
+
+            } catch (Throwable $e) {
+
+                Log::error($e);
+
+            }
+
+        }
+    }
+
+    private function updateLiquidity(TonService $tonService): void
+    {
+        foreach ($this->token->pools as $pool) {
+
+            $key = "update-liquidity:$pool->address";
+            if (!Cache::has($key)) {
+
+                Cache::set($key, 'scanned', 60 * 10);
+
+                try {
+
+                    $poolHolders = $tonService->getJettonHolders($pool->address, $pool->supply, 4);
+                    if ($poolHolders) {
+
+                        [$poolHolders, $holdersCount] = $poolHolders;
+                        if ($holdersCount) $pool->update($tonService->getLock($pool->address, $pool->supply, $poolHolders));
+
+                    }
+
+                } catch (Throwable $e) {
+
+                    Log::error($e);
+
+                }
+
+            }
+
+        }
+    }
+
+    private function simulateTransactions(TonService $tonService): void
     {
         $failed = $this->token->pools()->where(function (Builder $query) { $query->whereNull('tax_buy')->orWhereNull('tax_sell'); })->exists();
         if (!$this->token->is_revoked || $failed) {
 
-            @[$taxes, $message] = $this->token->network->service->getTaxes($this->token->address, $this->token->network->slug);
-            if (!$taxes)
-                throw new SimulationError($this->token, $message);
+            try {
 
-            $this->token->is_known_master = $taxes['is_known_master'];
-            $this->token->is_known_wallet = $taxes['is_known_wallet'];
-            $this->token->save();
+                @[$taxes, $message] = $tonService->getTaxes($this->token->address);
+                if (!$taxes)
+                    throw new SimulationError($this->token, $message);
 
-            foreach ($this->token->pools as $pool) {
+                $this->token->is_known_master = $taxes['is_known_master'];
+                $this->token->is_known_wallet = $taxes['is_known_wallet'];
+                $this->token->save();
 
-                $pool->tax_buy = isset($taxes->{$pool->dex->value}->taxBuy) ? ($taxes->{$pool->dex->value}->taxBuy * 100) : $pool->tax_buy;
-                $pool->tax_sell = isset($taxes->{$pool->dex->value}->taxSell) ? ($taxes->{$pool->dex->value}->taxSell * 100) : $pool->tax_sell;
-                $pool->tax_transfer = isset($taxes->{$pool->dex->value}->taxTransfer) ? ($taxes->{$pool->dex->value}->taxTransfer * 100) : $pool->tax_transfer;
-                $pool->save();
+                foreach ($this->token->pools as $pool) {
+
+                    $pool->tax_buy = isset($taxes->{$pool->dex->value}->taxBuy) ? ($taxes->{$pool->dex->value}->taxBuy * 100) : $pool->tax_buy;
+                    $pool->tax_sell = isset($taxes->{$pool->dex->value}->taxSell) ? ($taxes->{$pool->dex->value}->taxSell * 100) : $pool->tax_sell;
+                    $pool->tax_transfer = isset($taxes->{$pool->dex->value}->taxTransfer) ? ($taxes->{$pool->dex->value}->taxTransfer * 100) : $pool->tax_transfer;
+                    $pool->save();
+
+                }
+
+            } catch (Throwable $e) {
+
+                Log::error($e);
 
             }
 
@@ -145,7 +195,7 @@ class ScanToken implements ShouldQueue
 
         if ($this->token->isDirty(['is_warn_honeypot', 'is_warn_rugpull', 'is_warn_scam'])) {
             $delay = now();
-            foreach (Chat::query()->where('is_show_scam', true)->whereNot('id', $this->chat?->id)->get() as $chat)
+            foreach (Chat::query()->where('is_show_scam', true)->whereNot('id', $this->source?->id)->get() as $chat)
                 SendScamPost::dispatch($this->token, $chat, $chat->language)->delay($delay = $delay->addSecond());
         }
 

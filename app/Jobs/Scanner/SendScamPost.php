@@ -34,6 +34,7 @@ class SendScamPost implements ShouldQueue
         $bot = new Nutgram(config('nutgram.group_token'));
         [$message, $options] = $this->getReport($tokenReportService);
 
+        // bot was kicked
         $bot->sendImagedMessage(
             $message,
             options: $options,
@@ -43,7 +44,7 @@ class SendScamPost implements ShouldQueue
 
     private function getReport(TokenReportService $tokenReportService): array
     {
-        $params = $tokenReportService->main($this->token, $this->chat->is_show_warnings, is_finished: true, for_group: true);
+        $params = $tokenReportService->main($this->token, $this->chat->is_show_warnings, for_group: true);
         $options = ['link_preview_options' => LinkPreviewOptions::make(is_disabled: true),];
 
         if (array_key_exists('image', $params))

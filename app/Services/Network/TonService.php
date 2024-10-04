@@ -2,13 +2,12 @@
 
 namespace App\Services\Network;
 
-use App\Enums\Dex;
 use App\Enums\Lock;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Process;
 
-class TonService extends NetworkService
+class TonService
 {
     const BaseURL = 'https://tonapi.io/v2';
 
@@ -24,7 +23,7 @@ class TonService extends NetworkService
         return $response;
     }
 
-    public function getJetton(string $address, ?string $chain = null): ?array
+    public function getJetton(string $address): ?array
     {
         $response = $this->get("/jettons/$address");
         if (!$response)
@@ -37,12 +36,12 @@ class TonService extends NetworkService
             'description'       => $response['metadata']['description'] ?? null,
             'owner'             => $response['admin']['address'] ?? null,
             'holders_count'     => $response['holders_count'],
-            'supply'            => $response['total_supply'],
+            'supply'            => $response['total_supply'] / 1000000000,
             'is_warn_original'  => $response['verification'] === 'whitelist' || in_array($address, config('app.tokens.original')),
         ];
     }
 
-    public function getJettonHolders(string $address, float $supply, int $limit = 20, ?string $chain = null): ?array
+    public function getJettonHolders(string $address, float $supply, int $limit = 20): ?array
     {
         $response = $this->get("/jettons/$address/holders", ['limit' => $limit]);
         if (!$response)
@@ -67,7 +66,7 @@ class TonService extends NetworkService
         ];
     }
 
-    public function getLock(string $address, float $supply, array $holders, ?string $chain = null): ?array
+    public function getLock(string $address, float $supply, array $holders): ?array
     {
         $holderAddress = $holders[0]['owner'];
         if ($holderAddress === '0:0000000000000000000000000000000000000000000000000000000000000000')
@@ -82,7 +81,7 @@ class TonService extends NetworkService
         $lockedType = null;
         $unlocksAt = null;
 
-        $response = $this->get("/blockchain/accounts/$address/methods/get_contract_data");
+        $response = $this->get("/blockchain/accounts/$holderAddress/methods/get_contract_data");
         if ($response) {
 
             $lockedAmount = intval($response['stack'][4]['num'], 16);
@@ -123,30 +122,20 @@ class TonService extends NetworkService
         ];
     }
 
-    public function getTaxes(string $address, ?string $chain = null): ?array
+    public function getTaxes(string $address, string $dex): array|string
     {
-        $dex = [Dex::DEDUST->value, Dex::STONFI->value];
-        $dex_param = implode(',', $dex);
-
-        $result = Process::path(base_path('utils/scanner'))->run("node --no-warnings src/main.js $address $dex_param");
+        $result = Process::path(base_path('utils/scanner'))->run("node --no-warnings src/main.js $address $dex");
         $report = json_decode($result->output());
 
         if (!$report->success)
-            return [null, $report->message];
+            return $report->message;
 
-        $response = [
+        return [
             'is_known_master' => $report->isKnownMaster,
             'is_known_wallet' => $report->isKnownWallet,
+            'tax_buy' => isset($report->{$dex}->taxBuy) ? ($report->{$dex}->taxBuy * 100) : null,
+            'tax_sell' => isset($report->{$dex}->taxSell) ? ($report->{$dex}->taxSell * 100) : null,
+            'tax_transfer' => isset($report->{$dex}->taxTransfer) ? ($report->{$dex}->taxTransfer * 100) : null,
         ];
-
-        foreach ($dex as $d) {
-
-            $response[$d]['tax_buy'] = isset($report->{$d}->taxBuy) ? ($report->{$d}->taxBuy * 100) : null;
-            $response[$d]['tax_sell'] = isset($report->{$d}->taxSell) ? ($report->{$d}->taxSell * 100) : null;
-            $response[$d]['tax_transfer'] = isset($report->{$d}->taxTransfer) ? ($report->{$d}->taxTransfer * 100) : null;
-
-        }
-
-        return $response;
     }
 }
