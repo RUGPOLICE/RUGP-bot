@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\App;
  * @property string $description
  * @property integer $holders_count
  * @property integer $supply
+ * @property integer $decimals
  * @property \Illuminate\Support\Collection $holders
  * @property array $websites
  * @property array $socials
@@ -58,6 +59,7 @@ class Token extends Model
         'description',
         'holders_count',
         'supply',
+        'decimals',
         'holders',
         'websites',
         'socials',
@@ -109,6 +111,7 @@ class Token extends Model
         $table->text('description')->nullable();
         $table->integer('holders_count')->nullable();
         $table->double('supply')->nullable();
+        $table->integer('decimals')->default(9);
         $table->json('holders')->nullable();
         $table->json('websites')->nullable();
         $table->json('socials')->nullable();

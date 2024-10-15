@@ -17,6 +17,7 @@ use Illuminate\Database\Schema\Blueprint;
  * @property Dex $dex
  * @property array $holders
  * @property integer $supply
+ * @property integer $decimals
  * @property float $price
  * @property float $fdv
  * @property float $reserve
@@ -57,6 +58,7 @@ class Pool extends Model
         'address',
         'holders',
         'supply',
+        'decimals',
         'price',
         'fdv',
         'reserve',
@@ -112,6 +114,7 @@ class Pool extends Model
         $table->json('holders')->nullable();
 
         $table->double('supply')->nullable();
+        $table->integer('decimals')->default(9);
         $table->double('price')->nullable();
         $table->double('fdv')->nullable();
         $table->double('reserve')->nullable();

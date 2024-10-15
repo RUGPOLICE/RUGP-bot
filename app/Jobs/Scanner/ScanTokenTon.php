@@ -63,6 +63,7 @@ class ScanTokenTon implements ShouldQueue
             $tokenMetadata = $tonService->getJetton($this->token->address);
             if (!$tokenMetadata) throw new MetadataError($this->token);
 
+            Log::info(json_encode($tokenMetadata));
             $this->token->update($tokenMetadata);
             $this->token->scanned_at = now();
             $this->token->save();
@@ -93,6 +94,7 @@ class ScanTokenTon implements ShouldQueue
         $pool['token_id'] = $this->token->id;
         $pool['dex_id'] = $dex->id;
         $pool['supply'] = $poolMetadata['supply'];
+        $pool['decimals'] = $poolMetadata['decimals'];
 
         Pool::query()->updateOrCreate(['address' => $pool['address']], $pool);
     }
@@ -106,7 +108,7 @@ class ScanTokenTon implements ShouldQueue
 
             try {
 
-                $tokenHolders = $tonService->getJettonHolders($this->token->address, $this->token->supply);
+                $tokenHolders = $tonService->getJettonHolders($this->token->address, $this->token->supply, $this->token->decimals);
                 if ($tokenHolders) [$this->token->holders, $this->token->holders_count] = $tokenHolders;
 
             } catch (Throwable $e) {
@@ -129,11 +131,11 @@ class ScanTokenTon implements ShouldQueue
 
             try {
 
-                $poolHolders = $tonService->getJettonHolders($pool->address, $pool->supply, 4);
+                $poolHolders = $tonService->getJettonHolders($pool->address, $pool->supply, $pool->decimals, 4);
                 if ($poolHolders) {
 
                     [$poolHolders, $holdersCount] = $poolHolders;
-                    if ($holdersCount) $pool->update($tonService->getLock($pool->supply, $poolHolders));
+                    if ($holdersCount) $pool->update($tonService->getLock($pool->supply, $pool->decimals, $poolHolders));
 
                 }
 
