@@ -210,16 +210,8 @@ Please report bot bugs in tg chat. 🙏
         'profile' => [
             'main' => "
 <b>Language</b>: <i>:language</i>
-<b>Network</b>: <i>:network</i>
-<b>Warnings</b>: <i>:is_hide_warnings</i>
 ",
             'language' => "Choose language",
-            'network' => "Choose network",
-            'blank_network' => "None",
-            'warnings' => [
-                'hidden' => 'Hidden',
-                'shown' => 'Visible',
-            ],
         ],
         'settings' => [
             'main' => "

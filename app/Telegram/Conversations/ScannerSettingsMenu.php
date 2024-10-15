@@ -3,6 +3,7 @@
 namespace App\Telegram\Conversations;
 
 use App\Models\Network;
+use App\Telegram\Handlers\TokenReportHandler;
 use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 
@@ -35,7 +36,7 @@ class ScannerSettingsMenu extends ImagedEditableInlineMenu
     {
         $this->end();
         match ($bot->callbackQuery()->data) {
-            'back' => HomeMenu::begin($bot),
+            'back' => TokenScannerMenu::begin($bot, data: ['referrer' => TokenReportHandler::class]),
         };
     }
 

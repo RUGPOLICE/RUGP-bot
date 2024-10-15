@@ -63,7 +63,6 @@ class ScanTokenTon implements ShouldQueue
             $tokenMetadata = $tonService->getJetton($this->token->address);
             if (!$tokenMetadata) throw new MetadataError($this->token);
 
-            Log::info(json_encode($tokenMetadata));
             $this->token->update($tokenMetadata);
             $this->token->scanned_at = now();
             $this->token->save();

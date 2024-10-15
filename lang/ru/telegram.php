@@ -210,16 +210,8 @@ BETA 0.1
         'profile' => [
             'main' => "
 <b>Язык</b>: <i>:language</i>
-<b>Приоритетная сеть</b>: <i>:network</i>
-<b>Предупреждения</b>: <i>:is_hide_warnings</i>
 ",
             'language' => "Выберите язык",
-            'network' => "Выберите приоритетную сеть",
-            'blank_network' => "Не выбрана",
-            'warnings' => [
-                'hidden' => 'Скрыты',
-                'shown' => 'Показываются',
-            ],
         ],
         'settings' => [
             'main' => "
