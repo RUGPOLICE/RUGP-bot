@@ -36,7 +36,7 @@ class SendReport implements ShouldQueue
     {
         try {
 
-            $this->token->network->job::dispatchSync($this->token, $this->language);
+            $this->token->network->job::dispatchSync($this->token, $this->language, $this->account);
             $this->token->refresh();
 
             $reportHandler->pending(

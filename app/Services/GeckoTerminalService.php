@@ -82,16 +82,22 @@ class GeckoTerminalService
         return null;
     }
 
-    public function getToken(string $address): array
+    public function getToken(string $address, ?Network $network = null): array
     {
-        $response = $this->get("/networks/ton/tokens/$address")->json();
+        $slug = ($network ?? Network::getDefault())->slug;
+        $response = $this->get("/networks/$slug/tokens/$address")->json();
+
         if (!isset($response['data']) || !$response['data'])
             return [];
+
+        $image = $response['data']['attributes']['image_url'];
+        if ($image === 'missing.png') $image = null;
 
         return [
             'name' => $response['data']['attributes']['name'],
             'symbol' => $response['data']['attributes']['symbol'],
             'supply' => $response['data']['attributes']['total_supply'],
+            'image' => $image,
         ];
     }
 

@@ -5,6 +5,7 @@ namespace App\Jobs\Scanner;
 use App\Enums\Language;
 use App\Exceptions\MetadataError;
 use App\Jobs\Middleware\Localized;
+use App\Models\Account;
 use App\Models\Chat;
 use App\Models\Dex;
 use App\Models\Pool;
@@ -15,7 +16,6 @@ use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Middleware\SkipIfBatchCancelled;
-use Illuminate\Support\Facades\Log;
 
 class ScanTokenEthereum implements ShouldQueue
 {
@@ -26,7 +26,7 @@ class ScanTokenEthereum implements ShouldQueue
     public function __construct(
         public Token $token,
         public ?Language $language = null,
-        public ?Chat $source = null,
+        public Chat|Account|null $source = null,
     ) {}
 
     public function middleware(): array
@@ -44,11 +44,12 @@ class ScanTokenEthereum implements ShouldQueue
             $data = $goplusService->getEthereumLikeData($this->token->address, $this->token->network->slug);
             if (!$data) throw new MetadataError($this->token);
 
+            $info = $geckoTerminalService->getToken($this->token->address, $this->token->network);
+            if ($info) $this->token->update($info);
+
             $this->token->update($data['token']);
             $this->token->scanned_at = now();
             $this->token->save();
-
-            Log::info($data['token']);
 
             $pool = $geckoTerminalService->getPoolsByTokenAddress($this->token->address, $this->token->network->slug);
             if (!$pool) throw new MetadataError($this->token);
@@ -76,12 +77,7 @@ class ScanTokenEthereum implements ShouldQueue
         $this->token->is_warn_scam = $this->checkScam();
         $this->token->is_warn_liquidity = $this->checkLiquidity();
 
-        if ($this->token->isDirty(['is_warn_honeypot', 'is_warn_rugpull', 'is_warn_scam'])) {
-            $delay = now();
-            foreach (Chat::query()->where('is_show_scam', true)->whereNot('id', $this->source?->id)->get() as $chat)
-                SendScamPost::dispatch($this->token, $chat, $chat->language)->delay($delay = $delay->addSecond());
-        }
-
+        $this->token->sendNotification($this->source);
         $this->token->save();
     }
 

@@ -2,20 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Enums\Dex;
 use App\Enums\Language;
 use App\Enums\Lock;
 use App\Enums\Reaction;
 use App\Enums\RequestModule;
 use App\Enums\RequestSource;
-use App\Exceptions\ScanningError;
 use App\Http\Controllers\Controller;
-use App\Jobs\Scanner\SimulateTransactions;
-use App\Jobs\Scanner\UpdateHolders;
-use App\Jobs\Scanner\UpdateLiquidity;
-use App\Jobs\Scanner\UpdateMetadata;
-use App\Jobs\Scanner\UpdatePools;
-use App\Jobs\Scanner\UpdateStatistics;
+use App\Models\Network;
 use App\Models\Request;
 use App\Models\Token;
 use Illuminate\Support\Facades\App;
@@ -27,7 +20,14 @@ class TokenController extends Controller
     {
         try {
 
-            $address = Token::getAddress($address);
+            $network = Network::query()->where('slug', $network)->first();
+            if (!$network)
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Currently supported networks: ' . Network::all()->pluck('slug')->implode(', '),
+                ]);
+
+            $address = Token::getAddress($address, $network);
             if (!$address['success'])
                 return response()->json($address);
 
@@ -36,28 +36,10 @@ class TokenController extends Controller
 
             Request::log($request->user(), $token, RequestSource::API, RequestModule::SCANNER);
 
-            UpdateMetadata::dispatchSync($token, $language);
-            UpdatePools::dispatchSync($token, $language);
+            $token->network()->associate($network);
+            $token->save();
 
-            $jobs = [
-                SimulateTransactions::class,
-                UpdateHolders::class,
-                UpdateLiquidity::class,
-                UpdateStatistics::class,
-            ];
-
-            foreach ($jobs as $job) {
-                try {
-
-                    $job::dispatchSync($token, $language);
-
-                } catch (ScanningError $e) {
-
-                    Log::error($e->getLogMessage());
-
-                }
-            }
-
+            $network->job::dispatchSync($token, $language);
             $token->refresh();
 
             $pools = [];
@@ -65,8 +47,8 @@ class TokenController extends Controller
 
             foreach ($token->pools as $pool)
                 $pools[] = [
-                    'link' => Dex::link($pool->dex, $pool->address),
-                    'dex' => Dex::verbose($pool->dex),
+                    'link' => $pool->dex->getLink($pool->address),
+                    'dex' => $pool->dex->name,
                     'address' => $pool->address,
                     'price' => $pool->price,
                     'supply' => $pool->supply,
@@ -126,7 +108,7 @@ class TokenController extends Controller
                     'address' => $token->address,
                     'name' => $token->name,
                     'symbol' => $token->symbol,
-                    'owner' => $token->owner,
+                    // 'owner' => $token->owner,
                     'image' => $token->image,
                     'description' => $token->description,
                     'holders_count' => $token->holders_count,
@@ -139,76 +121,10 @@ class TokenController extends Controller
                     'is_rugpull' => $token->is_warn_rugpull,
                     'is_original' => $token->is_warn_original,
                     'is_scam' => $token->is_warn_scam,
-                    'is_low_liquidity' => $token->is_warn_liquidity || $token->is_warn_liquidity_dedust || $token->is_warn_liquidity_stonfi,
+                    'is_low_liquidity' => $token->is_warn_liquidity,
                     'likes_count' => $token->reactions()->where('type', Reaction::LIKE)->count(),
                     'dislikes_count' => $token->reactions()->where('type', Reaction::DISLIKE)->count(),
 
-                ],
-                'pools' => $pools,
-            ]);
-
-        } catch (\Throwable $e) {
-
-            Log::error($e);
-            return response()->json(['success' => false, 'error' => 'Server error']);
-
-        }
-    }
-
-    public function simulate(\Illuminate\Http\Request $request, string $network, string $address): \Illuminate\Http\JsonResponse
-    {
-        try {
-
-            $address = Token::getAddress($address);
-            if (!$address['success'])
-                return response()->json($address);
-
-            $language = Language::key(App::getLocale());
-            $token = Token::query()->firstOrCreate(['address' => $address['address']]);
-
-            Request::log($request->user(), $token, RequestSource::API, RequestModule::SCANNER);
-
-            UpdateMetadata::dispatchSync($token, $language);
-            UpdatePools::dispatchSync($token, $language);
-
-            $jobs = [SimulateTransactions::class, UpdateStatistics::class];
-            foreach ($jobs as $job) {
-                try {
-
-                    $job::dispatchSync($token, $language);
-
-                } catch (ScanningError $e) {
-
-                    Log::error($e->getLogMessage());
-
-                }
-            }
-
-            $token->refresh();
-
-            $pools = [];
-            foreach ($token->pools as $pool)
-                $pools[] = [
-                    'link' => Dex::link($pool->dex, $pool->address),
-                    'dex' => Dex::verbose($pool->dex),
-                    'address' => $pool->address,
-                    'can_buy' => $pool->tax_buy && $pool->tax_buy < 100.0 && $pool->tax_buy >= 0.0,
-                    'can_sell' => $pool->tax_sell && $pool->tax_sell < 100.0 && $pool->tax_sell >= 0.0,
-                    'tax_buy' => $pool->tax_buy !== null ? ($pool->tax_buy < 0 ? null : floatval($pool->tax_buy)) : null,
-                    'tax_sell' => $pool->tax_sell !== null ? ($pool->tax_sell < 0 ? null : floatval($pool->tax_sell)) : null,
-                ];
-
-            return response()->json([
-                'success' => true,
-                'token' => [
-                    'address' => $token->address,
-                    'is_known_master' => $token->is_known_master,
-                    'is_known_wallet' => $token->is_known_wallet,
-                    'is_honeypot' => $token->is_warn_honeypot,
-                    'is_rugpull' => $token->is_warn_rugpull,
-                    'is_original' => $token->is_warn_original,
-                    'is_scam' => $token->is_warn_scam,
-                    'is_low_liquidity' => $token->is_warn_liquidity || $token->is_warn_liquidity_dedust || $token->is_warn_liquidity_stonfi,
                 ],
                 'pools' => $pools,
             ]);

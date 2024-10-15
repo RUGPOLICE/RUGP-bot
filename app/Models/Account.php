@@ -9,6 +9,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Notifications\Notifiable;
 
 /**
+ * @property int $id
  * @property string $telegram_id
  * @property string $telegram_username
  * @property Language $language
@@ -16,6 +17,7 @@ use Illuminate\Notifications\Notifiable;
  * @property boolean $is_shown_language
  * @property boolean $is_shown_rules
  * @property boolean $is_hide_warnings
+ * @property boolean $is_show_scam
  * @property Network $network
  */
 class Account extends Model
@@ -34,6 +36,7 @@ class Account extends Model
             'language' => Language::class,
             'is_blocked' => 'boolean',
             'is_hide_warnings' => 'boolean',
+            'is_show_scam' => 'boolean',
         ];
     }
 
@@ -53,6 +56,7 @@ class Account extends Model
 
         $table->string('language')->default(Language::EN->value);
         $table->boolean('is_hide_warnings')->default(false);
+        $table->boolean('is_show_scam')->default(true);
     }
 
 

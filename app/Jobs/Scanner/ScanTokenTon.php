@@ -6,6 +6,7 @@ use App\Enums\Language;
 use App\Exceptions\MetadataError;
 use App\Exceptions\SimulationError;
 use App\Jobs\Middleware\Localized;
+use App\Models\Account;
 use App\Models\Chat;
 use App\Models\Dex;
 use App\Models\Pool;
@@ -30,7 +31,7 @@ class ScanTokenTon implements ShouldQueue
     public function __construct(
         public Token $token,
         public ?Language $language = null,
-        public ?Chat $source = null,
+        public Chat|Account|null $source = null,
     ) {}
 
     public function middleware(): array
@@ -132,7 +133,7 @@ class ScanTokenTon implements ShouldQueue
                 if ($poolHolders) {
 
                     [$poolHolders, $holdersCount] = $poolHolders;
-                    if ($holdersCount) $pool->update($tonService->getLock($pool->address, $pool->supply, $poolHolders));
+                    if ($holdersCount) $pool->update($tonService->getLock($pool->supply, $poolHolders));
 
                 }
 
@@ -182,12 +183,7 @@ class ScanTokenTon implements ShouldQueue
         $this->token->is_warn_liquidity = $this->checkLiquidity();
         $this->token->is_warn_burned = $this->checkBurned();
 
-        if ($this->token->isDirty(['is_warn_honeypot', 'is_warn_rugpull', 'is_warn_scam'])) {
-            $delay = now();
-            foreach (Chat::query()->where('is_show_scam', true)->whereNot('id', $this->source?->id)->get() as $chat)
-                SendScamPost::dispatch($this->token, $chat, $chat->language)->delay($delay = $delay->addSecond());
-        }
-
+        $this->token->sendNotification($this->source);
         $this->token->save();
     }
 

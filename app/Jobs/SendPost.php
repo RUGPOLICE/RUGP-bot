@@ -29,7 +29,7 @@ class SendPost implements ShouldQueue
             ini_set('max_execution_time', '0');
 
             $this->send(Account::query()->whereNot('is_blocked')->get(), 'telegram_id');
-            $this->send(Chat::query()->whereNot('is_blocked')->get(), 'chat_id');
+            // $this->send(Chat::query()->whereNot('is_blocked')->get(), 'chat_id');
 
         } catch (\Throwable $e) {
 

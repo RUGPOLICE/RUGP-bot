@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Jobs\Scanner\SendScamPost;
 use App\Services\GeckoTerminalService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\AsCollection;
@@ -144,6 +145,27 @@ class Token extends Model
     public function isRevoked(): Attribute
     {
         return Attribute::make(get: fn (?string $value, array $attributes) => $this->owner === '0:0000000000000000000000000000000000000000000000000000000000000000');
+    }
+
+
+    public function sendNotification(Chat|Account|null $source = null): void
+    {
+        if ($this->isDirty(['is_warn_honeypot', 'is_warn_rugpull', 'is_warn_scam'])) {
+
+            $delay = now();
+            $chats = Chat::query()->where('is_show_scam', true);
+            $accounts = Account::query()->where('is_show_scam', true);
+
+            if ($source instanceof Chat) $chats = $chats->whereNot('id', $source->id);
+            if ($source instanceof Account) $accounts = $accounts->whereNot('id', $source->id);
+
+            foreach ($chats->get() as $chat)
+                SendScamPost::dispatch($this, $chat, $chat->language)->delay($delay = $delay->addSecond());
+
+            foreach ($accounts->get() as $account)
+                SendScamPost::dispatch($this, $account, $account->language)->delay($delay = $delay->addSecond());
+
+        }
     }
 
 

@@ -29,15 +29,18 @@ class TonService
         if (!$response)
             return null;
 
+        $original = in_array($address, config('app.tokens.original'));
+        $revoked = in_array($address, config('app.tokens.revoked'));
+
         return [
             'name'              => $response['metadata']['name'] ?? null,
             'symbol'            => $response['metadata']['symbol'] ?? null,
             'image'             => $response['metadata']['image'] ?? null,
             'description'       => $response['metadata']['description'] ?? null,
-            'owner'             => $response['admin']['address'] ?? null,
+            'owner'             => $revoked ? '0:0000000000000000000000000000000000000000000000000000000000000000' : ($response['admin']['address'] ?? null),
             'holders_count'     => $response['holders_count'],
             'supply'            => $response['total_supply'] / 1000000000,
-            'is_warn_original'  => $response['verification'] === 'whitelist' || in_array($address, config('app.tokens.original')),
+            'is_warn_original'  => $response['verification'] === 'whitelist' || $original,
         ];
     }
 
@@ -58,7 +61,7 @@ class TonService
             array_map(fn (array $a) =>[
                 'address' => $result->addresses->{$a['address']},
                 'balance' => $a['balance'] / 1000000000,
-                'percent' => $supply ? ($a['balance'] * 100 / $supply) : 0,
+                'percent' => $supply ? ($a['balance'] * 100 / ($supply * 1_000_000_000)) : 0,
                 'owner' => $a['owner']['address'],
                 'name' => $a['owner']['name'] ?? (!$a['owner']['is_wallet'] ? __('telegram.text.token_scanner.holders.dex_lock_stake') : null),
             ] , $response['addresses']),
@@ -66,14 +69,14 @@ class TonService
         ];
     }
 
-    public function getLock(string $address, float $supply, array $holders): ?array
+    public function getLock(float $supply, array $holders): ?array
     {
         $holderAddress = $holders[0]['owner'];
         if ($holderAddress === '0:0000000000000000000000000000000000000000000000000000000000000000')
             return [
                 'holders' => $holders,
                 'burned_amount' => $holders[0]['balance'],
-                'burned_percent' => $holders[0]['balance'] / $supply * 100,
+                'burned_percent' => $holders[0]['balance'] / ($supply * 1_000_000_000) * 100,
             ];
 
         $lockedAmount = null;
@@ -85,7 +88,7 @@ class TonService
         if ($response) {
 
             $lockedAmount = intval($response['stack'][4]['num'], 16);
-            $lockedPercent = $lockedAmount / $supply * 100;
+            $lockedPercent = $lockedAmount / ($supply * 1_000_000_000) * 100;
 
             $time = Carbon::createFromTimestamp(intval($response['stack'][3]['num'], 16));
             $lockedType = Lock::RAFFLE;

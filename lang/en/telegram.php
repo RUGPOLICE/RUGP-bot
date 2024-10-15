@@ -170,7 +170,7 @@ Please report bot bugs in tg chat. 🙏
 :watermark
 ",
                 'pool' => "💧 <a href='https://tonviewer.com/:address?section=holders'><u>:name</u></a> <b>liquidity pool</b> \n\n:holders\n",
-                'holder' => "<b>:percent%</b> -> <a href='tonviewer.com/:address'><i>:label</i></a>\n",
+                'holder' => "<b>:percent%</b> -> <a href=':address'><i>:label</i></a>\n",
                 'dex_lock_stake' => "DEX/LOCK/STAKE?",
                 'warning' => "🔥 zero-address - burning address.
 🔒 DEX/LOCK/STAKE - tokens were sent to dex, locking, staking, etc. DYOR.
@@ -245,6 +245,22 @@ Network: <b>:network</b>
             ],
             'blank_network' => "None",
         ],
+        'scanner_settings' => [
+            'main' => "
+Warnings: <b>:is_show_warnings</b>
+Scam notifications: <b>:is_show_scam</b>
+Network: <b>:network</b>
+",
+            'is_show_warnings' => [
+                'yes' => "ON",
+                'no' => "OFF",
+            ],
+            'is_show_scam' => [
+                'yes' => "ON",
+                'no' => "OFF",
+            ],
+            'blank_network' => "None",
+        ],
         'group' => "
 🔎 Token Scanner - Scam check + Complete information about the token.
 BETA 0.1
@@ -296,11 +312,16 @@ Possible reasons: invalid address, deleted scam or no purchases and/or sales of 
         'dislike' => "👎",
         'to_scanner' => "🔎",
         'to_home' => "🏠",
+        'to_settings' => "⚙️",
+        'pro' => "⭐️",
 
         'warnings_hidden' => "⚠️ SHOW",
         'warnings_shown' => "⚠️ HIDE",
+        'scam_hidden' => "SHOW SCAM",
+        'scam_shown' => "HIDE SCAM",
         'rules' => "TERMS OF USE",
         'language' => "LANG",
         'network' => "NETWORK",
+        'network_soon' => "SOON",
     ],
 ];

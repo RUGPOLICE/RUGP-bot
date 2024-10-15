@@ -60,6 +60,47 @@ class GoplusService
                 // holders
             ],
         ];
+    }public function getSolanaLikeData(string $address): ?array
+    {
+        $response = $this->get("/solana/token_security", ['contract_addresses' => $address]);
+        if (!$response || $response['code'] !== 1)
+            return null;
+
+        $response = $response['result'][$address];
+        return [
+            'token' => [
+                'name'              => $response['metadata']['name'] ?? null,
+                'symbol'            => $response['metadata']['symbol'] ?? null,
+                'owner'             => (isset($response['can_take_back_ownership']) && intval($response['can_take_back_ownership'])) ? 'none' : '0:0000000000000000000000000000000000000000000000000000000000000000',
+                // 'holders_count'     => intval($response['holder_count']),
+                'supply'            => intval($response['total_supply']),
+
+                // 'image'             => $response['metadata']['image'] ?? null,
+                'description'       => $response['metadata']['description'] ?? null,
+                // 'owner'             => $response['owner_address'] ?? null,
+                // 'websites'          => null,
+                // 'socials'            => null,
+
+                'is_warn_original' => isset($response['trusted_token']) && $response['trusted_token'] === '1' || in_array($address, config('app.tokens.original')),
+
+                // 'is_known_master' => isset($response['is_open_source']) && intval($response['is_open_source']),
+                // 'is_known_wallet' => isset($response['is_open_source']) && intval($response['is_open_source']),
+
+                'holders' => array_map(fn (array $a) => [
+                    'address' => $a['token_account'],
+                    'balance' => floatval($a['balance']),
+                    'percent' => floatval($a['percent']) * 100,
+                    'name' => (isset($a['tag']) && $a['tag']) ? $a['tag'] : $a['token_account'],
+                ] , $response['holders']),
+            ],
+            'pool' => [
+                // 'tax_buy' => isset($response['buy_tax']) ? (floatval($response['buy_tax']) * 100) : null,
+                // 'tax_sell' => isset($response['sell_tax']) ? (floatval($response['sell_tax']) * 100) : null,
+                // 'tax_transfer' => $response['transfer_fee'],
+                // supply
+                // holders
+            ],
+        ];
     }
 
     protected function getChainId(string $chain): string

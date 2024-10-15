@@ -17,6 +17,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
  * @property string $slug
  * @property string $name
  * @property string $token
+ * @property string $explorer
  * @property Collection $tokens
  * @property Dispatchable $job
  * @method static self create()
@@ -29,6 +30,7 @@ class Network extends Model
         'slug',
         'name',
         'token',
+        'explorer',
         'priority',
     ];
 
@@ -40,6 +42,7 @@ class Network extends Model
         $table->string('slug')->unique();
         $table->string('name');
         $table->string('token');
+        $table->string('explorer')->nullable();
         $table->integer('priority')->default(0);
     }
 

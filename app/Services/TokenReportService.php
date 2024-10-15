@@ -154,7 +154,7 @@ class TokenReportService
         $holders = [];
         foreach (array_slice($token->holders?->all() ?? [], 0, 10) as $holder)
             $holders[] = __('telegram.text.token_scanner.holders.holder', [
-                'address' => $holder['address'],
+                'address' => $token->network->explorer . $holder['address'],
                 'label' => $holder['name'] ?? mb_strcut($holder['address'], 0, 5) . '...' . mb_strcut($holder['address'], -5),
                 'balance' => number_format($holder['balance'], 2),
                 'percent' => number_format($holder['percent'], 2),
@@ -166,7 +166,7 @@ class TokenReportService
             $poolHolders = [];
             foreach ($pool->holders ?? [] as $holder)
                 $poolHolders[] = __('telegram.text.token_scanner.holders.holder', [
-                    'address' => $holder['address'],
+                    'address' => $token->network->explorer . $holder['address'],
                     'label' => $holder['name'] ?? mb_strcut($holder['address'], 0, 5) . '...' . mb_strcut($holder['address'], -5),
                     'balance' => number_format($holder['balance'], 2),
                     'percent' => number_format($holder['percent'], 2),
@@ -234,8 +234,9 @@ class TokenReportService
     private function getHoldersChartUrl(Token $token): string
     {
         $path = storage_path("app/public/charts/holders/{$token->address}.png");
-        $holders = implode(' ', array_map(fn ($holder) => number_format($holder['percent'], 2), $token->holders->all()));
+        $holders = implode(' ', array_map(fn ($holder) => number_format($holder['percent'], 2, thousands_separator: ''), $token->holders->all()));
         Process::path(base_path('utils/charts'))->run("python3 pie.py $path $holders");
+        Log::info("python3 utils/charts/pie.py $path $holders");
         return $path;
     }
 
@@ -250,7 +251,7 @@ class TokenReportService
 
             $price = $geckoService->getOhlcv($pool->address, $is_new, $token->network->slug);
             $prices[] = implode(':', [
-                $pool->dex->name,
+                $pool->dex->slug,
                 implode(',', array_map(fn ($item) => Carbon::createFromTimestamp($item['timestamp'])->format('d.m.Y.H.i'), $price)),
                 implode(',', array_map(fn ($item) => $item['close'], $price)),
             ]);
@@ -275,7 +276,7 @@ class TokenReportService
 
             $price = $geckoService->getOhlcv($pool->address, $is_new, $token->network->slug);
             $prices[] = implode(':', [
-                $pool->dex->name,
+                $pool->dex->slug,
                 implode(',', array_map(fn ($item) => Carbon::createFromTimestamp($item['timestamp'])->format('d.m.Y.H.i'), $price)),
                 implode(',', array_map(fn ($item) => $item['volume'], $price)),
             ]);

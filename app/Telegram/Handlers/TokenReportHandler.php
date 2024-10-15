@@ -8,6 +8,7 @@ use App\Models\Chat;
 use App\Models\Token;
 use App\Services\TokenReportService;
 use App\Telegram\Conversations\HomeMenu;
+use App\Telegram\Conversations\ScannerSettingsMenu;
 use App\Telegram\Conversations\TokenScannerMenu;
 use Illuminate\Support\Facades\App;
 use SergiX44\Nutgram\Nutgram;
@@ -31,6 +32,19 @@ class TokenReportHandler
         if ($type === 'home') {
 
             HomeMenu::begin($bot);
+            return;
+
+        }
+
+        if ($type === 'settings') {
+
+            ScannerSettingsMenu::begin($bot);
+            return;
+
+        }
+
+        if ($type === 'pro') {
+
             return;
 
         }
@@ -129,8 +143,12 @@ class TokenReportHandler
             ->addRow(
                 InlineKeyboardButton::make(Reaction::verbose(Reaction::LIKE), callback_data: "reports:token:$token->id:" . Reaction::LIKE->value),
                 InlineKeyboardButton::make(Reaction::verbose(Reaction::DISLIKE), callback_data: "reports:token:$token->id:" . Reaction::DISLIKE->value),
-                InlineKeyboardButton::make(__('telegram.buttons.to_scanner'), callback_data: "reports:token:$token->id:back"),
+                InlineKeyboardButton::make(__('telegram.buttons.to_settings'), callback_data: "reports:token:$token->id:settings"),
+                InlineKeyboardButton::make(__('telegram.buttons.pro'), callback_data: "reports:token:$token->id:pro"),
+            )
+            ->addRow(
                 InlineKeyboardButton::make(__('telegram.buttons.to_home'), callback_data: "reports:token:$token->id:home"),
+                InlineKeyboardButton::make(__('telegram.buttons.to_scanner'), callback_data: "reports:token:$token->id:back"),
             );
     }
 }

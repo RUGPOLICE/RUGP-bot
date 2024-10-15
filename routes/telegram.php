@@ -17,6 +17,7 @@ $bot->middleware(RetrieveAccount::class);
 $bot->group(function (Nutgram $bot) {
 
     $bot->onCallbackQueryData('reports:token:{token}:{type}', [TokenReportHandler::class, 'route']);
+
     $bot->onCommand('start {params}', HomeMenu::class);
     $bot->onCommand('start', HomeMenu::class);
 

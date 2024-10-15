@@ -54,7 +54,7 @@ class PublicTokenReportHandler
             $token->network()->associate($network);
             $token->save();
 
-            $network->job::dispatchSync($token, $bot->get('chat')->language);
+            $network->job::dispatchSync($token, $bot->get('chat')->language, $bot->get('chat'));
 
         } catch (Throwable $e) {
 

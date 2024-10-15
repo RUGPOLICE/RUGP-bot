@@ -18,6 +18,7 @@ return [
     'tokens' => [
         'force' => explode(',', env('APP_FORCE_TOKENS')),
         'original' => explode(',', env('APP_ORIGINAL_TOKENS')),
+        'revoked' => explode(',', env('APP_REVOKED_TOKENS')),
     ],
 
     /*
