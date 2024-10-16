@@ -45,6 +45,7 @@ use Illuminate\Support\Facades\App;
  *
  * @property Network $network
  * @property Collection $pools
+ * @method static self find(int $id)
  */
 class Token extends Model
 {

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Frame;
 use App\Enums\Language;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,11 +14,13 @@ use Illuminate\Notifications\Notifiable;
  * @property string $telegram_id
  * @property string $telegram_username
  * @property Language $language
+ * @property Frame $frame
  * @property boolean $is_blocked
  * @property boolean $is_shown_language
  * @property boolean $is_shown_rules
  * @property boolean $is_hide_warnings
  * @property boolean $is_show_scam
+ * @property boolean $is_show_chart_text
  * @property Network $network
  */
 class Account extends Model
@@ -27,6 +30,8 @@ class Account extends Model
     protected $fillable = [
         'telegram_id',
         'telegram_username',
+        'frame',
+        'is_show_chart_text',
         'network_id',
     ];
 
@@ -34,9 +39,11 @@ class Account extends Model
     {
         return [
             'language' => Language::class,
+            'frame' => Frame::class,
             'is_blocked' => 'boolean',
             'is_hide_warnings' => 'boolean',
             'is_show_scam' => 'boolean',
+            'is_show_chart_text' => 'boolean',
         ];
     }
 
@@ -55,8 +62,11 @@ class Account extends Model
         $table->boolean('is_shown_rules')->default(false);
 
         $table->string('language')->default(Language::EN->value);
+        $table->string('frame')->default(Frame::DAY->value);
+
         $table->boolean('is_hide_warnings')->default(false);
         $table->boolean('is_show_scam')->default(true);
+        $table->boolean('is_show_chart_text')->default(true);
     }
 
 

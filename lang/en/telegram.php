@@ -142,7 +142,7 @@ Please report bot bugs in tg chat. 🙏
 
 📈 <b>PRICE</b> <b>$:symbol</b>
 
-:pools
+:pools:warning:warnings
 :watermark
 ",
                 'pool' => "
@@ -156,8 +156,27 @@ Please report bot bugs in tg chat. 🙏
 ├<i>(6h):</i> <b>:price_change_h6%</b>
 └<i>(24h):</i> <b>:price_change_h24%</b>
 
+🔈 <u><i>Vol</i></u>
+├<i>(5m): </i> <b>$:volume_m5</b>
+├<i>(1h): </i> <b>$:volume_h1</b>
+├<i>(6h): </i> <b>$:volume_h6</b>
+└<i>(24h): </i> <b>$:volume_h24</b>
+🔼 <u><i>Bought</i></u>
+├<i>(5m): </i> <b>:buys_m5</b>
+├<i>(1h): </i> <b>:buys_h1</b>
+├<i>(6h): </i> <b>:buys_h6</b>
+└<i>(24h): </i> <b>:buys_h24</b>
+🔽 <u><i>Sold</i></u>
+├<i>(5m): </i> <b>:sells_m5</b>
+├<i>(1h): </i> <b>:sells_h1</b>
+├<i>(6h): </i> <b>:sells_h6</b>
+└<i>(24h): </i> <b>:sells_h24</b>
+
 <i>Pool created:</i> <b>:created_at</b>
 ",
+                'warning' => "⚠️ Check buys/sells ratio! Too many buys and single sales could be a SCAM!",
+                'warnings' => "\n⚙️ You can switch off warnings at any time in your profile.",
+                'clock' => "Please, press the clock button first",
             ],
             'holders' => [
                 'text' => "
@@ -176,35 +195,6 @@ Please report bot bugs in tg chat. 🙏
 🔒 DEX/LOCK/STAKE - tokens were sent to dex, locking, staking, etc. DYOR.
 🔒 tinu-locker - locker address.
 ⚠️ MEXC, Bybit or OKX as holders in new weak coin = SCAM coin!"
-            ],
-            'volume' => [
-                'text' => "
-
-📊 <b>VOLUME</b> <b>$:symbol</b>
-
-:pools:warning:warnings
-:watermark
-",
-                'pool' => "<a href=':link'>:name</a>
-🔈 <u><i>Vol</i></u>
-├<i>(5m): </i> <b>$:volume_m5</b>
-├<i>(1h): </i> <b>$:volume_h1</b>
-├<i>(6h): </i> <b>$:volume_h6</b>
-└<i>(24h): </i> <b>$:volume_h24</b>
-🔼 <u><i>Bought</i></u>
-├<i>(5m): </i> <b>:buys_m5</b>
-├<i>(1h): </i> <b>:buys_h1</b>
-├<i>(6h): </i> <b>:buys_h6</b>
-└<i>(24h): </i> <b>:buys_h24</b>
-🔽 <u><i>Sold</i></u>
-├<i>(5m): </i> <b>:sells_m5</b>
-├<i>(1h): </i> <b>:sells_h1</b>
-├<i>(6h): </i> <b>:sells_h6</b>
-└<i>(24h): </i> <b>:sells_h24</b>
-
-",
-                'warning' => "⚠️ Check buys/sells ratio! Too many buys and single sales could be a SCAM!",
-                'warnings' => "\n⚙️ You can switch off warnings at any time in your profile.",
             ],
         ],
         'profile' => [
@@ -251,6 +241,7 @@ Network: <b>:network</b>
                 'yes' => "ON",
                 'no' => "OFF",
             ],
+            'network' => "Choose network",
             'blank_network' => "None",
         ],
         'group' => "
@@ -302,6 +293,11 @@ Possible reasons: invalid address, deleted scam or no purchases and/or sales of 
         'volume' => "📊",
         'like' => "👍",
         'dislike' => "👎",
+        'clock' => "🕔",
+        'chart_aggregate_1' => "1M",
+        'chart_aggregate_2' => "15M",
+        'chart_aggregate_3' => "4H",
+        'chart_aggregate_4' => "1D",
         'to_scanner' => "🔎",
         'to_home' => "🏠",
         'to_settings' => "⚙️",

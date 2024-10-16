@@ -2,17 +2,16 @@
 
 namespace App\Services;
 
+use App\Enums\Frame;
 use App\Enums\Lock;
 use App\Enums\Reaction;
 use App\Models\Token;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
 
 class TokenReportService
 {
-    public function main(Token $token, bool $is_show_warnings, bool $is_finished = true, bool $for_group = false): array
+    public function main(Token $token, bool $is_show_warnings, bool $for_group = false, bool $is_finished = true): array
     {
         $pools = [];
         $links = [];
@@ -121,7 +120,7 @@ class TokenReportService
         ];
     }
 
-    public function chart(Token $token, bool $is_show_warnings, bool $is_finished = true, bool $for_group = false): array
+    public function chart(Token $token, Frame $frame, bool $is_show_text, bool $is_show_warnings, bool $for_group = false): array
     {
         $pools = [];
         foreach ($token->pools as $pool)
@@ -136,41 +135,54 @@ class TokenReportService
                 'price_change_h1' => number_format($pool->h1_price_change, 2),
                 'price_change_h6' => number_format($pool->h6_price_change, 2),
                 'price_change_h24' => number_format($pool->h24_price_change, 2),
+                'volume_m5' => number_format($pool->m5_volume, 2),
+                'volume_h1' => number_format($pool->h1_volume, 2),
+                'volume_h6' => number_format($pool->h6_volume, 2),
+                'volume_h24' => number_format($pool->h24_volume, 2),
+                'buys_m5' => number_format($pool->m5_buys),
+                'buys_h1' => number_format($pool->h1_buys),
+                'buys_h6' => number_format($pool->h6_buys),
+                'buys_h24' => number_format($pool->h24_buys),
+                'sells_m5' => number_format($pool->m5_sells),
+                'sells_h1' => number_format($pool->h1_sells),
+                'sells_h6' => number_format($pool->h6_sells),
+                'sells_h24' => number_format($pool->h24_sells),
             ]);
 
         return [
-            'image' => $this->getPriceChartUrl($token),
-            'text' => __('telegram.text.token_scanner.chart.text', [
+            'image' => $this->getPriceChartUrl($token, ... $frame->params()),
+            'text' => $is_show_text ? __('telegram.text.token_scanner.chart.text', [
                 'name' => $token->name,
                 'symbol' => $token->symbol,
                 'pools' => implode('', $pools),
+                'warning' => $is_show_warnings ? __('telegram.text.token_scanner.chart.warning') : '',
+                'warnings' => $is_show_warnings && !$for_group ? __('telegram.text.token_scanner.chart.warnings') : '',
                 'watermark' => $for_group ? __('telegram.text.token_scanner.watermark') : '',
-            ]),
+            ]) : '',
         ];
     }
 
     public function holders(Token $token, bool $is_show_warnings, bool $is_finished = true, bool $for_group = false): array
     {
-        $holders = [];
-        foreach (array_slice($token->holders?->all() ?? [], 0, 10) as $holder)
-            $holders[] = __('telegram.text.token_scanner.holders.holder', [
-                'address' => $token->network->explorer . $holder['address'],
+        function getHolderText(array $holder, string $explorer): string {
+            return __('telegram.text.token_scanner.holders.holder', [
+                'address' => $explorer . $holder['address'],
                 'label' => $holder['name'] ?? mb_strcut($holder['address'], 0, 5) . '...' . mb_strcut($holder['address'], -5),
                 'balance' => number_format($holder['balance'], 2),
                 'percent' => number_format($holder['percent'], 2),
             ]);
+        }
+
+        $holders = [];
+        foreach (array_slice($token->holders?->all() ?? [], 0, 10) as $holder)
+            $holders[] = getHolderText($holder, $token->network->explorer);
 
         $pools = [];
         foreach ($token->pools as $pool) {
 
             $poolHolders = [];
             foreach ($pool->holders ?? [] as $holder)
-                $poolHolders[] = __('telegram.text.token_scanner.holders.holder', [
-                    'address' => $token->network->explorer . $holder['address'],
-                    'label' => $holder['name'] ?? mb_strcut($holder['address'], 0, 5) . '...' . mb_strcut($holder['address'], -5),
-                    'balance' => number_format($holder['balance'], 2),
-                    'percent' => number_format($holder['percent'], 2),
-                ]);
+                $poolHolders[] = getHolderText($holder, $token->network->explorer);
 
             if ($pool->holders)
                 $pools[] = __('telegram.text.token_scanner.holders.pool', [
@@ -194,98 +206,22 @@ class TokenReportService
         ];
     }
 
-    public function volume(Token $token, bool $is_show_warnings, bool $is_finished = true, bool $for_group = false): array
+
+    private function getPriceChartUrl(Token $token, string $frame, int $aggregate): string
     {
-        $pools = [];
-        foreach ($token->pools as $pool)
-            $pools[] = __('telegram.text.token_scanner.volume.pool', [
-                'link' => $pool->dex->getLink($pool->address),
-                'name' => $pool->dex->name,
-                'price' => $pool->price_formatted,
-                'created_at' => $pool->created_at->translatedFormat('d M Y H:i'),
-                'volume_m5' => number_format($pool->m5_volume, 2),
-                'volume_h1' => number_format($pool->h1_volume, 2),
-                'volume_h6' => number_format($pool->h6_volume, 2),
-                'volume_h24' => number_format($pool->h24_volume, 2),
-                'buys_m5' => number_format($pool->m5_buys),
-                'buys_h1' => number_format($pool->h1_buys),
-                'buys_h6' => number_format($pool->h6_buys),
-                'buys_h24' => number_format($pool->h24_buys),
-                'sells_m5' => number_format($pool->m5_sells),
-                'sells_h1' => number_format($pool->h1_sells),
-                'sells_h6' => number_format($pool->h6_sells),
-                'sells_h24' => number_format($pool->h24_sells),
-            ]);
+        $path = storage_path("app/public/charts/price/$token->address.png");
+        $network = $token->network;
+        $pool = $token->pools()->first();
 
-        return [
-            'image' => $this->getVolumeChartUrl($token),
-            'text' => __('telegram.text.token_scanner.volume.text', [
-                'name' => $token->name,
-                'symbol' => $token->symbol,
-                'pools' => implode('', $pools),
-                'warning' => $is_show_warnings ? __('telegram.text.token_scanner.volume.warning') : '',
-                'warnings' => $is_show_warnings && !$for_group ? __('telegram.text.token_scanner.volume.warnings') : '',
-                'watermark' => $for_group ? __('telegram.text.token_scanner.watermark') : '',
-            ]),
-        ];
+        Process::path(base_path('utils/charts'))->run("python3 price.py $path $network->slug $pool->address $frame $aggregate");
+        return $path;
     }
-
 
     private function getHoldersChartUrl(Token $token): string
     {
         $path = storage_path("app/public/charts/holders/{$token->address}.png");
         $holders = implode(' ', array_map(fn ($holder) => number_format($holder['percent'], 2, thousands_separator: ''), $token->holders->all()));
         Process::path(base_path('utils/charts'))->run("python3 pie.py $path $holders");
-        return $path;
-    }
-
-    private function getPriceChartUrl(Token $token): string
-    {
-        $path = storage_path("app/public/charts/price/{$token->address}.png");
-        $geckoService = app(GeckoTerminalService::class);
-        $prices = [];
-
-        $is_new = $token->pools->map(fn ($pool) => $pool->created_at >= now()->subWeeks(2))->contains(true);
-        foreach ($token->pools as $pool) {
-
-            $price = $geckoService->getOhlcv($pool->address, $is_new, $token->network->slug);
-            $prices[] = implode(':', [
-                $pool->dex->slug,
-                implode(',', array_map(fn ($item) => Carbon::createFromTimestamp($item['timestamp'])->format('d.m.Y.H.i'), $price)),
-                implode(',', array_map(fn ($item) => $item['close'], $price)),
-            ]);
-
-        }
-
-        $prices = implode(' ', $prices);
-        $is_new = intval($is_new);
-
-        Process::path(base_path('utils/charts'))->run("python3 line.py $path $is_new $prices");
-        return $path;
-    }
-
-    private function getVolumeChartUrl(Token $token): string
-    {
-        $path = storage_path("app/public/charts/volume/{$token->address}.png");
-        $geckoService = app(GeckoTerminalService::class);
-        $prices = [];
-
-        $is_new = $token->pools->map(fn ($pool) => $pool->created_at >= now()->subWeeks(2))->contains(true);
-        foreach ($token->pools as $pool) {
-
-            $price = $geckoService->getOhlcv($pool->address, $is_new, $token->network->slug);
-            $prices[] = implode(':', [
-                $pool->dex->slug,
-                implode(',', array_map(fn ($item) => Carbon::createFromTimestamp($item['timestamp'])->format('d.m.Y.H.i'), $price)),
-                implode(',', array_map(fn ($item) => $item['volume'], $price)),
-            ]);
-
-        }
-
-        $prices = implode(' ', $prices);
-        $is_new = intval($is_new);
-
-        Process::path(base_path('utils/charts'))->run("python3 bar.py $path $is_new $prices");
         return $path;
     }
 }

@@ -34,8 +34,10 @@ class ScannerSettingsMenu extends ImagedEditableInlineMenu
 
     public function menu(Nutgram $bot): void
     {
+        $data = $bot->callbackQuery()->data;
         $this->end();
-        match ($bot->callbackQuery()->data) {
+
+        match ($data) {
             'back' => TokenScannerMenu::begin($bot, data: ['referrer' => TokenReportHandler::class]),
         };
     }
@@ -45,9 +47,7 @@ class ScannerSettingsMenu extends ImagedEditableInlineMenu
         $account = $bot->get('account');
         $account->is_hide_warnings = !$account->is_hide_warnings;
         $account->save();
-
-        $this->end();
-        ScannerSettingsMenu::begin($bot);
+        $this->start($bot);
     }
 
     public function scam(Nutgram $bot): void
@@ -55,9 +55,7 @@ class ScannerSettingsMenu extends ImagedEditableInlineMenu
         $account = $bot->get('account');
         $account->is_show_scam = !$account->is_show_scam;
         $account->save();
-
-        $this->end();
-        ScannerSettingsMenu::begin($bot);
+        $this->start($bot);
     }
 
     public function network(Nutgram $bot): void
@@ -85,7 +83,7 @@ class ScannerSettingsMenu extends ImagedEditableInlineMenu
                 ->map(fn (Network $network) => InlineKeyboardButton::make(($network->is($account->network) ? '• ' : '') . $network->name, callback_data: "$network->slug@network"))
                 ->chunk($perRow);
 
-            $this->clearButtons()->menuText(__('telegram.text.profile.network'));
+            $this->clearButtons()->menuText(__('telegram.text.scanner_settings.network'));
             foreach ($networks as $chunk) {
 
                 $soon = array_map(fn ($n) => InlineKeyboardButton::make(__('telegram.buttons.network_soon'), callback_data: "nullslug@network"), range(1, $perRow - $chunk->count()));

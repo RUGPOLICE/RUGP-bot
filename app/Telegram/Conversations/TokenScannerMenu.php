@@ -38,6 +38,7 @@ class TokenScannerMenu extends ImagedInlineMenu
         $this->end();
         match ($bot->callbackQuery()->data) {
             'back' => HomeMenu::begin($bot),
+            default => null,
         };
     }
 

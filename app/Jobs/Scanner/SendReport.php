@@ -34,25 +34,26 @@ class SendReport implements ShouldQueue
 
     public function handle(Nutgram $bot, TokenReportHandler $reportHandler): void
     {
+        $bot->set('language', $this->language->value);
+        $bot->set('account', $this->account);
+
         try {
 
             $this->token->network->job::dispatchSync($this->token, $this->language, $this->account);
             $this->token->refresh();
 
-            $reportHandler->pending(
+            $this->account->is_show_chart_text = true;
+            $this->account->save();
+
+            $reportHandler->report(
                 $bot,
                 $this->token,
-                $this->account,
-                $this->report_message_id,
                 type: 'main',
-                is_finished: true,
-                show_buttons: true,
+                chat_id: $this->account->telegram_id,
+                message_id: $this->report_message_id,
             );
 
         } catch (Throwable $e) {
-
-            $bot->set('language', $this->language->value);
-            $bot->set('account', $this->account);
 
             $message = __('telegram.errors.scan.fail', ['address' => $this->token->address]);
             $log_message = "Scan Token Fail: {$this->token->address} ({$e->getMessage()})\n{$e->getTraceAsString()}";
