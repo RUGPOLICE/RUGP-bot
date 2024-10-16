@@ -97,9 +97,9 @@ class TokenReportHandler
         ];
 
         $params = match($type) {
-            'main' => $tokenReportService->main($token, !$account->is_hide_warnings),
-            'chart' => $tokenReportService->chart($token, $account->frame, $account->is_show_chart_text, !$account->is_hide_warnings),
-            'holders' => $tokenReportService->holders($token, !$account->is_hide_warnings),
+            'main' => $tokenReportService->main($token, $account->is_show_warnings),
+            'chart' => $tokenReportService->chart($token, $account->frame, $account->is_show_chart_text, $account->is_show_warnings),
+            'holders' => $tokenReportService->holders($token, $account->is_show_warnings),
         };
 
         if (array_key_exists('image', $params))

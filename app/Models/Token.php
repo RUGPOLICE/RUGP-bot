@@ -157,8 +157,8 @@ class Token extends Model
         if ($this->isDirty(['is_warn_honeypot', 'is_warn_rugpull', 'is_warn_scam'])) {
 
             $delay = now();
-            $chats = Chat::query()->where('is_show_scam', true);
-            $accounts = Account::query()->where('is_show_scam', true);
+            $chats = Chat::query()->where('is_blocked', false)->where('is_show_scam', true);
+            $accounts = Account::query()->where('is_blocked', false)->where('is_show_scam', true);
 
             if ($source instanceof Chat) $chats = $chats->whereNot('id', $source->id);
             if ($source instanceof Account) $accounts = $accounts->whereNot('id', $source->id);

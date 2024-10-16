@@ -18,7 +18,7 @@ use Illuminate\Notifications\Notifiable;
  * @property boolean $is_blocked
  * @property boolean $is_shown_language
  * @property boolean $is_shown_rules
- * @property boolean $is_hide_warnings
+ * @property boolean $is_show_warnings
  * @property boolean $is_show_scam
  * @property boolean $is_show_chart_text
  * @property Network $network
@@ -41,7 +41,7 @@ class Account extends Model
             'language' => Language::class,
             'frame' => Frame::class,
             'is_blocked' => 'boolean',
-            'is_hide_warnings' => 'boolean',
+            'is_show_warnings' => 'boolean',
             'is_show_scam' => 'boolean',
             'is_show_chart_text' => 'boolean',
         ];
@@ -64,7 +64,7 @@ class Account extends Model
         $table->string('language')->default(Language::EN->value);
         $table->string('frame')->default(Frame::DAY->value);
 
-        $table->boolean('is_hide_warnings')->default(false);
+        $table->boolean('is_show_warnings')->default(false);
         $table->boolean('is_show_scam')->default(true);
         $table->boolean('is_show_chart_text')->default(true);
     }

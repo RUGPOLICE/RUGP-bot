@@ -108,6 +108,7 @@ BETA 0.1
                 'lp_locked' => [
                     'yes' => "\n└🔒 <i>LP заблокированы</i>\n<b>:value% на <a href=':link'>:type</a></b> :unlocks",
                     'no' => "\n└🔒 <i>LP не заблокированы</i>",
+                    'multiple' => "\n└🔒 <i>Несколько локов (:value%) -> ♻️</i>",
                     'scan' => "\n└🔎 <i>Проверяю...</i>",
                     'burned' => "",
                     'unlocks' => "до :value",

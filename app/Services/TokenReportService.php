@@ -35,12 +35,13 @@ class TokenReportService
         $is_ton_network = $token->network->slug === 'ton';
         $lp_burned_warning = $is_show_warnings && $token->is_warn_burned && $is_finished && $is_ton_network;
         $is_revoked_warning = $is_show_warnings && $is_finished;
+        $is_scam = $token->is_warn_honeypot || $token->is_warn_scam || $token->is_warn_rugpull;
 
         foreach ($token->pools as $pool) {
 
             $burned_percent = number_format($pool->burned_percent ?? 0.0, 2);
             $locked_percent = number_format($pool->locked_percent ?? 0.0, 2);
-            $type = Lock::verbose($pool->locked_type ?? Lock::RAFFLE);
+            $type = Lock::verbose($pool->locked_type ?? Lock::CHECK);
             $dyor = $pool->locked_dyor ? __('telegram.text.token_scanner.report.lp_locked.dyor') : '';
             $unlocks = $pool->unlocks_at ? __('telegram.text.token_scanner.report.lp_locked.unlocks', ['value' => $pool->unlocks_at->translatedFormat('d M Y')]) : '';
 
@@ -52,6 +53,7 @@ class TokenReportService
             if ($token->is_warn_honeypot || !$is_ton_network) $lp_locked = '';
             else if (!$is_finished) $lp_locked = __('telegram.text.token_scanner.report.lp_locked.scan');
             else if ($pool->burned_percent > 99) $lp_locked = __('telegram.text.token_scanner.report.lp_locked.burned', ['value' => $burned_percent]);
+            else if ($pool->locked_type === Lock::CHECK) $lp_locked = __('telegram.text.token_scanner.report.lp_locked.multiple', ['value' => $locked_percent]);
             else if ($pool->locked_amount) $lp_locked = __('telegram.text.token_scanner.report.lp_locked.yes', ['value' => $locked_percent, 'type' => $type, 'unlocks' => $unlocks, 'dyor' => $dyor, 'link' => $pool->locked_type ? Lock::link($pool->locked_type, $pool->address) : null]);
             else $lp_locked = __('telegram.text.token_scanner.report.lp_locked.no');
 
@@ -87,8 +89,12 @@ class TokenReportService
         foreach ($token->socials ?? [] as $social)
             $links[] = __('telegram.text.token_scanner.report.link', ['url' => $social['url'], 'label' => $social['type']]);
 
+        $image = public_path('img/blank.png');
+        if ($is_scam) $image = public_path('img/scam.png');
+        else if ($token->image && Http::get($token->image)->status() === 200) $image = $token->image;
+
         return [
-            'image' => ($token->image && Http::get($token->image)->status() === 200) ? $token->image : public_path('img/blank.png'),
+            'image' => $image,
             'text' => __('telegram.text.token_scanner.report.text', [
                 'name' => $token->name,
                 'symbol' => $token->symbol,

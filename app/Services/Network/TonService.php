@@ -30,7 +30,6 @@ class TonService
             return null;
 
         $original = in_array($address, config('app.tokens.original'));
-        $revoked = in_array($address, config('app.tokens.revoked'));
         $decimals = intval($response['metadata']['decimals'] ?? 9);
 
         return [
@@ -38,7 +37,7 @@ class TonService
             'symbol'            => $response['metadata']['symbol'] ?? null,
             'image'             => $response['metadata']['image'] ?? null,
             'description'       => $response['metadata']['description'] ?? null,
-            'owner'             => $revoked ? '0:0000000000000000000000000000000000000000000000000000000000000000' : ($response['admin']['address'] ?? null),
+            'owner'             => $response['admin']['address'] ?? '0:0000000000000000000000000000000000000000000000000000000000000000',
             'holders_count'     => $response['holders_count'],
             'supply'            => $response['total_supply'] / (10 ** $decimals),
             'decimals'          => $decimals,
@@ -66,6 +65,7 @@ class TonService
                 'percent' => $supply ? ($a['balance'] * 100 / ($supply * (10 ** $decimals))) : 0,
                 'owner' => $a['owner']['address'],
                 'name' => $a['owner']['name'] ?? (!$a['owner']['is_wallet'] ? __('telegram.text.token_scanner.holders.dex_lock_stake') : null),
+                'is_wallet' => $a['owner']['is_wallet'],
             ] , $response['addresses']),
             $response['total']
         ];
@@ -73,44 +73,46 @@ class TonService
 
     public function getLock(float $supply, int $decimals, array $holders): ?array
     {
-        $holderAddress = $holders[0]['owner'];
-        if ($holderAddress === '0:0000000000000000000000000000000000000000000000000000000000000000')
-            return [
-                'holders' => $holders,
-                'burned_amount' => $holders[0]['balance'],
-                'burned_percent' => $holders[0]['balance'] / ($supply * (10 ** $decimals)) * 100,
-            ];
-
+        $burnedAmount = null;
         $lockedAmount = null;
-        $lockedPercent = null;
         $lockedType = null;
         $unlocksAt = null;
 
-        $response = $this->get("/blockchain/accounts/$holderAddress/methods/get_contract_data");
-        if ($response) {
+        foreach ($holders as $holder) {
 
-            $lockedAmount = intval($response['stack'][4]['num'], 16);
-            $lockedPercent = $lockedAmount / ($supply * (10 ** $decimals)) * 100;
+            if ($holder['owner'] === '0:0000000000000000000000000000000000000000000000000000000000000000') {
 
-            $time = Carbon::createFromTimestamp(intval($response['stack'][3]['num'], 16));
-            $lockedType = Lock::RAFFLE;
-            $unlocksAt = $time > now()->addYears(5) ? now()->addYears(5) : $time;
+                $burnedAmount = ($burnedAmount ?? 0) + $holder['balance'];
+
+            } else if (!$holder['is_wallet']) {
+
+                $response = $this->get("/blockchain/accounts/{$holder['address']}/methods/get_contract_data");
+                if ($response) {
+
+                    $lockedAmount = ($lockedAmount ?? 0) + intval($response['stack'][4]['num'], 16);
+                    $lockedType = $lockedType ?? Lock::RAFFLE;
+
+                    $time = Carbon::createFromTimestamp(intval($response['stack'][3]['num'], 16));
+                    $unlocksAt = $time > now()->addYears(5) ? now()->addYears(5) : $time;
+
+                } else {
+
+                    $lockedAmount = ($lockedAmount ?? 0) + $holder['balance'];
+                    $lockedType = Lock::CHECK;
+
+                }
+
+            } else if ($holder['name'] === 'tinu-locker.ton') {
+
+                $lockedAmount = ($lockedAmount ?? 0) + $holder['balance'];
+                $lockedType = $lockedType ?? Lock::TONINU;
+
+            }
 
         }
 
-        $toninuAmount = array_reduce(
-            array_filter($holders, fn ($item) => ($item['name'] ?? '') === 'tinu-locker.ton'),
-            fn ($acc, $item) => $acc + $item['balance'],
-            0
-        );
-
-        if ($toninuAmount) {
-
-            $lockedAmount = $toninuAmount;
-            $lockedPercent = $toninuAmount / $supply * 100;
-            $lockedType = Lock::TONINU;
-
-        }
+        $burnedPercent = $burnedAmount !== null ? ($burnedAmount / $supply * 100) : $burnedAmount;
+        $lockedPercent = $lockedAmount !== null ? ($lockedAmount / $supply * 100) : $lockedAmount;
 
         $isSmallLock = $lockedPercent && $lockedPercent < 100;
         $hasLargeHolders = boolval(array_filter($holders, fn ($item) => ($item['balance'] / $supply * 100) > 5));
@@ -119,7 +121,9 @@ class TonService
 
         return [
             'holders' => $holders,
+            'burned_amount' => $burnedAmount,
             'locked_amount' => $lockedAmount,
+            'burned_percent' => $burnedPercent,
             'locked_percent' => $lockedPercent,
             'locked_type' => $lockedType,
             'locked_dyor' => $dyor,

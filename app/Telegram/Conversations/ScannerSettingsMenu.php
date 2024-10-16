@@ -17,14 +17,14 @@ class ScannerSettingsMenu extends ImagedEditableInlineMenu
             ->menuText(
                 __('telegram.text.scanner_settings.main', [
                     'network' => $account->network?->name ?? __('telegram.text.scanner_settings.blank_network'),
-                    'is_show_warnings' => __('telegram.text.scanner_settings.is_show_warnings.' . ($account->is_hide_warnings ? 'no' : 'yes')),
+                    'is_show_warnings' => __('telegram.text.scanner_settings.is_show_warnings.' . ($account->is_show_warnings ? 'yes' : 'no')),
                     'is_show_scam' => __('telegram.text.scanner_settings.is_show_scam.' . ($account->is_show_scam ? 'yes' : 'no')),
                 ])
             )
             ->addButtonRow(
                 InlineKeyboardButton::make(__('telegram.buttons.scam_' . ($account->is_show_scam ? 'shown' : 'hidden')), callback_data: 'null@scam'),
                 InlineKeyboardButton::make(__('telegram.buttons.network'), callback_data: '0@network'),
-                InlineKeyboardButton::make(__('telegram.buttons.warnings_' . ($account->is_hide_warnings ? 'hidden' : 'shown')), callback_data: 'null@warnings'),
+                InlineKeyboardButton::make(__('telegram.buttons.warnings_' . ($account->is_show_warnings ? 'shown' : 'hidden')), callback_data: 'null@warnings'),
             )
             ->addButtonRow(
                 InlineKeyboardButton::make(__('telegram.buttons.back'), callback_data: 'back@menu'),
@@ -45,7 +45,7 @@ class ScannerSettingsMenu extends ImagedEditableInlineMenu
     public function warnings(Nutgram $bot): void
     {
         $account = $bot->get('account');
-        $account->is_hide_warnings = !$account->is_hide_warnings;
+        $account->is_show_warnings = !$account->is_show_warnings;
         $account->save();
         $this->start($bot);
     }

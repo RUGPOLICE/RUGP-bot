@@ -108,6 +108,7 @@ Please report bot bugs in tg chat. 🙏
                 'lp_locked' => [
                     'yes' => "\n└🔒 <i>LP locked</i>\n<b>:value% on <a href=':link'>:type</a></b> :unlocks",
                     'no' => "\n└🔒 <i>LP not locked</i>",
+                    'multiple' => "\n└🔒 <i>Multiple locks (:value%) -> ♻️</i>",
                     'scan' => "\n└🔎 <i>Scanning...</i>",
                     'burned' => "",
                     'unlocks' => "till :value",
