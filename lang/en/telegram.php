@@ -33,7 +33,7 @@ BETA 0.1
 <b>💡 GPT</b> - <code>Free GPT to ask about crypto.</code>
 🔜
 
-   <a href='http://rugp.io'>WEB</a>   |    <a href='t.me/rugp_ton'>Telegram chat</a>    |     <a href='https://x.com/rugp_ton'>Twitter</a>
+   <a href='http://rugp.io'>WEB</a>   |    <a href='https://t.me/rugpolicenews'>Telegram chat</a>    |     <a href='https://x.com/rugp_ton'>Twitter</a>
 
 © RUGP - anti-scam community and utilities on TON.
 Please report bot bugs in tg chat. 🙏
@@ -43,7 +43,7 @@ Please report bot bugs in tg chat. 🙏
             'main' => "👇 Enter a token name with <b>$</b>, token address, pool address or dex link.\nNetwork: <b>:network</b>",
             'pending' => "🔎 Scanning. The report will be sent to you shortly.",
             "watermark" => "
-<a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugpoliceton'>Telegram</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
+<a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugpolicenews'>Telegram</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
 © RUGP
 ",
             'report' => [
@@ -208,7 +208,7 @@ Please report bot bugs in tg chat. 🙏
             'main' => "
 🔎 Token Scanner - Scam check + Complete information about the token.
 BETA 0.1
-<a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugp_ton'>Telegram chat</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
+<a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugpolicenews'>Telegram chat</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
 
 
 <u>SETTINGS</u>
@@ -248,7 +248,7 @@ Network: <b>:network</b>
         'group' => "
 🔎 Token Scanner - Scam check + Complete information about the token.
 BETA 0.1
-<a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugp_ton'>Telegram chat</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
+<a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugpolicenews'>Telegram chat</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
 
 Add bot to your group with admin rights.
 

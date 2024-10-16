@@ -33,7 +33,7 @@ BETA 0.1
 <b>💡 GPT</b> - <code>Бесплатный GPT. Иногда интересующую информацию можно спросить у ИИ.</code>
 🔜
 
-   <a href='http://rugp.io'>WEB</a>    |    <a href='https://t.me/rugpoliceton'>Telegram чат</a>    |     <a href='https://x.com/rugp_ton'>Twitter</a>
+   <a href='http://rugp.io'>WEB</a>    |    <a href='https://t.me/rugpolicenews'>Telegram чат</a>    |     <a href='https://x.com/rugp_ton'>Twitter</a>
 
 © RUGP - анти-скам сообщество и полезные инструменты для TON.
 Если нашли баг в боте, просьба сообщить в tg чат проекта. 🙏
@@ -43,7 +43,7 @@ BETA 0.1
             'main' => "👇 Введите название с <b>$</b>, адрес токена, пула или ссылку с биржи.\nПриоритетная сеть: <b>:network</b>",
             'pending' => "🔎 Сканирую. Отчет будет отправлен вам сообщением, как только будет готов.",
             "watermark" => "
-<a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugpoliceton'>Telegram</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
+<a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugpolicenews'>Telegram</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
 © RUGP
 ",
             'report' => [
@@ -208,7 +208,7 @@ BETA 0.1
             'main' => "
 🔎 RUGP Token Scanner - Инструмент для получения информации о токене (проверка на скам, холдеры, цена, объем).
 BETA 0.1
-<a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugpoliceton'>Telegram чат</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
+<a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugpolicenews'>Telegram чат</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
 
 
 <u>ТЕКУЩИЕ НАСТРОЙКИ</u>
@@ -248,7 +248,7 @@ BETA 0.1
         'group' => "
 🔎 RUGP Token Scanner - Инструмент для получения информации о токене (проверка на скам, холдеры, цена, объем).
 BETA 0.1
-<a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugpoliceton'>Telegram чат</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
+<a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugpolicenews'>Telegram чат</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
 
 Для корректной работы бота, добавьте в группу и назначьте администратором.
 
