@@ -90,16 +90,19 @@ class TokenReportHandler
         /** @var Account $account */
         $account = $bot->get('account');
 
+        /** @var TokenReportService $tokenReportService */
         $tokenReportService = App::make(TokenReportService::class);
+        $tokenReportService->setWarningsEnabled($account->is_show_warnings)->setFinished();
+
         $options = [
             'link_preview_options' => LinkPreviewOptions::make(is_disabled: true),
             'reply_to_message_id' => $reply_message_id,
         ];
 
         $params = match($type) {
-            'main' => $tokenReportService->main($token, $account->is_show_warnings),
-            'chart' => $tokenReportService->chart($token, $account->frame, $account->is_show_chart_text, $account->is_show_warnings),
-            'holders' => $tokenReportService->holders($token, $account->is_show_warnings),
+            'main' => $tokenReportService->main($token),
+            'chart' => $tokenReportService->chart($token, $account->frame, $account->is_show_chart_text),
+            'holders' => $tokenReportService->holders($token),
         };
 
         if (array_key_exists('image', $params))

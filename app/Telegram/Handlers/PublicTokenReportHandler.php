@@ -2,8 +2,10 @@
 
 namespace App\Telegram\Handlers;
 
+use App\Enums\Frame;
 use App\Enums\RequestModule;
 use App\Enums\RequestSource;
+use App\Models\Chat;
 use App\Models\Network;
 use App\Models\Request;
 use App\Models\Token;
@@ -73,11 +75,19 @@ class PublicTokenReportHandler
 
     private function getReport(Nutgram $bot, Token $token, string $type): array
     {
+        /** @var Chat $chat */
         $chat = $bot->get('chat');
-        $tokenReportService = App::make(TokenReportService::class);
 
-        $params = $tokenReportService->{$type}($token, $chat->is_show_warnings, is_finished: true, for_group: true);
+        /** @var TokenReportService $tokenReportService */
+        $tokenReportService = App::make(TokenReportService::class);
+        $tokenReportService->setWarningsEnabled($chat->is_show_warnings)->setFinished()->setForGroup();
+
         $options = ['link_preview_options' => LinkPreviewOptions::make(is_disabled: true)];
+        $params = match($type) {
+            'main' => $tokenReportService->main($token),
+            'chart' => $tokenReportService->chart($token, Frame::DAY, is_show_text: true),
+            'holders' => $tokenReportService->holders($token),
+        };
 
         if (array_key_exists('image', $params))
             $options['image'] = $params['image'];

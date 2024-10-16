@@ -12,6 +12,7 @@ Route::prefix('/v1')
         Route::prefix('/{network}')->group(function () {
 
             Route::get('/token/{address}', [\App\Http\Controllers\Api\TokenController::class, 'info']);
+            Route::get('/chart/{address}', [\App\Http\Controllers\Api\TelegramController::class, 'chart']);
 
         });
 

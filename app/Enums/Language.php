@@ -19,7 +19,7 @@ enum Language: string
     {
         return match ($lang) {
             self::RU->value => self::RU,
-            self::EN->value => self::EN,
+            default => self::EN
         };
     }
 

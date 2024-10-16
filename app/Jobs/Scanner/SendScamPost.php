@@ -10,6 +10,7 @@ use App\Models\Token;
 use App\Services\TokenReportService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
 use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\Telegram\Types\Message\LinkPreviewOptions;
@@ -58,8 +59,12 @@ class SendScamPost implements ShouldQueue
 
     private function getReport(TokenReportService $tokenReportService): array
     {
-        $params = $tokenReportService->main($this->token, $this->sendable->is_show_warnings, for_group: true);
-        $options = ['link_preview_options' => LinkPreviewOptions::make(is_disabled: true),];
+        $options = ['link_preview_options' => LinkPreviewOptions::make(is_disabled: true)];
+        $params = $tokenReportService
+            ->setWarningsEnabled($this->sendable->is_show_warnings)
+            ->setFinished()
+            ->setForGroup()
+            ->main($this->token);
 
         if (array_key_exists('image', $params))
             $options['image'] = $params['image'];
