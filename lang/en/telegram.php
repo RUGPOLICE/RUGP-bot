@@ -40,7 +40,7 @@ Please report bot bugs in tg chat. 🙏
 
 ",
         'token_scanner' => [
-            'main' => "👇 Enter a token name with $, token address, pool address or dex link.",
+            'main' => "👇 Enter a token name with <b>$</b>, token address, pool address or dex link.\nNetwork: <b>:network</b>",
             'pending' => "🔎 Scanning. The report will be sent to you shortly.",
             "watermark" => "
 <a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugpoliceton'>Telegram</a> | <a href='https://x.com/rugp_ton'>Twitter</a>

@@ -14,20 +14,23 @@ use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\Telegram\Properties\ChatAction;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 
-class TokenScannerMenu extends ImagedInlineMenu
+class TokenScannerMenu extends ImagedEditableInlineMenu
 {
     public function start(Nutgram $bot, string $referrer = HomeMenu::class): void
     {
+        $network = $bot->get('account')->network ?? Network::getDefault();
         $buttons = match ($referrer) {
             HomeMenu::class => [
                 InlineKeyboardButton::make(__('telegram.buttons.back'), callback_data: 'back@menu'),
+                InlineKeyboardButton::make(__('telegram.buttons.network'), callback_data: '0@network'),
             ],
             TokenReportHandler::class => [
                 InlineKeyboardButton::make(__('telegram.buttons.cancel'), callback_data: 'close@menu'),
             ],
         };
 
-        $this->menuText(__('telegram.text.token_scanner.main'))
+        $this->menuText(__('telegram.text.token_scanner.main', ['network' => $network->name]))
+            ->clearButtons()
             ->addButtonRow(... $buttons)
             ->orNext('handle')
             ->showMenu();
@@ -78,6 +81,51 @@ class TokenScannerMenu extends ImagedInlineMenu
 
         $this->end();
         $bot->sendChatAction(ChatAction::TYPING);
+    }
+
+    public function network(Nutgram $bot): void
+    {
+        $account = $bot->get('account');
+        $option = $bot->callbackQuery()->data;
+
+        if ($network = Network::query()->where('slug', $option)->first()) {
+
+            $account->network()->associate($network);
+            $account->save();
+            $this->start($bot);
+
+        } else {
+
+            $page = intval($option);
+            $perPage = 16;
+            $perRow = 4;
+
+            $networks = Network::query()
+                ->orderByDesc('priority')
+                ->limit($perPage)
+                ->offset($page * $perPage)
+                ->get()
+                ->map(fn (Network $network) => InlineKeyboardButton::make(($network->is($account->network) ? '• ' : '') . $network->name, callback_data: "$network->slug@network"))
+                ->chunk($perRow);
+
+            $this->clearButtons()->menuText(__('telegram.text.scanner_settings.network'));
+            foreach ($networks as $chunk) {
+
+                $soon = array_map(fn ($n) => InlineKeyboardButton::make(__('telegram.buttons.network_soon'), callback_data: "nullslug@network"), range(1, $perRow - $chunk->count()));
+                $this->addButtonRow(... ($chunk->all() + $soon));
+
+            }
+
+            foreach (range(1, 4 - $networks->count()) as $chunk) {
+
+                $soon = array_map(fn ($n) => InlineKeyboardButton::make(__('telegram.buttons.network_soon'), callback_data: "nullslug@network"), range(1, 4));
+                $this->addButtonRow(... $soon);
+
+            }
+
+            $this->showMenu();
+        }
+
     }
 
     private function restartWithMessage(Nutgram $bot, string $message): void
