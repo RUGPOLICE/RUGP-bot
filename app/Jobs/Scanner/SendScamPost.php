@@ -41,7 +41,7 @@ class SendScamPost implements ShouldQueue
             $bot->sendImagedMessage(
                 $message,
                 options: $options,
-                chat_id: $this->sendable->chat_id ?? $this->sendable->telegram_id,
+                chat_id: $this->sendable->telegram_id,
             );
 
         } catch (\Throwable $e) {

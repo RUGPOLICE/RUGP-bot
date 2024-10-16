@@ -65,7 +65,7 @@ class Account extends Model
         $table->string('frame')->default(Frame::DAY->value);
 
         $table->boolean('is_show_warnings')->default(false);
-        $table->boolean('is_show_scam')->default(true);
+        $table->boolean('is_show_scam')->default(false);
         $table->boolean('is_show_chart_text')->default(true);
     }
 

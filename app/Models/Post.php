@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Target;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,6 +12,9 @@ use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardMarkup;
 
 /**
+ * @property int $id
+ * @property string $target_id
+ * @property Target $target
  * @property string $text
  * @property string $image
  * @property string $buttons
@@ -23,6 +27,7 @@ class Post extends Model
     use HasFactory;
 
     protected $casts = [
+        'target' => Target::class,
         'posting_time' => 'datetime',
         'is_test' => 'boolean',
     ];
@@ -30,11 +35,15 @@ class Post extends Model
     public function migration(Blueprint $table): void
     {
         $table->id();
+        $table->string('target_id')->nullable();
+
+        $table->string('target');
         $table->text('text');
+
         $table->string('image')->nullable();
         $table->string('buttons')->nullable();
+
         $table->timestamp('posting_time');
-        $table->boolean('is_test')->default(false);
         $table->timestamps();
     }
 

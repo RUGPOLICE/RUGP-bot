@@ -9,7 +9,8 @@ use Illuminate\Database\Schema\Blueprint;
 
 /**
  * @property int $id
- * @property int $chat_id
+ * @property string $telegram_id
+ * @property string $telegram_username
  * @property boolean $is_blocked
  * @property boolean $is_show_warnings
  * @property boolean $is_show_scam
@@ -21,7 +22,8 @@ class Chat extends Model
     use HasFactory;
 
     protected $fillable = [
-        'chat_id',
+        'telegram_id',
+        'telegram_username',
         'is_show_warnings',
         'is_show_scam',
         'language',
@@ -45,10 +47,12 @@ class Chat extends Model
         $table->timestamps();
         $table->foreignIdFor(Network::class)->nullable();
 
-        $table->bigInteger('chat_id');
+        $table->string('telegram_id')->unique();
+        $table->string('telegram_username')->nullable();
+
         $table->boolean('is_blocked')->default(false);
         $table->boolean('is_show_warnings')->default(true);
-        $table->boolean('is_show_scam')->default(true);
+        $table->boolean('is_show_scam')->default(false);
         $table->string('language')->default(Language::EN->value);
     }
 

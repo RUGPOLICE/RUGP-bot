@@ -41,10 +41,10 @@ class TelegramController extends Controller
             $bot->onCommand('start', GroupStartHandler::class)->middleware(PrivateHandler::class);
             $bot->group(function (Nutgram $bot) {
 
-                $bot->onText('(\$.*|EQ.{46}|0x.{40}|T.{33}|.{43}|.{44}){explicit_network}', [PublicTokenReportHandler::class, 'publicMain']);
-                $bot->onCommand('p (\$.*|EQ.{46}|0x.{40}|T.{33}|.{43}|.{44}){explicit_network}', [PublicTokenReportHandler::class, 'publicPrice']);
-                $bot->onCommand('v (\$.*|EQ.{46}|0x.{40}|T.{33}|.{43}|.{44}){explicit_network}', [PublicTokenReportHandler::class, 'publicVolume']);
-                $bot->onCommand('h (\$.*|EQ.{46}|0x.{40}|T.{33}|.{43}|.{44}){explicit_network}', [PublicTokenReportHandler::class, 'publicHolders']);
+                $bot->onText('(\$.*|EQ.{46}|0x.{40}|T.{33}|.{43}|.{44}){explicit_network}', [PublicTokenReportHandler::class, 'publicMain'])->where(['explicit_network' => ' \w+']);
+                $bot->onCommand('p (\$.*|EQ.{46}|0x.{40}|T.{33}|.{43}|.{44}){explicit_network}', [PublicTokenReportHandler::class, 'publicPrice'])->where(['explicit_network' => ' \w+']);
+                $bot->onCommand('v (\$.*|EQ.{46}|0x.{40}|T.{33}|.{43}|.{44}){explicit_network}', [PublicTokenReportHandler::class, 'publicVolume'])->where(['explicit_network' => ' \w+']);
+                $bot->onCommand('h (\$.*|EQ.{46}|0x.{40}|T.{33}|.{43}|.{44}){explicit_network}', [PublicTokenReportHandler::class, 'publicHolders'])->where(['explicit_network' => ' \w+']);
 
                 $bot->onMyChatMember(function (Nutgram $bot) {
                     if ($bot->chatMember()->new_chat_member->status == ChatMemberStatus::MEMBER)

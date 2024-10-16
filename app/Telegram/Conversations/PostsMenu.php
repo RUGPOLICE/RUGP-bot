@@ -2,7 +2,9 @@
 
 namespace App\Telegram\Conversations;
 
+use App\Enums\Target;
 use App\Jobs\SendPost;
+use App\Models\Chat;
 use App\Models\Post;
 use Carbon\Carbon;
 use SergiX44\Nutgram\Nutgram;
@@ -12,6 +14,8 @@ use SergiX44\Nutgram\Telegram\Types\Message\Message;
 
 class PostsMenu extends ImagedEditableInlineMenu
 {
+    public Post $post;
+
     protected function doOpen(string $text, InlineKeyboardMarkup $buttons, array $opt): Message|null
     {
         return $this->bot->sendImagedMessage($text, $buttons, $opt);
@@ -26,13 +30,46 @@ class PostsMenu extends ImagedEditableInlineMenu
 
     public function start(Nutgram $bot): void
     {
-        $post = new Post;
-        $bot->setUserData('post', $post);
+        $this->post = new Post;
+        $this
+            ->clearButtons()
+            ->menuText('Выберите тип публикации или введите ID (или username) чата')
+            ->addButtonRow(
+                InlineKeyboardButton::make(Target::ALL->verbose(), callback_data: Target::ALL->value . '@target'),
+                InlineKeyboardButton::make(Target::TEST->verbose(), callback_data: Target::TEST->value . '@target'),
+            )
+            ->addButtonRow(
+                InlineKeyboardButton::make(Target::ACCOUNTS->verbose(), callback_data: Target::ACCOUNTS->value . '@target'),
+                InlineKeyboardButton::make(Target::CHATS->verbose(), callback_data: Target::CHATS->value . '@target'),
+                InlineKeyboardButton::make(Target::CHAT->verbose(), callback_data: Target::CHAT->value . '@chat'),
+            )
+            ->orNext('chat')
+            ->showMenu();
+    }
 
-        $this->clearButtons();
-        $this->menuText('Введите текст, поддержка HTML разметки присутствует');
-        $this->orNext('text');
-        $this->showMenu();
+    public function chat(Nutgram $bot): void
+    {
+        if (!Chat::query()->where('telegram_id', $bot->message()->text)->exists()) {
+
+            $bot->sendMessage('Чат не найден. Попробуйте другой');
+            return;
+
+        }
+
+        $this->bot->callbackQuery()->data = $bot->message()->text;
+        $this->target($bot);
+    }
+
+    public function target(Nutgram $bot): void
+    {
+        $this->post->target = Target::key($this->bot->callbackQuery()->data);
+        if ($this->post->target === Target::CHAT) $this->post->target_id = $this->bot->callbackQuery()->data;
+
+        $this
+            ->clearButtons()
+            ->menuText('Введите текст, поддержка HTML разметки присутствует')
+            ->orNext('text')
+            ->showMenu();
     }
 
     public function text(Nutgram $bot): void
@@ -45,15 +82,13 @@ class PostsMenu extends ImagedEditableInlineMenu
 
         }
 
-        $post = $bot->getUserData('post', default: new Post);
-        $post->text = $text;
-        $bot->setUserData('post', $post);
-
-        $this->clearButtons();
-        $this->menuText('Отправьте картинку');
-        $this->addButtonRow(InlineKeyboardButton::make('Пропустить', callback_data: 'null@image'));
-        $this->orNext('image');
-        $this->showMenu();
+        $this->post->text = $text;
+        $this
+            ->clearButtons()
+            ->menuText('Отправьте картинку')
+            ->addButtonRow(InlineKeyboardButton::make('Пропустить', callback_data: 'null@image'))
+            ->orNext('image')
+            ->showMenu();
     }
 
     public function image(Nutgram $bot): void
@@ -66,79 +101,60 @@ class PostsMenu extends ImagedEditableInlineMenu
             $fileName = "posts/$photo->file_unique_id.jpg";
             $bot->getFile($photo->file_id)->saveToDisk($fileName);
 
-            $post = $bot->getUserData('post', default: new Post);
-            $post->image = $fileName;
-            $bot->setUserData('post', $post);
+            $this->post->image = $fileName;
 
         }
 
-        $this->clearButtons();
-        $this->menuText('Введите кнопки в формате "Текст - ссылка", каждая с новой строки.');
-        $this->addButtonRow(InlineKeyboardButton::make('Пропустить', callback_data: 'null@buttons'));
-        $this->orNext('buttons');
-        $this->showMenu();
+        $this->clearButtons()
+            ->menuText('Введите кнопки в формате "Текст - ссылка", каждая с новой строки.')
+            ->addButtonRow(InlineKeyboardButton::make('Пропустить', callback_data: 'null@buttons'))
+            ->orNext('buttons')
+            ->showMenu();
     }
 
     public function buttons(Nutgram $bot): void
     {
         $buttons = $bot->message()->text;
-        $wrong = ['Введите кнопки в формате "Текст - ссылка", каждая с новой строки.'];
+        if ($buttons && !$this->bot->message()?->from?->is_bot)
+            $this->post->buttons = $buttons;
 
-        if ($buttons && !in_array($buttons, $wrong)) {
-
-            $post = $bot->getUserData('post', default: new Post);
-            $post->buttons = $buttons;
-            $bot->setUserData('post', $post);
-
-        }
-
-        $this->clearButtons();
-        $this->menuText('Выберите тип публикации');
-        $this->addButtonRow(InlineKeyboardButton::make('Мгновенно', callback_data: 'instant@prepare'));
-        $this->addButtonRow(InlineKeyboardButton::make('Тест', callback_data: 'test@prepare'));
-        $this->addButtonRow(InlineKeyboardButton::make('Выбрать время', callback_data: 'delay@prepare'));
-        $this->addButtonRow(InlineKeyboardButton::make('Выход', callback_data: 'none'));
-        $this->showMenu();
+        $this->clearButtons()
+            ->menuText('Выберите время публикации')
+            ->addButtonRow(
+                InlineKeyboardButton::make('Мгновенно', callback_data: 'instant@prepare'),
+                InlineKeyboardButton::make('Выбрать время', callback_data: 'delay@prepare'),
+            )
+            ->addButtonRow(InlineKeyboardButton::make('Выход', callback_data: 'none'))
+            ->showMenu();
     }
 
     public function prepare(Nutgram $bot): void
     {
         if ($bot->callbackQuery()->data === 'delay') {
+
             $this->clearButtons();
             $this->menuText('Введите время в формате дд.мм.гггг чч:мм по МСК');
             $this->orNext('time');
             $this->showMenu();
             return;
+
         }
 
         if ($bot->callbackQuery()->data === 'instant') {
 
-            $post = $bot->getUserData('post', default: new Post);
-            $post->posting_time = now()->addSeconds(2);
-            $bot->setUserData('post', $post);
-
+            $this->post->posting_time = now()->addSeconds(2);
             $this->send($bot);
             return;
-        }
 
-        if ($bot->callbackQuery()->data === 'test') {
-
-            $post = $bot->getUserData('post', default: new Post);
-            $post->posting_time = now()->addSeconds(2);
-            $post->is_test = true;
-            $bot->setUserData('post', $post);
-
-            $this->send($bot);
-            return;
         }
     }
 
     public function time(Nutgram $bot): void
     {
-        $post = $bot->getUserData('post', default: new Post);
         try {
 
-            $post->posting_time = Carbon::createFromFormat('d.m.Y H:i', $bot->message()->text)/*->subHours(3)*/;
+            $this->post->posting_time = Carbon::createFromFormat('d.m.Y H:i', $bot->message()->text);
+            $this->send($bot);
 
         } catch (\Throwable) {
 
@@ -146,17 +162,12 @@ class PostsMenu extends ImagedEditableInlineMenu
             return;
 
         }
-
-        $bot->setUserData('post', $post);
-        $this->send($bot);
     }
 
     public function send(Nutgram $bot): void
     {
-        $post = $bot->getUserData('post', default: new Post);
-        $post->save();
-
-        SendPost::dispatch($post)->delay($post->posting_time);
+        $this->post->save();
+        SendPost::dispatch($this->post)->delay($this->post->posting_time);
 
         $bot->sendMessage('Пост добавлен в очередь');
         $this->none($bot);
@@ -164,7 +175,6 @@ class PostsMenu extends ImagedEditableInlineMenu
 
     public function none(Nutgram $bot): void
     {
-        $bot->deleteUserData('post');
         $this->end();
     }
 }

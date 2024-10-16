@@ -52,8 +52,6 @@ class StatsHandler
             ->where('is_warn_honeypot', true)
             ->orWhere('is_warn_rugpull', true)
             ->orWhere('is_warn_scam', true)
-            ->orWhere('is_warn_liquidity_stonfi', true)
-            ->orWhere('is_warn_liquidity_dedust', true)
             ->orWhere('is_warn_liquidity', true)
             ->count();
 

@@ -25,9 +25,12 @@ class RetrieveAccount
 
         } else {
 
-            $chat = Chat::query()->firstOrCreate(['chat_id' => $bot->chatId()]);
-            $chat->refresh();
+            $chat = Chat::query()->firstOrCreate(
+                ['telegram_id' => $bot->chat()->id],
+                ['telegram_username' => $bot->chat()->username],
+            );
 
+            $chat->refresh();
             $bot->set('chat', $chat);
             $language = $chat->language->value;
 

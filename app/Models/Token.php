@@ -175,7 +175,7 @@ class Token extends Model
 
     public static function getAddress(string $address, ?Network $priority_network = null): array
     {
-        $network = null;
+        $network = Network::getDefault();
         @[$address, $explicit_network] = explode(' ', $address);
 
         if ($priority_network) $network = $priority_network;
