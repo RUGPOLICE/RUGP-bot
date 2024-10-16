@@ -16,7 +16,7 @@ use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 
 class TokenScannerMenu extends ImagedInlineMenu
 {
-    public function start(Nutgram $bot, string $referrer): void
+    public function start(Nutgram $bot, string $referrer = HomeMenu::class): void
     {
         $buttons = match ($referrer) {
             HomeMenu::class => [

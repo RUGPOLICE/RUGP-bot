@@ -313,4 +313,24 @@ Possible reasons: invalid address, deleted scam or no purchases and/or sales of 
         'network' => "NETWORK",
         'network_soon' => "SOON",
     ],
+    'commands' => [
+        'private' => [
+            'start' => 'Update the Bot',
+            'scan' => 'Scan token',
+        ],
+        'public' => [
+            'price' => 'Get token price report',
+            'holders' => 'Get token holders report',
+        ],
+        'admin' => [
+            'settings' => 'Specify bot settings for chat',
+            'network' => 'Set network for chat (e.g. /network ton)',
+            'show_warnings' => 'Show warnings',
+            'hide_warnings' => 'Hide warnings',
+            'show_scam_posts' => 'Show scam notifications',
+            'hide_scam_posts' => 'Hide scam notifications',
+            'set_en_language' => 'Change to english',
+            'set_ru_language' => 'Сменить на русский',
+        ],
+    ],
 ];
