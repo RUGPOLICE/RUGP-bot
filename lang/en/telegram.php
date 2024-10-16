@@ -183,7 +183,7 @@ Please report bot bugs in tg chat. 🙏
                 'text' => "
 <b>$:symbol</b>
 
-👨‍👦‍👦 <b>TOP 10 HOLDERS</b>
+👨‍👦‍👦 <b>TOP HOLDERS (:actual OF :total)</b>
 
 :holders
 :pools:warning

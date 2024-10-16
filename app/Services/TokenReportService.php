@@ -206,6 +206,8 @@ class TokenReportService
                 'symbol' => $token->symbol,
                 'holders' => implode('', $holders),
                 'pools' => implode('', $pools),
+                'actual' => count($holders),
+                'total' => $token->holders_count,
                 'warning' => $is_show_warnings ? __('telegram.text.token_scanner.holders.warning') : '',
                 'watermark' => $for_group ? __('telegram.text.token_scanner.watermark') : '',
             ]),
