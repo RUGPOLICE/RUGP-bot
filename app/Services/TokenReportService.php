@@ -7,7 +7,10 @@ use App\Enums\Lock;
 use App\Enums\Reaction;
 use App\Models\Token;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Facades\Storage;
+use Imagick;
 
 class TokenReportService
 {
@@ -113,8 +116,12 @@ class TokenReportService
             $links[] = __('telegram.text.token_scanner.report.link', ['url' => $social['url'], 'label' => $social['type']]);
 
         $image = public_path('img/blank.png');
-        if ($is_scam) $image = public_path('img/scam.png');
-        else if ($token->image && Http::get($token->image)->status() === 200) $image = $token->image;
+        if ($is_scam && (!$token->image || Http::get($token->image)->status() !== 200))
+            $image = public_path('img/scam.png');
+        else if ($is_scam)
+            $image = $this->getScamImage($token->address, $token->image);
+        else if ($token->image && Http::get($token->image)->status() === 200)
+            $image = $token->image;
 
         return [
             'image' => $image,
@@ -122,6 +129,7 @@ class TokenReportService
                 'name' => $token->name,
                 'symbol' => $token->symbol,
                 'address' => $token->address,
+                'network' => $token->network->name,
 
                 'description_title' => $token->description ? __('telegram.text.token_scanner.report.description_title') : '',
                 'description' => $token->description_formatted,
@@ -253,6 +261,24 @@ class TokenReportService
         $path = storage_path("app/public/charts/holders/{$token->address}.png");
         $holders = implode(' ', array_map(fn ($holder) => number_format($holder['percent'], 2, thousands_separator: ''), $token->holders->all()));
         Process::path(base_path('utils/charts'))->run("python3 pie.py $path $holders");
+        return $path;
+    }
+
+    private function getScamImage(string $address, string $image): string
+    {
+        $path = "public/scams/$address.webp";
+        Storage::put($path, Http::get($image)->body());
+
+        $scam = new Imagick(storage_path("app/$path"));
+        $image = new Imagick(public_path('img/scam.png'));
+
+        $path = storage_path("app/public/scams/$address.png");
+        $scam->setImageVirtualPixelMethod(Imagick::VIRTUALPIXELMETHOD_TRANSPARENT);
+        $scam->resizeImage($image->getImageWidth() - 100, $image->getImageHeight() - 100, Imagick::FILTER_BESSEL, 0);
+        $image->setImageVirtualPixelMethod(Imagick::VIRTUALPIXELMETHOD_TRANSPARENT);
+        $image->setImageArtifact('compose:args', "1,0,-0.5,0.5");
+        $image->compositeImage($scam, Imagick::COMPOSITE_OVERLAY, 50, 50);
+        $image->writeImage($path);
         return $path;
     }
 }

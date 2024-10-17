@@ -11,7 +11,9 @@
         "laravel/framework": "^11.9",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
-        "nutgram/laravel": "^1.4"
+        "nutgram/laravel": "^1.4",
+        "ext-gd": "*",
+        "ext-imagick": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

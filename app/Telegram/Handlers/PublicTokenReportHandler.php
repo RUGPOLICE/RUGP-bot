@@ -18,28 +18,27 @@ use Throwable;
 
 class PublicTokenReportHandler
 {
-    public function publicMain(Nutgram $bot, string $search, string $explicit_network = ''): void
+    public function publicMain(Nutgram $bot, string $search, ?string $explicit_network = ''): void
     {
-        $this->public($bot, $search . $explicit_network, 'main');
+        $this->public($bot, $search . ($explicit_network ?? ''), 'main');
     }
 
-    public function publicPrice(Nutgram $bot, string $search, string $explicit_network = ''): void
+    public function publicPrice(Nutgram $bot, string $search, ?string $explicit_network = ''): void
     {
-        $this->public($bot, $search . $explicit_network, 'chart');
+        $this->public($bot, $search . ($explicit_network ?? ''), 'chart');
     }
 
-    public function publicVolume(Nutgram $bot, string $search, string $explicit_network = ''): void
+    public function publicHolders(Nutgram $bot, string $search, ?string $explicit_network = ''): void
     {
-        $this->public($bot, $search . $explicit_network, 'volume');
-    }
-
-    public function publicHolders(Nutgram $bot, string $search, string $explicit_network = ''): void
-    {
-        $this->public($bot, $search . $explicit_network, 'holders');
+        $this->public($bot, $search . ($explicit_network ?? ''), 'holders');
     }
 
     public function public(Nutgram $bot, string $search, string $type): void
     {
+        @[$address, $explicit_network] = explode(' ', $search, limit: 2);
+        if (isset($explicit_network) && !Network::query()->pluck('slug')->contains($explicit_network))
+            return;
+
         $address = Token::getAddress($search, $bot->get('chat')?->network);
         if (!$address['success']) {
 

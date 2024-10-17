@@ -12,7 +12,7 @@ class RetrieveAccount
 {
     public function __invoke(Nutgram $bot, $next): void
     {
-        if ($bot->chat()->type === ChatType::PRIVATE || $bot->isCallbackQuery()) {
+        if ($bot->chat()->type === ChatType::PRIVATE) {
 
             $account = Account::query()->firstOrCreate(
                 ['telegram_id' => $bot->user()->id],

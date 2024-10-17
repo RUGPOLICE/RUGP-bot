@@ -50,7 +50,7 @@ Please report bot bugs in tg chat. 🙏
                 'text' => "
 <b>ℹ️ INFO</b>
 
-<b>:name | $:symbol</b>
+<b>:name | $:symbol on :NETWORK</b>
 <code>:address</code>:description_title<i>:description</i>
 
 :is_known_master
@@ -319,18 +319,21 @@ Possible reasons: invalid address, deleted scam or no purchases and/or sales of 
             'scan' => 'Scan token',
         ],
         'public' => [
-            'price' => 'Get token price report',
-            'holders' => 'Get token holders report',
+            'p' => 'Get token price report',
+            'h' => 'Get token holders report',
         ],
         'admin' => [
+            // Не менять тут ничего местами
+            'p' => 'Get token price report',
+            'h' => 'Get token holders report',
             'settings' => 'Specify bot settings for chat',
-            'network' => 'Set network for chat (e.g. /network ton)',
-            'show_warnings' => 'Show warnings',
-            'hide_warnings' => 'Hide warnings',
-            'show_scam_posts' => 'Show scam notifications',
-            'hide_scam_posts' => 'Hide scam notifications',
-            'set_en_language' => 'Change to english',
-            'set_ru_language' => 'Сменить на русский',
+            // 'network' => 'Set network for chat (e.g. /network ton)',
+            // 'show_tips' => 'Show warnings',
+            // 'hide_tips' => 'Hide warnings',
+            // 'autopost_new_scam_on' => 'Show scam notifications',
+            // 'autopost_new_scam_off' => 'Hide scam notifications',
+            // 'set_ru_language' => 'Сменить на русский',
+            // 'set_en_language' => 'Change to english',
         ],
     ],
 ];

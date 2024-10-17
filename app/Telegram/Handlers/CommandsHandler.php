@@ -16,49 +16,56 @@ class CommandsHandler
     public function __invoke(Nutgram $bot): void
     {
         $oldLocale = App::getLocale();
-
         foreach (Language::keys() as $locale) {
 
             App::setLocale($locale);
+
             $group = new Nutgram(config('nutgram.group_token'));
+            $commands = require lang_path("$locale/telegram.php");
 
-            $bot->setMyCommands([
-                BotCommand::make('start', __('telegram.commands.private.start')),
-                BotCommand::make('scan', __('telegram.commands.private.scan')),
-            ], scope: new BotCommandScopeAllPrivateChats(), language_code: $locale);
+            $private = array_map(
+                fn ($command, $description) => BotCommand::make($command, $description),
+                array_keys($commands['commands']['private']),
+                array_values($commands['commands']['private']),
+            );
 
-            $group->setMyCommands([
-                BotCommand::make('p', __('telegram.commands.public.price')),
-                BotCommand::make('h', __('telegram.commands.public.holders')),
-            ], scope: new BotCommandScopeAllGroupChats(), language_code: $locale);
+            $public = array_map(
+                fn ($command, $description) => BotCommand::make($command, $description),
+                array_keys($commands['commands']['public']),
+                array_values($commands['commands']['public']),
+            );
 
-            $group->setMyCommands([
-                BotCommand::make('p', __('telegram.commands.public.price')),
-                BotCommand::make('h', __('telegram.commands.public.holders')),
-                BotCommand::make('settings', __('telegram.commands.admin.settings')),
-                BotCommand::make('network', __('telegram.commands.admin.network')),
-                BotCommand::make('show_warnings', __('telegram.commands.admin.show_warnings')),
-                BotCommand::make('hide_warnings', __('telegram.commands.admin.hide_warnings')),
-                BotCommand::make('show_scam_posts', __('telegram.commands.admin.show_scam_posts')),
-                BotCommand::make('hide_scam_posts', __('telegram.commands.admin.hide_scam_posts')),
-                ... array_map(fn ($l) => BotCommand::make("set_{$l}_language", __("telegram.commands.admin.set_{$l}_language")), \App\Enums\Language::keys()),
-            ], scope: new BotCommandScopeAllChatAdministrators(), language_code: $locale);
+            $admin = array_map(
+                fn ($command, $description) => BotCommand::make($command, $description),
+                array_keys($commands['commands']['admin']),
+                array_values($commands['commands']['admin']),
+            );
+
+            $bot->setMyCommands($private, scope: new BotCommandScopeAllPrivateChats(), language_code: $locale);
+            $group->setMyCommands($public, scope: new BotCommandScopeAllGroupChats(), language_code: $locale);
+            $group->setMyCommands($admin, scope: new BotCommandScopeAllChatAdministrators(), language_code: $locale);
 
         }
 
         App::setLocale(Language::RU->value);
+
+        $commands = require lang_path('ru/telegram.php');
+        $private = array_map(
+            fn ($command, $description) => BotCommand::make($command, $description),
+            array_keys($commands['commands']['private']),
+            array_values($commands['commands']['private']),
+        );
+
         foreach (explode(',', config('nutgram.superusers')) as $superuser)
             $bot->setMyCommands([
-                BotCommand::make('start', __('telegram.commands.private.start')),
-                BotCommand::make('scan', __('telegram.commands.private.scan')),
+                ... $private,
                 BotCommand::make('stats', 'Посмотреть статистику'),
                 BotCommand::make('post', 'Опубликовать пост'),
                 BotCommand::make('commands', 'Обновить команды'),
             ], scope: new BotCommandScopeChat($superuser));
 
         $bot->setMyCommands([
-            BotCommand::make('start', __('telegram.commands.private.start')),
-            BotCommand::make('scan', __('telegram.commands.private.scan')),
+            ... $private,
             BotCommand::make('stats', 'Посмотреть статистику'),
             BotCommand::make('post', 'Опубликовать пост'),
             BotCommand::make('commands', 'Обновить команды'),

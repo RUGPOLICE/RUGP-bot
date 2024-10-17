@@ -56,14 +56,13 @@ class PostsMenu extends ImagedEditableInlineMenu
 
         }
 
-        $this->bot->callbackQuery()->data = $bot->message()->text;
-        $this->target($bot);
+        $this->target($bot, $bot->message()->text);
     }
 
-    public function target(Nutgram $bot): void
+    public function target(Nutgram $bot, ?string $data = null): void
     {
-        $this->post->target = Target::key($this->bot->callbackQuery()->data);
-        if ($this->post->target === Target::CHAT) $this->post->target_id = $this->bot->callbackQuery()->data;
+        $this->post->target = Target::key($this->bot->callbackQuery()?->data ?? $data);
+        if ($this->post->target === Target::CHAT) $this->post->target_id = $data;
 
         $this
             ->clearButtons()

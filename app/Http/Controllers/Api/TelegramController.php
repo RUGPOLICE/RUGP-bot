@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Network;
 use App\Models\Token;
 use App\Services\TokenReportService;
+use App\Telegram\Conversations\ScannerSettingsPublicMenu;
 use App\Telegram\Handlers\GroupStartHandler;
 use App\Telegram\Handlers\PublicTokenReportHandler;
 use App\Telegram\Handlers\SettingsHandler;
@@ -44,33 +45,32 @@ class TelegramController extends Controller
     {
         try {
 
+            $commands = require lang_path('ru/telegram.php');
+            $admin = array_keys($commands['commands']['admin']);
+
             $bot = new Nutgram(config('nutgram.group_token'), new Configuration(botName: config('nutgram.group_bot_name')));
             $bot->middleware(RetrieveAccount::class);
 
             $bot->onCommand('start', GroupStartHandler::class)->middleware(PrivateHandler::class);
-            $bot->group(function (Nutgram $bot) {
+            $bot->group(function (Nutgram $bot) use ($admin) {
 
-                $bot->onText('(\$.*|EQ.{46}|0x.{40}|T.{33}|.{43}|.{44}){explicit_network}', [PublicTokenReportHandler::class, 'publicMain'])->where(['explicit_network' => ' \w+']);
-                $bot->onCommand('p (\$.*|EQ.{46}|0x.{40}|T.{33}|.{43}|.{44}){explicit_network}', [PublicTokenReportHandler::class, 'publicPrice'])->where(['explicit_network' => ' \w+']);
-                $bot->onCommand('v (\$.*|EQ.{46}|0x.{40}|T.{33}|.{43}|.{44}){explicit_network}', [PublicTokenReportHandler::class, 'publicVolume'])->where(['explicit_network' => ' \w+']);
-                $bot->onCommand('h (\$.*|EQ.{46}|0x.{40}|T.{33}|.{43}|.{44}){explicit_network}', [PublicTokenReportHandler::class, 'publicHolders'])->where(['explicit_network' => ' \w+']);
+                $bot->onText('(\$.*|EQ.{46}|0x.{40}|T.{33}|.{43}|.{44}){explicit_network}', [PublicTokenReportHandler::class, 'publicMain']);
+                $bot->onCommand($admin[0] . ' (\$.*|EQ.{46}|0x.{40}|T.{33}|.{43}|.{44}){explicit_network}', [PublicTokenReportHandler::class, 'publicPrice']);
+                $bot->onCommand($admin[1] . ' (\$.*|EQ.{46}|0x.{40}|T.{33}|.{43}|.{44}){explicit_network}', [PublicTokenReportHandler::class, 'publicHolders']);
 
                 $bot->onMyChatMember(function (Nutgram $bot) {
                     if ($bot->chatMember()->new_chat_member->status == ChatMemberStatus::MEMBER)
                         (new SettingsHandler)($bot);
                 });
 
-                $bot->group(function (Nutgram $bot) {
+                $bot->group(function (Nutgram $bot) use ($admin) {
 
-                    $bot->onCommand('settings', SettingsHandler::class);
-                    $bot->onCommand('network {network}', [SettingsHandler::class, 'setNetwork']);
-                    $bot->onCommand('show_warnings', [SettingsHandler::class, 'showWarnings']);
-                    $bot->onCommand('hide_warnings', [SettingsHandler::class, 'hideWarnings']);
-                    $bot->onCommand('show_scam_posts', [SettingsHandler::class, 'showScamPosts']);
-                    $bot->onCommand('hide_scam_posts', [SettingsHandler::class, 'hideScamPosts']);
-
-                    foreach (\App\Enums\Language::keys() as $locale)
-                        $bot->onCommand('set_' . $locale . '_language', [SettingsHandler::class, 'set' . ucfirst($locale) . 'Language']);
+                    $bot->onCommand($admin[2], SettingsHandler::class);
+                    $bot->onCallbackQueryData('scanner:settings:warnings', [SettingsHandler::class, 'setWarnings']);
+                    $bot->onCallbackQueryData('scanner:settings:scam', [SettingsHandler::class, 'setScam']);
+                    $bot->onCallbackQueryData('scanner:settings:network:{network}', [SettingsHandler::class, 'setNetwork']);
+                    $bot->onCallbackQueryData('scanner:settings:language:{language}', [SettingsHandler::class, 'setLanguage']);
+                    $bot->onCallbackQueryData('scanner:settings:exit', [SettingsHandler::class, 'exit']);
 
                 })->middleware(ForAdmins::class);
 

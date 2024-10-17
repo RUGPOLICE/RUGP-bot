@@ -152,25 +152,17 @@ class ScanTokenTon implements ShouldQueue
         $pool = $this->token->pools()->first();
         if (!$this->token->is_revoked || $pool->tax_buy === null || $pool->tax_sell === null) {
 
-            try {
+            $taxes = $tonService->getTaxes($this->token->address, $pool->dex->slug);
+            if (gettype($taxes) === 'string') throw new SimulationError($this->token, $taxes);
 
-                $taxes = $tonService->getTaxes($this->token->address, $pool->dex->slug);
-                if (gettype($taxes) === 'string') throw new SimulationError($this->token, $taxes);
+            $this->token->is_known_master = $taxes['is_known_master'];
+            $this->token->is_known_wallet = $taxes['is_known_wallet'];
+            $this->token->save();
 
-                $this->token->is_known_master = $taxes['is_known_master'];
-                $this->token->is_known_wallet = $taxes['is_known_wallet'];
-                $this->token->save();
-
-                $pool->tax_buy = $taxes['tax_buy'] ?? $pool->tax_buy;
-                $pool->tax_sell = $taxes['tax_sell'] ?? $pool->tax_sell;
-                $pool->tax_transfer = $taxes['tax_transfer'] ?? $pool->tax_transfer;
-                $pool->save();
-
-            } catch (Throwable $e) {
-
-                Log::error($e);
-
-            }
+            $pool->tax_buy = $taxes['tax_buy'] ?? $pool->tax_buy;
+            $pool->tax_sell = $taxes['tax_sell'] ?? $pool->tax_sell;
+            $pool->tax_transfer = $taxes['tax_transfer'] ?? $pool->tax_transfer;
+            $pool->save();
 
         }
     }
