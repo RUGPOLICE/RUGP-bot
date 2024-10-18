@@ -2,8 +2,8 @@
 
 @setup
     $repository = 'git@gitlab.com:wanord/rugp.git';
-    $releases_dir = '/var/www/rugp_user/data/www/rugp.app/releases';
-    $app_dir = '/var/www/rugp_user/data/www/rugp.app';
+    $releases_dir = '/var/www/rugp_user/data/www/api.rugp.app/releases';
+    $app_dir = '/var/www/rugp_user/data/www/api.rugp.app';
     $release = date('YmdHis');
     $new_release_dir = "$releases_dir/$release";
 @endsetup
@@ -57,7 +57,7 @@
     php artisan optimize
     php artisan storage:link
     php artisan migrate:auto --force
-    php artisan nutgram:hook:set https://rugp.app/api/telegram
+    php artisan nutgram:hook:set https://api.rugp.app/api/telegram
 @endtask
 
 @task('restart_workers')

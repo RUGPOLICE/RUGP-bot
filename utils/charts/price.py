@@ -19,7 +19,7 @@ ohlcv['Date'] = pd.to_datetime(ohlcv['Unix'], unit='s', origin='unix')
 ohlcv.set_index('Date', inplace=True)
 
 mpf.plot(
-    ohlcv,
+    ohlcv.iloc[::-1],
     type='candle',
     volume=True,
     style='yahoo',
