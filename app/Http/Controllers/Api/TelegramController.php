@@ -113,7 +113,10 @@ class TelegramController extends Controller
                 'h' => $tokenReportService->holders($token),
             };
 
-            $options = ['link_preview_options' => LinkPreviewOptions::make(is_disabled: true)];
+            $options = [
+                'chat_id' => $chat_id,
+                'link_preview_options' => LinkPreviewOptions::make(is_disabled: true)
+            ];
             if (array_key_exists('image', $params)) $options['image'] = $params['image'];
 
             $bot = new Nutgram(config('nutgram.group_token'), new Configuration(botName: config('nutgram.group_bot_name')));
