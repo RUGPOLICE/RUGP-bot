@@ -39,6 +39,9 @@ class PublicTokenReportHandler
         if (isset($explicit_network) && !Network::query()->pluck('slug')->contains($explicit_network))
             return;
 
+        if (str_contains($search, 'http'))
+            return;
+
         $address = Token::getAddress($search, $bot->get('chat')?->network);
         if (!$address['success']) {
 

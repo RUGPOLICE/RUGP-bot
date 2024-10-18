@@ -7,6 +7,7 @@ use App\Enums\Language;
 use App\Enums\RequestModule;
 use App\Enums\RequestSource;
 use App\Http\Controllers\Controller;
+use App\Models\Chat;
 use App\Models\Network;
 use App\Models\Token;
 use App\Services\TokenReportService;
@@ -93,6 +94,9 @@ class TelegramController extends Controller
             $chat_id = $request->get('chat_id');
             if (!$chat_id) return response()->json(['message' => 'chat_id is required'], 400);
 
+            $chat = Chat::query()->where('telegram_id', $chat_id)->first();
+            if (!$chat) return response()->json(['message' => 'Chat not found'], 400);
+
             $command = $request->get('command');
             if (!in_array($command, ['p', 'h'])) return response()->json(['message' => 'command must be p or h'], 400);
 
@@ -103,7 +107,7 @@ class TelegramController extends Controller
             if (!$address['success']) return response()->json(['message' => $address['error']], 400);
 
             $token = Token::query()->firstOrCreate(['address' => $address['address']], ['network_id' => $network->id]);
-            $network->job::dispatchSync($token, Language::key($request->get('language')));
+            $network->job::dispatchSync($token, $chat->language);
 
             \App\Models\Request::log($request->user(), $token, RequestSource::API, RequestModule::SCANNER);
 
