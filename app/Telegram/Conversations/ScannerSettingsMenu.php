@@ -22,9 +22,9 @@ class ScannerSettingsMenu extends ImagedEditableInlineMenu
                 ])
             )
             ->addButtonRow(
+                InlineKeyboardButton::make(__('telegram.buttons.warnings_' . ($account->is_show_warnings ? 'shown' : 'hidden')), callback_data: 'null@warnings'),
                 InlineKeyboardButton::make(__('telegram.buttons.scam_' . ($account->is_show_scam ? 'shown' : 'hidden')), callback_data: 'null@scam'),
                 InlineKeyboardButton::make(__('telegram.buttons.network'), callback_data: '0@network'),
-                InlineKeyboardButton::make(__('telegram.buttons.warnings_' . ($account->is_show_warnings ? 'shown' : 'hidden')), callback_data: 'null@warnings'),
             )
             ->addButtonRow(
                 InlineKeyboardButton::make(__('telegram.buttons.back'), callback_data: 'back@menu'),

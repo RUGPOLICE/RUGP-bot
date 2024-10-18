@@ -4,6 +4,7 @@ namespace App\Telegram\Middleware;
 
 use App\Models\Account;
 use App\Models\Chat;
+use App\Models\Network;
 use Illuminate\Support\Facades\App;
 use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\Telegram\Properties\ChatType;
@@ -16,10 +17,12 @@ class RetrieveAccount
 
             $account = Account::query()->firstOrCreate(
                 ['telegram_id' => $bot->user()->id],
-                ['telegram_username' => $bot->user()->username],
+                ['telegram_username' => $bot->user()->username, 'network_id' => Network::getDefault()->id],
             );
 
-            $account->refresh();
+            $account->telegram_username = $bot->user()->username;
+            $account->save();
+
             $bot->set('account', $account);
             $language = $account->language->value;
 
@@ -30,7 +33,9 @@ class RetrieveAccount
                 ['telegram_username' => $bot->chat()->username],
             );
 
-            $chat->refresh();
+            $chat->telegram_username = $bot->user()->username;
+            $chat->save();
+
             $bot->set('chat', $chat);
             $language = $chat->language->value;
 
