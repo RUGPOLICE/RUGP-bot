@@ -292,6 +292,7 @@ BETA 0.2
 
         'back' => "Назад",
         'cancel' => "Отмена",
+        'ok' => "ОК",
         'agree' => "🤝 Согласен",
 
         'token_scanner' => "🔎 Token Scanner",

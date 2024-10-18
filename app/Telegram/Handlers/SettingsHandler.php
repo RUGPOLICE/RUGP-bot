@@ -27,7 +27,7 @@ class SettingsHandler
                 InlineKeyboardButton::make(__('telegram.buttons.language'), callback_data: 'scanner:settings:language:null'),
             )
             ->addRow(
-                InlineKeyboardButton::make(__('telegram.buttons.cancel'), callback_data: 'scanner:settings:exit'),
+                InlineKeyboardButton::make(__('telegram.buttons.ok'), callback_data: 'scanner:settings:exit'),
             );
 
         $this->send($bot, $chat, $buttons);

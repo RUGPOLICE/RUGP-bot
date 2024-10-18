@@ -278,6 +278,7 @@ Possible reasons: invalid address, deleted scam or no purchases and/or sales of 
 
         'back' => "Back",
         'cancel' => "Cancel",
+        'ok' => "OK",
         'agree' => "🤝 Agreed",
 
         'token_scanner' => "🔎 Token Scanner",
