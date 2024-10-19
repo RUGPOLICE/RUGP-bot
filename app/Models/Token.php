@@ -179,7 +179,7 @@ class Token extends Model
         @[$address, $explicit_network] = explode(' ', $address);
 
         if ($priority_network) $network = $priority_network;
-        if ($explicit_network) $network = Network::query()->where('slug', $explicit_network)->orWhere('name', $explicit_network)->first();
+        if ($explicit_network) $network = Network::query()->where('slug', strtolower($explicit_network))->orWhere('name', strtolower($explicit_network))->orWhere('alias', strtolower($explicit_network))->first();
 
         if ($address[0] === '$') {
 

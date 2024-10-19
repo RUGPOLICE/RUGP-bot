@@ -111,9 +111,9 @@ class TelegramController extends Controller
 
             \App\Models\Request::log($request->user(), $token, RequestSource::API, RequestModule::SCANNER);
 
-            $tokenReportService->setWarningsEnabled()->setFinished()->setForGroup();
+            $tokenReportService->setWarningsEnabled($chat->is_show_warnings)->setFinished()->setForGroup();
             $params = match ($command) {
-                'p' => $tokenReportService->chart($token, Frame::DAY, is_show_text: true),
+                'p' => $tokenReportService->chart($token, Frame::MINUTES, is_show_text: true),
                 'h' => $tokenReportService->holders($token),
             };
 

@@ -16,6 +16,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
  * @property integer $id
  * @property string $slug
  * @property string $name
+ * @property string $alias
  * @property string $token
  * @property string $explorer
  * @property Collection $tokens
@@ -29,6 +30,7 @@ class Network extends Model
     protected $fillable = [
         'slug',
         'name',
+        'alias',
         'token',
         'explorer',
         'priority',
@@ -41,6 +43,7 @@ class Network extends Model
         $table->timestamps();
         $table->string('slug')->unique();
         $table->string('name');
+        $table->string('alias')->nullable();
         $table->string('token');
         $table->string('explorer')->nullable();
         $table->integer('priority')->default(0);
