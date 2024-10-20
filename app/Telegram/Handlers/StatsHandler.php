@@ -8,6 +8,8 @@ use App\Models\Chat;
 use App\Models\Pool;
 use App\Models\Request;
 use App\Models\Token;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use SergiX44\Nutgram\Nutgram;
 
 class StatsHandler
@@ -55,6 +57,16 @@ class StatsHandler
             ->orWhere('is_warn_liquidity', true)
             ->count();
 
-        $bot->asResponse()->sendImagedMessage("<b>App Statistics</b>\n\nUsers: <b>$accountsCount</b>\nGroups: <b>$chatsCount</b>\n\nTokens: <b>$tokensCount</b>\nPools: <b>$poolsCount</b>\nScam: <b>$scamCount</b>\n\n<b>Requests</b>\n<i>last 24 hours</i>\n\nTelegram: <b>$requestsTelegramCount</b>\nAverage load: <i>$requestsTelegramRate rpm</i>\n\nAPI: <b>$requestsApiCount</b>\nAverage load: <i>$requestsApiRate rpm</i>");
+        $apiStatus = Cache::get('api-status', json_encode(['timestamp' => now()->timestamp, 'old' => ['status' => 200, 'response' => true], 'new' => ['status' => 200, 'response' => true]]));
+        $apiStatus = json_decode($apiStatus, true);
+
+        $apiUrl = str_replace('https://', '', config('app.url'));
+        $apiStatusTime = Carbon::createFromTimestamp($apiStatus['timestamp'] ?? now()->timestamp)->diffForHumans();
+        $oldApiStatusCode = $apiStatus['old']['status'];
+        $oldApiResponse = json_encode($apiStatus['old']['response']);
+        $newApiStatusCode = $apiStatus['new']['status'];
+        $newApiResponse = json_encode($apiStatus['new']['response']);
+
+        $bot->asResponse()->sendImagedMessage("<b>App Statistics</b>\n\nUsers: <b>$accountsCount</b>\nGroups: <b>$chatsCount</b>\n\nTokens: <b>$tokensCount</b>\nPools: <b>$poolsCount</b>\nScam: <b>$scamCount</b>\n\n<b>Requests</b>\n<i>last 24 hours</i>\n\nTelegram: <b>$requestsTelegramCount</b>\nAverage load: <i>$requestsTelegramRate rpm</i>\n\nAPI: <b>$requestsApiCount</b>\nAverage load: <i>$requestsApiRate rpm</i>\n\n<b>rugp.app ($apiStatusTime)</b>\nStatus Code: <i>$oldApiStatusCode</i>\nResponse: <i>$oldApiResponse</i>\n\n<b>$apiUrl ($apiStatusTime)</b>\nStatus Code: <i>$newApiStatusCode</i>\nResponse: <i>$newApiResponse</i>");
     }
 }

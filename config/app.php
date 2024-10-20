@@ -14,6 +14,7 @@ return [
     */
 
     'name' => env('APP_NAME', 'Laravel'),
+    'token' => env('APP_TOKEN', 'Laravel'),
 
     'tokens' => [
         'force' => explode(',', env('APP_FORCE_TOKENS')),
