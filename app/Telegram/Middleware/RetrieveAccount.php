@@ -30,7 +30,7 @@ class RetrieveAccount
 
             $chat = Chat::query()->firstOrCreate(
                 ['telegram_id' => $bot->chat()->id],
-                ['telegram_username' => $bot->chat()->username],
+                ['telegram_username' => $bot->chat()->username, 'network_id' => Network::getDefault()->id],
             );
 
             $chat->telegram_username = $bot->user()->username;

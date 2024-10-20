@@ -139,7 +139,7 @@ class HomeMenu extends ImagedInlineMenu
 
         if (count($params) > 2 && $params[1] === 'r' && ($token = Token::query()->where('address', $params[2])->first())) {
 
-            (new TokenReportHandler)->report($bot, $token, 'main', $bot->chatId(), $bot->messageId());
+            (new TokenReportHandler)->report($bot, $token, 'main', null, $bot->chatId(), $bot->messageId());
             return true;
 
         }
