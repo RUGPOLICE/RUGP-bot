@@ -54,6 +54,15 @@ class TokenScannerMenu extends ImagedEditableInlineMenu
         $message_id = $bot->messageId();
         $address = $bot->message()->text;
 
+        $networks = Network::all()->pluck('slug')->implode('|');
+        $matches = [];
+        if (!str_contains($address, '://') && preg_match("/^(\\\$\w*|EQ.{46}|0x.{40}|T.{33}|.{43}|.{44})(\s($networks))?$/i", $address, $matches) !== 1) {
+
+            $this->restartWithMessage($bot, __('telegram.errors.address.retype'));
+            return;
+
+        }
+
         $address = Token::getAddress($address, $account->network);
         if (!$address['success']) {
 

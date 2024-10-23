@@ -263,8 +263,8 @@ Main bot - - > @rugpbot
         'address' => [
             'invalid' => "🤷‍♂️ Wrong address",
             'symbol' => "🤷‍♂️ Jetton not found. Try to enter jetton address",
-            'empty' => "🤷‍♂️ Nothing found.
-Possible reasons: invalid address, deleted scam or no purchases and/or sales of a token for a long time.",
+            'empty' => "🤷‍♂️ Nothing found.\nPossible reasons: invalid address, deleted scam or no purchases and/or sales of a token for a long time.",
+            'retype' => "🤷‍♂️ Invalid query.\nPlease send ticker starts with $ or address or dex link.",
         ],
         'scan' => [
             'metadata' => "🚧 Can't scan :address. Please try later",

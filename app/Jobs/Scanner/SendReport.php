@@ -2,6 +2,7 @@
 
 namespace App\Jobs\Scanner;
 
+use App\Enums\Frame;
 use App\Enums\Language;
 use App\Exceptions\ScanningError;
 use App\Jobs\Middleware\Localized;
@@ -41,6 +42,12 @@ class SendReport implements ShouldQueue
 
             $this->token->network->job::dispatchSync($this->token, $this->language, $this->account);
             $this->token->refresh();
+
+            $created_at = $this->token->pools()->first()->created_at;
+            if ($created_at >= now()->subDay()) $this->account->frame = Frame::MINUTE;
+            else if ($created_at >= now()->subMonth()) $this->account->frame = Frame::MINUTES;
+            else if ($created_at >= now()->subMonths(3)) $this->account->frame = Frame::HOURS;
+            else if ($created_at >= now()->subMonths(6)) $this->account->frame = Frame::DAY;
 
             $this->account->is_show_chart_text = true;
             $this->account->save();
