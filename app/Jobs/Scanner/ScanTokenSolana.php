@@ -107,6 +107,6 @@ class ScanTokenSolana implements ShouldQueue
 
     private function checkLiquidity(): bool
     {
-        return $this->token->pools()->where('reserve', '<', 5)->exists();
+        return $this->token->pools()->where('reserve', '<', 500)->exists();
     }
 }

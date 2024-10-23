@@ -45,10 +45,10 @@ class TokenReportService
         $alert = '';
         $alerts = [
             'is_warn_honeypot',
+            'is_warn_liquidity',
             'is_warn_rugpull',
             'is_warn_original',
             'is_warn_scam',
-            'is_warn_liquidity',
         ];
 
         if ($this->is_finished)
@@ -61,7 +61,7 @@ class TokenReportService
         $is_ton_network = $token->network->slug === 'ton';
         $lp_burned_warning = $this->is_show_warnings && $token->is_warn_burned && $this->is_finished && $is_ton_network;
         $is_revoked_warning = $this->is_show_warnings && $this->is_finished;
-        $is_scam = $token->is_warn_honeypot || $token->is_warn_scam || $token->is_warn_rugpull;
+        $is_scam = $token->is_warn_honeypot || $token->is_warn_scam;
 
         foreach ($token->pools as $pool) {
 
