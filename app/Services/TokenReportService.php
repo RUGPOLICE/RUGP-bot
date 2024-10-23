@@ -7,7 +7,6 @@ use App\Enums\Lock;
 use App\Enums\Reaction;
 use App\Models\Token;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 use Imagick;

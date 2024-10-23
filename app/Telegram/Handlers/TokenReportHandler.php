@@ -108,8 +108,22 @@ class TokenReportHandler
         if (array_key_exists('image', $params))
             $options['image'] = $params['image'];
 
-        if (!$message_id) $bot->sendImagedMessage($params['text'], self::getButtons($token, $type), $options, $chat_id, $message_id);
-        else $bot->editImagedMessage($params['text'], self::getButtons($token, $type), $options, $chat_id, $message_id);
+        try {
+
+            if (!$message_id) $bot->sendImagedMessage($params['text'], self::getButtons($token, $type), $options, $chat_id, $message_id);
+            else $bot->editImagedMessage($params['text'], self::getButtons($token, $type), $options, $chat_id, $message_id);
+
+        } catch (\Throwable $e) {
+
+            if (!str_contains($e->getMessage(), 'MEDIA_EMPTY'))
+                throw $e;
+
+            $options['image'] = public_path('img/blank.png');
+            if (!$message_id) $bot->sendImagedMessage($params['text'], self::getButtons($token, $type), $options, $chat_id, $message_id);
+            else $bot->editImagedMessage($params['text'], self::getButtons($token, $type), $options, $chat_id, $message_id);
+
+        }
+
     }
 
 
