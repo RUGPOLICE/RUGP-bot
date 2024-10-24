@@ -102,7 +102,7 @@ Please report bot bugs in tg chat. 🙏
                     'warning' => "
 ⚠️ Liquidity (LP) not burned or locked.
 - If you trust the project, then it doesn't matter.
-- DYOR --> ♻️.
+- DYOR -> ♻️.
 "
                 ],
                 'lp_locked' => [

@@ -47,6 +47,13 @@ export async function checkForHoneypot(address, dex) {
             taxTransfer: simulation.stonfi?.transfer,
             stack: simulation.stonfi,
         },
+        'stonfi-v2': {
+            pool: simulation['stonfi-v2']?.pool?.toString(),
+            taxBuy: simulation['stonfi-v2']?.buy,
+            taxSell: simulation['stonfi-v2']?.sell,
+            taxTransfer: simulation['stonfi-v2']?.transfer,
+            stack: simulation['stonfi-v2'],
+        },
     };
 
 }

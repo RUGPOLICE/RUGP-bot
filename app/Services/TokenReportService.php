@@ -101,7 +101,7 @@ class TokenReportService
                 'name' => $pool->dex->name,
                 'price' => $pool->price_formatted,
                 'lp_burned' => $lp_burned,
-                'lp_locked' => $lp_locked,
+                'lp_locked' => $this->is_for_group ? str_replace('♻️', "<code>/h $$token->symbol</code>", $lp_locked) : $lp_locked,
                 'tax_buy' => $tax_buy,
                 'tax_sell' => $tax_sell,
             ]);

@@ -63,6 +63,9 @@ class TokenScannerMenu extends ImagedEditableInlineMenu
 
         }
 
+        if (str_contains($address, '://'))
+            $address = array_reverse(explode('://', $address))[0];
+
         $address = Token::getAddress($address, $account->network);
         if (!$address['success']) {
 
