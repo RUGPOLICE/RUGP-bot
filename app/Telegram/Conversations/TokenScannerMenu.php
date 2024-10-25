@@ -5,6 +5,7 @@ namespace App\Telegram\Conversations;
 use App\Enums\RequestModule;
 use App\Enums\RequestSource;
 use App\Jobs\Scanner\SendReport;
+use App\Models\Account;
 use App\Models\Network;
 use App\Models\Request;
 use App\Models\Token;
@@ -18,7 +19,10 @@ class TokenScannerMenu extends ImagedEditableInlineMenu
 {
     public function start(Nutgram $bot, string $referrer = HomeMenu::class): void
     {
-        $network = $bot->get('account')->network ?? Network::getDefault();
+        /** @var Account $account */
+        $account = $bot->get('account');
+
+        $network = $account->network ?? Network::getDefault();
         $buttons = match ($referrer) {
             HomeMenu::class => [
                 InlineKeyboardButton::make(__('telegram.buttons.back'), callback_data: 'back@menu'),
@@ -29,7 +33,8 @@ class TokenScannerMenu extends ImagedEditableInlineMenu
             ],
         };
 
-        $this->menuText(__('telegram.text.token_scanner.main', ['network' => $network->name]))
+        $examples = $account->is_show_warnings ? __('telegram.text.token_scanner.examples') : '';
+        $this->menuText(__('telegram.text.token_scanner.main', ['network' => $network->name]) . $examples)
             ->clearButtons()
             ->addButtonRow(... $buttons)
             ->orNext('handle')
@@ -125,13 +130,6 @@ class TokenScannerMenu extends ImagedEditableInlineMenu
 
                 $soon = array_map(fn ($n) => InlineKeyboardButton::make(__('telegram.buttons.network_soon'), callback_data: "nullslug@network"), range(1, $perRow - $chunk->count()));
                 $this->addButtonRow(... ($chunk->all() + $soon));
-
-            }
-
-            foreach (range(1, 4 - $networks->count()) as $chunk) {
-
-                $soon = array_map(fn ($n) => InlineKeyboardButton::make(__('telegram.buttons.network_soon'), callback_data: "nullslug@network"), range(1, 4));
-                $this->addButtonRow(... $soon);
 
             }
 

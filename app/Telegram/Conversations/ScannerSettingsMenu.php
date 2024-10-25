@@ -91,13 +91,6 @@ class ScannerSettingsMenu extends ImagedEditableInlineMenu
 
             }
 
-            foreach (range(1, 4 - $networks->count()) as $chunk) {
-
-                $soon = array_map(fn ($n) => InlineKeyboardButton::make(__('telegram.buttons.network_soon'), callback_data: "nullslug@network"), range(1, 4));
-                $this->addButtonRow(... $soon);
-
-            }
-
             $this->showMenu();
         }
 

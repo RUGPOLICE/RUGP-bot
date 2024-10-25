@@ -59,6 +59,13 @@ class PublicTokenReportHandler
             $token->save();
 
             $network->job::dispatchSync($token, $bot->get('chat')->language, $bot->get('chat'));
+            $token->refresh();
+
+            $created_at = $token->pools()->first()->created_at;
+            if ($created_at >= now()->subDay()) $frame = Frame::MINUTE;
+            else if ($created_at >= now()->subMonth()) $frame = Frame::MINUTES;
+            else if ($created_at >= now()->subMonths(3)) $frame = Frame::HOURS;
+            else $frame = Frame::DAY;
 
         } catch (Throwable $e) {
 
@@ -71,11 +78,11 @@ class PublicTokenReportHandler
 
         Request::log($bot->get('chat'), $token, RequestSource::TELEGRAM, RequestModule::SCANNER);
 
-        [$message, $options] = $this->getReport($bot, $token, $type);
+        [$message, $options] = $this->getReport($bot, $token, $type, $frame);
         $this->send($bot, $message, $options);
     }
 
-    private function getReport(Nutgram $bot, Token $token, string $type): array
+    private function getReport(Nutgram $bot, Token $token, string $type, Frame $frame): array
     {
         /** @var Chat $chat */
         $chat = $bot->get('chat');
@@ -87,7 +94,7 @@ class PublicTokenReportHandler
         $options = ['link_preview_options' => LinkPreviewOptions::make(is_disabled: true)];
         $params = match($type) {
             'main' => $tokenReportService->main($token),
-            'chart' => $tokenReportService->chart($token, Frame::DAY, is_show_text: true),
+            'chart' => $tokenReportService->chart($token, $frame, is_show_text: true),
             'holders' => $tokenReportService->holders($token),
         };
 

@@ -47,7 +47,7 @@ class SendReport implements ShouldQueue
             if ($created_at >= now()->subDay()) $this->account->frame = Frame::MINUTE;
             else if ($created_at >= now()->subMonth()) $this->account->frame = Frame::MINUTES;
             else if ($created_at >= now()->subMonths(3)) $this->account->frame = Frame::HOURS;
-            else if ($created_at >= now()->subMonths(6)) $this->account->frame = Frame::DAY;
+            else $this->account->frame = Frame::DAY;
 
             $this->account->is_show_chart_text = true;
             $this->account->save();

@@ -84,13 +84,6 @@ class SettingsHandler
 
             }
 
-            foreach (range(1, 4 - $networks->count()) as $chunk) {
-
-                $soon = array_map(fn ($n) => InlineKeyboardButton::make(__('telegram.buttons.network_soon'), callback_data: "scanner:settings:network:0"), range(1, 4));
-                $buttons->addRow(... $soon);
-
-            }
-
             $this->send($bot, $chat, $buttons);
         }
 

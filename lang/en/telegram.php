@@ -16,7 +16,7 @@ The user is responsible for verifying the accuracy of the information provided a
 Tools:
 
 <b>🔎 Token Scanner</b> - <code>Scam check + Complete information about the token. Tool for DYOR.</code>
-BETA 0.1
+BETA 0.2
 
 <b>👀 Wallet Tracker</b> - <code>Realtime wallets tracking.</code>
 🔜
@@ -41,6 +41,7 @@ Please report bot bugs in tg chat. 🙏
 ",
         'token_scanner' => [
             'main' => "👇 Enter a token name with <b>$</b>, token address, pool address or dex link.\nNetwork: <b>:network</b>",
+            'examples' => "\n\nExamples:\nSymbol: <code>\$rugp</code>\nToken address: <code>EQAXUTLNVMa_Hbm_GX2NzxvtoOA_iJU2d5Tf0E715MY_RUGP</code>\nPool address: <code>EQAarUZyr_WFG3sdV9wY6ft5a-Ugm1_bbHjNKrSC32UzI_As</code>\nLink: <code>https://www.geckoterminal.com/ton/pools/EQAarUZyr_WFG3sdV9wY6ft5a-Ugm1_bbHjNKrSC32UzI_As</code>",
             'pending' => "🔎 Scanning. The report will be sent to you shortly.",
             "watermark" => "
 <a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugpolicenews'>Telegram</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
@@ -51,7 +52,7 @@ Please report bot bugs in tg chat. 🙏
 <b>ℹ️ INFO</b>
 
 <b>:name | $:symbol on :NETWORK</b>
-<code>:address</code>:description_title<i>:description</i>
+<code>:address</code>\n:alert:description_title<i>:description</i>
 
 :is_known_master
 :is_known_wallet
@@ -75,7 +76,7 @@ Please report bot bugs in tg chat. 🙏
 ",
                 'link' => "<a href=':url'><b>:Label</b></a> ",
                 'links_title' => "\n<u><b>Socials:</b></u>\n",
-                'description_title' => "\n\n<u><b>Description:</b></u>\n",
+                'description_title' => "\n<u><b>Description:</b></u>\n",
                 'is_finished' => "\nClick 🔎 for new scan.",
                 'is_known_master' => [
                     'yes' => "✅ VERIFIED MASTER",
@@ -131,7 +132,7 @@ Please report bot bugs in tg chat. 🙏
                     'danger' => "├<i>❌ Sell tax</i>: <b>:value%</b>",
                 ],
                 'alerts' => [
-                    'is_warn_honeypot' => "\n‼️HONEYPOT‼️SCAM‼️\n",
+                    'is_warn_honeypot' => "\n❌HONEYPOT❌SCAM❌\n",
                     'is_warn_rugpull' => "\n⁉️WARNING, Potential RUGPULL⁉️\n",
                     'is_warn_original' => "\n✅✅ORIGINAL COIN✅✅\n",
                     'is_warn_scam' => "\n‼️SCAM‼️\n",
@@ -207,7 +208,7 @@ Please report bot bugs in tg chat. 🙏
         'settings' => [
             'main' => "
 🔎 Token Scanner - Scam check + Complete information about the token.
-BETA 0.1
+BETA 0.2
 <a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugpolicenews'>Telegram chat</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
 
 
@@ -242,12 +243,12 @@ Network: <b>:network</b>
                 'yes' => "ON",
                 'no' => "OFF",
             ],
-            'network' => "Choose network",
+            'network' => "Choose network\n⚠️ All networks except TON are in test mode. Check for further updates.",
             'blank_network' => "None",
         ],
         'group' => "
 🔎 Token Scanner - Scam check + Complete information about the token.
-BETA 0.1
+BETA 0.2
 <a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugpolicenews'>Telegram chat</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
 
 Add bot to your group with admin rights.
@@ -312,7 +313,7 @@ Main bot - - > @rugpbot
         'rules' => "TERMS OF USE",
         'language' => "LANG",
         'network' => "NETWORK",
-        'network_soon' => "SOON",
+        'network_soon' => "🚧",
     ],
     'commands' => [
         'private' => [

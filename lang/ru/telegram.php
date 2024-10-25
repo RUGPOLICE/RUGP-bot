@@ -16,7 +16,7 @@ return [
 Основные инструменты:
 
 <b>🔎 Token Scanner</b> - <code>Инструмент для получения информации о токене (проверка на скам, холдеры, цена, объем).</code>
-BETA 0.1
+BETA 0.
 
 <b>👀 Wallet Tracker</b> - <code>С помощью этого инструмента Вы сможете следить за любыми движениями на кошельках (успешного инвестора, крупного холдера проекта или создателя монеты).</code>
 🔜
@@ -41,6 +41,7 @@ BETA 0.1
 ",
         'token_scanner' => [
             'main' => "👇 Введите название с <b>$</b>, адрес токена, пула или ссылку с биржи.\nПриоритетная сеть: <b>:network</b>",
+            'examples' => "\n\nПримеры:\nНазвание токена: <code>\$rugp</code>\nАдрес токена: <code>EQAXUTLNVMa_Hbm_GX2NzxvtoOA_iJU2d5Tf0E715MY_RUGP</code>\nАдрес пула: <code>EQAarUZyr_WFG3sdV9wY6ft5a-Ugm1_bbHjNKrSC32UzI_As</code>\nСсылка с биржи: <code>https://www.geckoterminal.com/ton/pools/EQAarUZyr_WFG3sdV9wY6ft5a-Ugm1_bbHjNKrSC32UzI_As</code>",
             'pending' => "🔎 Сканирую. Отчет будет отправлен вам сообщением, как только будет готов.",
             "watermark" => "
 <a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugpolicenews'>Telegram</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
@@ -51,7 +52,7 @@ BETA 0.1
 <b>ℹ️ ОБЩАЯ ИНФОРМАЦИЯ</b>
 
 <b>:name | $:symbol on :NETWORK</b>
-<code>:address</code>:description_title<i>:description</i>
+<code>:address</code>\n:alert:description_title<i>:description</i>
 
 :is_known_master
 :is_known_wallet
@@ -75,7 +76,7 @@ BETA 0.1
 ",
                 'link' => "<a href=':url'><b>:Label</b></a> ",
                 'links_title' => "\n<u><b>Соцсети:</b></u>\n",
-                'description_title' => "\n\n<u><b>Описание:</b></u>\n",
+                'description_title' => "\n<u><b>Описание:</b></u>\n",
                 'is_finished' => "\nНажми 🔎 для нового скана.",
                 'is_known_master' => [
                     'yes' => "✅ Стандартный код контракта",
@@ -131,7 +132,7 @@ BETA 0.1
                     'danger' => "├<i>❌ % на продажу</i>: <b>:value%</b>",
                 ],
                 'alerts' => [
-                    'is_warn_honeypot' => "\n‼️HONEYPOT‼️SCAM‼️\n",
+                    'is_warn_honeypot' => "\n❌HONEYPOT❌SCAM❌\n",
                     'is_warn_rugpull' => "\n⁉️ОСТОРОЖНО, ВЕРОЯТНО RUGPULL⁉️\n",
                     'is_warn_original' => "\n✅✅ОРИГИНАЛЬНЫЙ ТОКЕН✅✅\n",
                     'is_warn_scam' => "\n‼️SCAM‼️\n",
@@ -207,7 +208,7 @@ BETA 0.1
         'settings' => [
             'main' => "
 🔎 RUGP Token Scanner - Инструмент для получения информации о токене (проверка на скам, холдеры, цена, объем).
-BETA 0.1
+BETA 0.
 <a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugpolicenews'>Telegram чат</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
 
 
@@ -242,7 +243,7 @@ BETA 0.1
                 'yes' => "ВКЛ",
                 'no' => "ВЫКЛ",
             ],
-            'network' => "Выберите сеть",
+            'network' => "Выберите сеть\n⚠️ Все сети кроме TON в тестовом режиме. Ждите дальнейших обновлений.",
             'blank_network' => "Не выбрана",
         ],
         'group' => "
@@ -326,7 +327,7 @@ BETA 0.2
         'rules' => "Правила",
         'language' => "Язык",
         'network' => "Сеть",
-        'network_soon' => "Скоро",
+        'network_soon' => "🚧",
     ],
     'commands' => [
         'private' => [
