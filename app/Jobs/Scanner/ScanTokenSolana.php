@@ -71,10 +71,10 @@ class ScanTokenSolana implements ShouldQueue
 
     private function updateStatistics(): void
     {
-        $this->token->is_warn_honeypot = $this->checkHoneypot();
+        $this->token->is_warn_honeypot = $this->token->is_warn_honeypot || $this->checkHoneypot();
         $this->token->is_warn_rugpull = $this->checkRugpull();
         $this->token->is_warn_original = $this->checkOriginal();
-        $this->token->is_warn_scam = $this->checkScam();
+        $this->token->is_warn_scam = $this->token->is_warn_scam || $this->checkScam();
         $this->token->is_warn_liquidity = $this->checkLiquidity();
 
         $this->token->sendNotification($this->source);

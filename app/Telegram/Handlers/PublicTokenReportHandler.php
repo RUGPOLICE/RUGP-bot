@@ -18,31 +18,28 @@ use Throwable;
 
 class PublicTokenReportHandler
 {
-    public function publicMain(Nutgram $bot, string $search, ?string $explicit_network = ''): void
+    public function publicMain(Nutgram $bot, string $search, ?string $explicit_network = null): void
     {
-        $this->public($bot, $search . ($explicit_network ?? ''), 'main');
+        $this->public($bot, $search, 'main', $explicit_network);
     }
 
-    public function publicPrice(Nutgram $bot, string $search, ?string $explicit_network = ''): void
+    public function publicPrice(Nutgram $bot, string $search, ?string $explicit_network = null): void
     {
-        $this->public($bot, $search . ($explicit_network ?? ''), 'chart');
+        $this->public($bot, $search, 'chart', $explicit_network);
     }
 
-    public function publicHolders(Nutgram $bot, string $search, ?string $explicit_network = ''): void
+    public function publicHolders(Nutgram $bot, string $search, ?string $explicit_network = null): void
     {
-        $this->public($bot, $search . ($explicit_network ?? ''), 'holders');
+        $this->public($bot, $search, 'holders', $explicit_network);
     }
 
-    public function public(Nutgram $bot, string $search, string $type): void
+    public function public(Nutgram $bot, string $search, string $type, ?string $explicit_network = null): void
     {
-        @[$address, $explicit_network] = explode(' ', $search, limit: 2);
-        if (isset($explicit_network) && !Network::query()->pluck('slug')->contains($explicit_network))
+        $networks = Network::all();
+        if ($explicit_network && !$networks->pluck('slug')->contains(strtolower($explicit_network)) && !$networks->pluck('alias')->contains(strtolower($explicit_network)))
             return;
 
-        if (str_contains($search, 'http'))
-            return;
-
-        $address = Token::getAddress($search, $bot->get('chat')?->network);
+        $address = Token::getAddress($search . ' ' . strtolower($explicit_network), $bot->get('chat')?->network);
         if (!$address['success']) {
 
             $this->send($bot, $address['error']);

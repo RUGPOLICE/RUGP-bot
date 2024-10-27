@@ -55,9 +55,14 @@ class TelegramController extends Controller
             $bot->onCommand('start', GroupStartHandler::class)->middleware(PrivateHandler::class);
             $bot->group(function (Nutgram $bot) use ($admin) {
 
-                $bot->onText('(\$.*|EQ.{46}|0x.{40}|T.{33}|.{43}|.{44}){explicit_network}', [PublicTokenReportHandler::class, 'publicMain']);
-                $bot->onCommand($admin[0] . ' (\$.*|EQ.{46}|0x.{40}|T.{33}|.{43}|.{44}){explicit_network}', [PublicTokenReportHandler::class, 'publicPrice']);
-                $bot->onCommand($admin[1] . ' (\$.*|EQ.{46}|0x.{40}|T.{33}|.{43}|.{44}){explicit_network}', [PublicTokenReportHandler::class, 'publicHolders']);
+                $bot->onText('^(\$[a-zA-Z0-9-_\$]*|EQ[a-zA-Z0-9-_]{46}|0x[a-zA-Z0-9-_]{40}|T[a-zA-Z0-9-_]{33}|[a-zA-Z0-9-_]{43}|[a-zA-Z0-9-_]{44}) {explicit_network}$', [PublicTokenReportHandler::class, 'publicMain'])->whereAlpha('explicit_network');
+                $bot->onText('^(\$[a-zA-Z0-9-_\$]*|EQ[a-zA-Z0-9-_]{46}|0x[a-zA-Z0-9-_]{40}|T[a-zA-Z0-9-_]{33}|[a-zA-Z0-9-_]{43}|[a-zA-Z0-9-_]{44})$', [PublicTokenReportHandler::class, 'publicMain']);
+
+                $bot->onCommand($admin[0] . ' (\$[a-zA-Z0-9-_\$]*|EQ[a-zA-Z0-9-_]{46}|0x[a-zA-Z0-9-_]{40}|T[a-zA-Z0-9-_]{33}|[a-zA-Z0-9-_]{43}|[a-zA-Z0-9-_]{44}) {explicit_network}$', [PublicTokenReportHandler::class, 'publicPrice'])->whereAlpha('explicit_network');
+                $bot->onCommand($admin[0] . ' (\$[a-zA-Z0-9-_\$]*|EQ[a-zA-Z0-9-_]{46}|0x[a-zA-Z0-9-_]{40}|T[a-zA-Z0-9-_]{33}|[a-zA-Z0-9-_]{43}|[a-zA-Z0-9-_]{44})$', [PublicTokenReportHandler::class, 'publicPrice']);
+
+                $bot->onCommand($admin[1] . ' (\$[a-zA-Z0-9-_\$]*|EQ[a-zA-Z0-9-_]{46}|0x[a-zA-Z0-9-_]{40}|T[a-zA-Z0-9-_]{33}|[a-zA-Z0-9-_]{43}|[a-zA-Z0-9-_]{44}) {explicit_network}$', [PublicTokenReportHandler::class, 'publicHolders'])->whereAlpha('explicit_network');
+                $bot->onCommand($admin[1] . ' (\$[a-zA-Z0-9-_\$]*|EQ[a-zA-Z0-9-_]{46}|0x[a-zA-Z0-9-_]{40}|T[a-zA-Z0-9-_]{33}|[a-zA-Z0-9-_]{43}|[a-zA-Z0-9-_]{44})$', [PublicTokenReportHandler::class, 'publicHolders']);
 
                 $bot->onMyChatMember(function (Nutgram $bot) {
                     if ($bot->chatMember()->new_chat_member->status == ChatMemberStatus::MEMBER)
