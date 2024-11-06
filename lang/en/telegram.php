@@ -61,6 +61,7 @@ Please report bot bugs in tg chat. 🙏
 
 <b>🔢 Supply:</b> :supply
 <b>👨‍👦‍👦 Holders:</b> :holders_count
+<b>🛢 Market Cap:</b> $:market_cap
 
 🔄 <u><b>DEX's:</b></u>
 :pools:alert:lp_burned_warning:links_title:links

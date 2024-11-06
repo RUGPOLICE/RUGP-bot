@@ -135,6 +135,7 @@ class TokenReportService
 
                 'supply' => number_format($token->supply),
                 'holders_count' => number_format($token->holders_count),
+                'market_cap' => number_format($token->pools->first()->fdv ?? 0.0, 2),
                 'pools' => implode('', $pools),
                 'alert' => $alert,
 

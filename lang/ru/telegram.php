@@ -61,6 +61,7 @@ BETA 0.
 
 <b>🔢 Кол-во монет:</b> :supply
 <b>👨‍👦‍👦 Кол-во холдеров:</b> :holders_count
+<b>🛢 Market Cap:</b> $:market_cap
 
 🔄 <u><b>Биржи:</b></u>
 :pools:alert:lp_burned_warning:links_title:links
