@@ -94,13 +94,13 @@ class HomeMenu extends ImagedInlineMenu
     public function menuFront(Nutgram $bot): void
     {
         $this->clearButtons();
-        $this->menuText(__('telegram.text.home'), ['image' => public_path('img/home.png')]);
+        $this->menuText(__('telegram.text.home', ['requests_count' => GptMenu::MAX_ATTEMPTS]), ['image' => public_path('img/home.png')]);
         $this->addButtonRow(
             InlineKeyboardButton::make(__('telegram.buttons.token_scanner'), callback_data: 'token_scanner@menuBack'),
             InlineKeyboardButton::make(__('telegram.buttons.wallet_tracker'), callback_data: 'wallet_tracker@menuBack'),
         );
         $this->addButtonRow(
-            InlineKeyboardButton::make(__('telegram.buttons.black_box'), callback_data: 'black_box@menuBack'),
+            InlineKeyboardButton::make(__('telegram.buttons.black_box'), callback_data: 'blackbox@menuBack'),
             InlineKeyboardButton::make(__('telegram.buttons.check_wallet'), callback_data: 'check_wallet@menuBack'),
         );
         $this->addButtonRow(
@@ -118,7 +118,8 @@ class HomeMenu extends ImagedInlineMenu
         $this->end();
         match ($bot->callbackQuery()->data) {
             'token_scanner' => TokenScannerMenu::begin($bot, data: ['referrer' => HomeMenu::class]),
-            'wallet_tracker', 'black_box', 'check_wallet', 'academy' => HomeMenu::begin($bot),
+            'blackbox' => ReportMenu::begin($bot),
+            'wallet_tracker', 'check_wallet', 'academy' => HomeMenu::begin($bot),
             'profile' => ProfileMenu::begin($bot),
             'gpt' => GptMenu::begin($bot),
         };

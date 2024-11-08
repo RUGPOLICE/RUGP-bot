@@ -16,13 +16,13 @@ The user is responsible for verifying the accuracy of the information provided a
 Tools:
 
 <b>🔎 Token Scanner</b> - <code>Scam check + Complete information about the token. Tool for DYOR.</code>
-BETA 0.2
+BETA 0.3
 
 <b>👀 Wallet Tracker</b> - <code>Realtime wallets tracking.</code>
 🔜
 
-<b>🗃 Blackbox</b> - <code>To send insights about fraudulent schemes or scammers anonymously to RUGP.</code>
-🔜
+<b>🗃 Blackbox</b> - <code>To send insights about fraudulent schemes or scammers anonymously to RUGP.
+Found a bug or error in our service? Have a suggestion? Use this feature, and we will review everything 📤</code>
 
 <b>🚨 Check My Wallet</b> - <code>Check your wallet for scams and vulnerabilities.</code>
 🔜
@@ -30,10 +30,9 @@ BETA 0.2
 <b>📚 Academy</b> - <code>Free educational stuff.</code>
 🔜
 
-<b>💡 GPT</b> - <code>Free GPT to ask about crypto.</code>
-🔜
+<b>💡 RUGPto</b> - <code>Free GPT to ask about crypto. You have :requests_count requests daily</code>
 
-   <a href='http://rugp.io'>WEB</a>   |    <a href='https://t.me/rugpolicenews'>Telegram chat</a>    |     <a href='https://x.com/rugp_ton'>Twitter</a>
+   <a href='http://rugp.io'>WEB</a>   |    <a href='https://t.me/rugpolicenews'>Telegram</a>    |     <a href='https://x.com/rugp_ton'>Twitter</a>
 
 © RUGP - anti-scam community and utilities on TON.
 Please report bot bugs in tg chat. 🙏
@@ -110,7 +109,9 @@ Please report bot bugs in tg chat. 🙏
                 'lp_locked' => [
                     'yes' => "\n└🔒 <i>LP locked</i>\n<b>:value% on <a href=':link'>:type</a></b> :unlocks",
                     'no' => "\n└🔒 <i>LP not locked</i>",
-                    'multiple' => "\n└🔒 <i>Multiple locks (:value%) -> ♻️</i>",
+                    'multiple' => "\n└🔒 <i>Multiple locks (:value%) -> ♻️</i>:examples",
+                    'examples' => " Including:",
+                    'example' => "\n- <a href=':link'>:type</a> (:value%:unlocks)",
                     'scan' => "\n└🔎 <i>Scanning...</i>",
                     'burned' => "",
                     'unlocks' => "till :value",
@@ -209,8 +210,8 @@ Please report bot bugs in tg chat. 🙏
         'settings' => [
             'main' => "
 🔎 Token Scanner - Scam check + Complete information about the token.
-BETA 0.2
-<a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugpolicenews'>Telegram chat</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
+BETA 0.3
+<a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugpolicenews'>Telegram</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
 
 
 <u>SETTINGS</u>
@@ -249,17 +250,13 @@ Network: <b>:network</b>
         ],
         'group' => "
 🔎 Token Scanner - Scam check + Complete information about the token.
-BETA 0.2
-<a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugpolicenews'>Telegram chat</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
+BETA 0.3
+<a href='http://rugp.io'>WEB</a> | <a href='https://t.me/rugpolicenews'>Telegram</a> | <a href='https://x.com/rugp_ton'>Twitter</a>
 
 Add bot to your group with admin rights.
 
 Main bot - - > @rugpbot
 ",
-        'gpt' => [
-            'main' => "Enter prompt",
-            'error' => "Error. Try again later.",
-        ],
     ],
     'errors' => [
         'address' => [
@@ -285,10 +282,10 @@ Main bot - - > @rugpbot
 
         'token_scanner' => "🔎 Token Scanner",
         'wallet_tracker' => "🔜 Wallet Tracker",
-        'black_box' => "🔜 Black Box",
+        'black_box' => "🗃️ Black Box",
         'check_wallet' => "🔜 Check My Wallet",
         'academy' => "🔜 Academy",
-        'gpt' => "🔜 GPTo",
+        'gpt' => "💡 RUGPto",
         'profile' => "⚙️ My profile",
 
         'report' => "ℹ️", // Главная в отчете
@@ -318,8 +315,10 @@ Main bot - - > @rugpbot
     ],
     'commands' => [
         'private' => [
-            'start' => 'Update the Bot',
+            'start' => 'Home',
             'scan' => 'Scan token',
+            'bb' => 'Blackbox',
+            'gpt' => 'RUGPto',
         ],
         'public' => [
             'p' => 'Get token price report',

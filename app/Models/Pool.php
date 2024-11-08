@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Collection;
 
 /**
  * @property integer $id
@@ -39,6 +40,7 @@ use Illuminate\Database\Schema\Blueprint;
  * @property integer $h24_sells
  * @property integer $burned_amount
  * @property float $burned_percent
+ * @property Collection $locks
  * @property Lock $locked_type
  * @property integer $locked_amount
  * @property float $locked_percent
@@ -80,6 +82,7 @@ class Pool extends Model
         'h24_sells',
         'burned_amount',
         'burned_percent',
+        'locks',
         'locked_type',
         'locked_amount',
         'locked_percent',
@@ -97,6 +100,7 @@ class Pool extends Model
     {
         return [
             'holders' => AsCollection::class,
+            'locks' => AsCollection::class,
             'locked_type' => Lock::class,
             'unlocks_at' => 'datetime',
         ];
@@ -142,6 +146,7 @@ class Pool extends Model
         $table->double('burned_amount')->nullable();
         $table->decimal('burned_percent')->nullable();
 
+        $table->json('locks')->nullable();
         $table->integer('locked_type')->nullable();
         $table->double('locked_amount')->nullable();
         $table->decimal('locked_percent')->nullable();

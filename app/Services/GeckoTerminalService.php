@@ -71,11 +71,12 @@ class GeckoTerminalService
 
             [$n, $base_token] = explode('_', $pool['relationships']['base_token']['data']['id'], 2);
             [$n, $quote_token] = explode('_', $pool['relationships']['quote_token']['data']['id'], 2);
-            $dex = $pool['relationships']['dex']['data']['id'];
+            // $dex = $pool['relationships']['dex']['data']['id'];
 
-            $n = Network::query()->where('slug', $n)->first();
-            if (in_array($n?->token, [$base_token, $quote_token]))
-                return [$network, $base_token === $n->token ? $quote_token : $base_token];
+            // $n = Network::query()->where('slug', $n)->first();
+            return [$network, $base_token];
+            // if (in_array($n?->token, [$base_token, $quote_token]))
+            //     return [$network, $base_token === $n->token ? $quote_token : $base_token];
 
         }
 
@@ -144,8 +145,8 @@ class GeckoTerminalService
         $network = Network::query()->where('slug', $network)->first();
         foreach ($response['data'] as $pool) {
 
-            $base = explode('_', $pool['relationships']['quote_token']['data']['id'])[1];
-            if ($network->token === $base)
+            // $base = explode('_', $pool['relationships']['quote_token']['data']['id'])[1];
+            // if ($network->token === $base)
                 return [
                     'address' => $pool['attributes']['address'],
                     'dex' => $pool['relationships']['dex']['data']['id'],
@@ -153,6 +154,7 @@ class GeckoTerminalService
                     'created_at' => Carbon::createFromFormat('Y-m-d\TH:i:s\Z', $pool['attributes']['pool_created_at']),
                     'fdv' => $pool['attributes']['fdv_usd'] ?? null,
                     'reserve' => $pool['attributes']['reserve_in_usd'] ?? null,
+                    'market_cap' => $pool['attributes']['market_cap_usd'] ?? null,
                     'm5_volume' => $pool['attributes']['volume_usd']['m5'] ?? null,
                     'm5_price_change' => $pool['attributes']['price_change_percentage']['m5'] ?? null,
                     'm5_buys' => $pool['attributes']['transactions']['m5']['buys'] ?? null,

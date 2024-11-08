@@ -77,6 +77,7 @@ class TonService
         $lockedAmount = null;
         $lockedType = null;
         $unlocksAt = null;
+        $locks = collect();
 
         foreach ($holders as $holder) {
 
@@ -95,6 +96,12 @@ class TonService
                     $time = Carbon::createFromTimestamp(intval($response['stack'][3]['num'], 16));
                     $unlocksAt = $time > now()->addYears(5) ? now()->addYears(5) : $time;
 
+                    $locks->push([
+                        'type' => Lock::RAFFLE->value,
+                        'amount' => intval($response['stack'][4]['num'], 16),
+                        'until' => $unlocksAt->timestamp,
+                    ]);
+
                 } else {
 
                     $lockedAmount = ($lockedAmount ?? 0) + $holder['balance'];
@@ -107,6 +114,11 @@ class TonService
                 $lockedAmount = ($lockedAmount ?? 0) + $holder['balance'];
                 $lockedType = $lockedType ?? Lock::TONINU;
 
+                $locks->push([
+                    'type' => Lock::TONINU->value,
+                    'amount' => $holder['balance'],
+                ]);
+
             }
 
         }
@@ -114,6 +126,7 @@ class TonService
         $burnedPercent = $burnedAmount !== null ? ($burnedAmount / $supply * 100) : $burnedAmount;
         $lockedPercent = $lockedAmount !== null ? ($lockedAmount / $supply * 100) : $lockedAmount;
 
+        $locks = $locks->map(fn ($l) => array_merge($l, ['percent' => $l['amount'] / $supply * 100]));
         $isSmallLock = $lockedPercent && $lockedPercent < 100;
         $hasLargeHolders = boolval(array_filter($holders, fn ($item) => ($item['balance'] / $supply * 100) > 5));
         $isUnlocked = $unlocksAt && $unlocksAt < now();
@@ -121,6 +134,7 @@ class TonService
 
         return [
             'holders' => $holders,
+            'locks' => $locks,
             'burned_amount' => $burnedAmount,
             'locked_amount' => $lockedAmount,
             'burned_percent' => $burnedPercent,

@@ -2,6 +2,7 @@
 
 namespace App\Telegram\Mixins;
 
+use Illuminate\Support\Facades\Log;
 use SergiX44\Nutgram\Telegram\Exceptions\TelegramException;
 use SergiX44\Nutgram\Telegram\Properties\ParseMode;
 use SergiX44\Nutgram\Telegram\Types\Input\InputMediaPhoto;
@@ -25,7 +26,7 @@ class ImagedMessage
                 $options['reply_to_message_id'] = $reply_to_message_id;
 
             $options['reply_markup'] = $buttons;
-            $options['parse_mode'] = ParseMode::HTML;
+            $options['parse_mode'] = $options['parse_mode'] ?? ParseMode::HTML;
 
             if (array_key_exists('image', $options) && $options['image']) {
 
@@ -59,7 +60,7 @@ class ImagedMessage
             if ($message_id) $options['message_id'] = $message_id;
 
             $options['reply_markup'] = $buttons;
-            $options['parse_mode'] = ParseMode::HTML;
+            $options['parse_mode'] = $options['parse_mode'] ?? ParseMode::HTML;
             unset($options['reply_to_message_id']);
 
             try {
@@ -68,6 +69,7 @@ class ImagedMessage
 
                     // $options['show_caption_above_media'] = true;
                     $image = $options['image'];
+                    $parse_mode = $options['parse_mode'] ?? ParseMode::HTML;
 
                     unset($options['image']);
                     unset($options['link_preview_options']);
@@ -79,7 +81,7 @@ class ImagedMessage
                         media: InputMediaPhoto::make(
                             media: mb_strpos($image, 'https') !== false ? $image : InputFile::make(fopen($image, 'r+')),
                             caption: $text,
-                            parse_mode: ParseMode::HTML,
+                            parse_mode: $parse_mode,
                         ),
                     );
 

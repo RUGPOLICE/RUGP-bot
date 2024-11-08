@@ -17,6 +17,15 @@ enum Lock: int
         ];
     }
 
+    public static function key(int $value): self
+    {
+        return match ($value) {
+            self::RAFFLE->value => self::RAFFLE,
+            self::TONINU->value => self::TONINU,
+            self::CHECK->value => self::CHECK,
+        };
+    }
+
     public static function verbose(self $lock): string
     {
         return match ($lock) {

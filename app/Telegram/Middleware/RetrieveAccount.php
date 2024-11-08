@@ -15,12 +15,15 @@ class RetrieveAccount
     {
         if ($bot->chat()->type === ChatType::PRIVATE) {
 
+            $name = $bot->user()->first_name . ($bot->user()->last_name ? ' ' . $bot->user()->last_name : '');
             $account = Account::query()->firstOrCreate(
                 ['telegram_id' => $bot->user()->id],
                 ['telegram_username' => $bot->user()->username, 'network_id' => Network::getDefault()->id],
             );
 
             $account->telegram_username = $bot->user()->username;
+            $account->telegram_name = $name;
+            $account->last_active_at = now();
             $account->save();
 
             $bot->set('account', $account);
@@ -34,6 +37,7 @@ class RetrieveAccount
             );
 
             $chat->telegram_username = $bot->user()->username;
+            $chat->last_active_at = now();
             $chat->save();
 
             $bot->set('chat', $chat);

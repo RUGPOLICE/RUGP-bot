@@ -8,6 +8,7 @@ use App\Models\Chat;
 use App\Models\Pool;
 use App\Models\Request;
 use App\Models\Token;
+use App\Services\OpenAiService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use SergiX44\Nutgram\Nutgram;
@@ -18,6 +19,9 @@ class StatsHandler
     {
         $accountsCount = Account::query()->count();
         $chatsCount = Chat::query()->count();
+
+        $activeAccountsCount = Account::query()->where('last_active_at', '>=', now()->subDays(2))->count();
+        $activeChatsCount = Chat::query()->where('last_active_at', '>=', now()->subDays(2))->count();
 
         $requestsTelegramCount = Request::query()->where('source', RequestSource::TELEGRAM)->where('created_at', '>=', now()->subDay())->count();
         $requestsApiCount = Request::query()->where('source', RequestSource::API)->where('created_at', '>=', now()->subDay())->count();
@@ -67,6 +71,9 @@ class StatsHandler
         $newApiStatusCode = $apiStatus['new']['status'];
         $newApiResponse = json_encode($apiStatus['new']['response']);
 
-        $bot->asResponse()->sendImagedMessage("<b>App Statistics</b>\n\nUsers: <b>$accountsCount</b>\nGroups: <b>$chatsCount</b>\n\nTokens: <b>$tokensCount</b>\nPools: <b>$poolsCount</b>\nScam: <b>$scamCount</b>\n\n<b>Requests</b>\n<i>last 24 hours</i>\n\nTelegram: <b>$requestsTelegramCount</b>\nAverage load: <i>$requestsTelegramRate rpm</i>\n\nAPI: <b>$requestsApiCount</b>\nAverage load: <i>$requestsApiRate rpm</i>\n\n<b>rugp.app ($apiStatusTime)</b>\nStatus Code: <i>$oldApiStatusCode</i>\nResponse: <i>$oldApiResponse</i>\n\n<b>$apiUrl ($apiStatusTime)</b>\nStatus Code: <i>$newApiStatusCode</i>\nResponse: <i>$newApiResponse</i>");
+        $openaiService = app(OpenAiService::class);
+        $openaiStatus = $openaiService->isOpenaiAvailable() ? 'Available' : 'Unavailable';
+
+        $bot->asResponse()->sendImagedMessage("<b>App Statistics</b>\n\nUsers: <b>$accountsCount</b>\nActive Users (48h): <b>$activeAccountsCount</b>\n\nGroups: <b>$chatsCount</b>\nActive Groups (48h): <b>$activeChatsCount</b>\n\nTokens: <b>$tokensCount</b>\nPools: <b>$poolsCount</b>\nScam: <b>$scamCount</b>\n\n<b>Requests</b>\n<i>last 24 hours</i>\n\nTelegram: <b>$requestsTelegramCount</b>\nAverage load: <i>$requestsTelegramRate rpm</i>\n\nAPI: <b>$requestsApiCount</b>\nAverage load: <i>$requestsApiRate rpm</i>\n\n<b>rugp.app ($apiStatusTime)</b>\nStatus Code: <i>$oldApiStatusCode</i>\nResponse: <i>$oldApiResponse</i>\n\n<b>$apiUrl ($apiStatusTime)</b>\nStatus Code: <i>$newApiStatusCode</i>\nResponse: <i>$newApiResponse</i>\n\n<b>Open AI</b>\nStatus: <i>$openaiStatus</i>");
     }
 }

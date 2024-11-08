@@ -3,12 +3,14 @@
 namespace App\Models;
 
 use App\Enums\Language;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 
 /**
  * @property int $id
+ * @property Carbon $last_active_at
  * @property string $telegram_id
  * @property string $telegram_username
  * @property boolean $is_blocked
@@ -24,6 +26,7 @@ class Chat extends Model
     protected $fillable = [
         'telegram_id',
         'telegram_username',
+        'last_active_at',
         'is_show_warnings',
         'is_show_scam',
         'language',
@@ -33,6 +36,7 @@ class Chat extends Model
     public function casts(): array
     {
         return [
+            'last_active_at' => 'datetime',
             'is_blocked' => 'boolean',
             'is_show_warnings' => 'boolean',
             'is_show_scam' => 'boolean',
@@ -45,6 +49,7 @@ class Chat extends Model
     {
         $table->id();
         $table->timestamps();
+        $table->timestamp('last_active_at');
         $table->foreignIdFor(Network::class)->nullable();
 
         $table->string('telegram_id')->unique();

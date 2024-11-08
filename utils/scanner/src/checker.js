@@ -9,7 +9,7 @@ export async function checkForHoneypot(address, dex) {
     // const client = new TonClient({ endpoint: await getHttpEndpoint({ network: 'mainnet' }) });
     // const clientV4 = new TonClient4({ endpoint: await getHttpV4Endpoint({ network: 'mainnet' }) });
 
-    const client = new TonClient({ endpoint: 'https://toncenter.com/api/v2/jsonRPC' });
+    const client = new TonClient({ endpoint: 'https://toncenter.com/api/v2/jsonRPC', apiKey: '555cb94a22063cfb33d929398afac6210570d543e58d56a49665695c5ce4da20' });
     const clientV4 = new TonClient4({ endpoint: 'https://mainnet-v4.tonhubapi.com' });
 
     const state = await client.getContractState(address);

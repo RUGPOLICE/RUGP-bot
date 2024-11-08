@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\Frame;
 use App\Enums\Language;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
@@ -11,8 +12,10 @@ use Illuminate\Notifications\Notifiable;
 
 /**
  * @property int $id
+ * @property Carbon $last_active_at
  * @property string $telegram_id
  * @property string $telegram_username
+ * @property string $telegram_name
  * @property Language $language
  * @property Frame $frame
  * @property boolean $is_blocked
@@ -30,6 +33,8 @@ class Account extends Model
     protected $fillable = [
         'telegram_id',
         'telegram_username',
+        'telegram_name',
+        'last_active_at',
         'frame',
         'is_show_chart_text',
         'network_id',
@@ -40,6 +45,7 @@ class Account extends Model
         return [
             'language' => Language::class,
             'frame' => Frame::class,
+            'last_active_at' => 'datetime',
             'is_blocked' => 'boolean',
             'is_show_warnings' => 'boolean',
             'is_show_scam' => 'boolean',
@@ -52,10 +58,12 @@ class Account extends Model
     {
         $table->id();
         $table->timestamps();
+        $table->timestamp('last_active_at')->nullable();
         $table->foreignIdFor(Network::class)->nullable();
 
         $table->string('telegram_id')->unique();
         $table->string('telegram_username')->nullable();
+        $table->string('telegram_name')->nullable();
         $table->boolean('is_blocked')->default(false);
 
         $table->boolean('is_shown_language')->default(false);

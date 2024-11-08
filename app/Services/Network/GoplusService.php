@@ -50,7 +50,7 @@ class GoplusService
                     'balance' => floatval($a['balance']),
                     'percent' => floatval($a['percent']) * 100,
                     'name' => (isset($a['tag']) && $a['tag']) ? $a['tag'] : (!$a['is_contract'] ? __('telegram.text.token_scanner.holders.dex_lock_stake') : $a['address']),
-                ] , $response['holders']),
+                ] , $response['holders'] ?? []),
             ],
             'pool' => [
                 'tax_buy' => isset($response['buy_tax']) ? (floatval($response['buy_tax']) * 100) : null,

@@ -6,6 +6,7 @@ use App\Enums\Frame;
 use App\Enums\Lock;
 use App\Enums\Reaction;
 use App\Models\Token;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
@@ -70,6 +71,15 @@ class TokenReportService
             $dyor = $pool->locked_dyor ? __('telegram.text.token_scanner.report.lp_locked.dyor') : '';
             $unlocks = $pool->unlocks_at ? __('telegram.text.token_scanner.report.lp_locked.unlocks', ['value' => $pool->unlocks_at->translatedFormat('d M Y')]) : '';
 
+            $examples = '';
+            if ($pool->locks?->count() ?? 0 > 1)
+                $examples = __('telegram.text.token_scanner.report.lp_locked.examples') . $pool->locks->map(fn (array $lock) => __('telegram.text.token_scanner.report.lp_locked.example', [
+                    'value' => $lock['percent'],
+                        'type' => Lock::verbose(Lock::key($lock['type'])),
+                        'unlocks' => array_key_exists('until', $lock) ? __('telegram.text.token_scanner.report.lp_locked.unlocks', ['value' => Carbon::createFromTimestamp($lock['until'])->translatedFormat('d M Y')]) : '',
+                        'link' => $pool->locked_type ? Lock::link(Lock::key($lock['type']), $pool->address) : null
+                    ]))->implode('');
+
             if ($token->is_warn_honeypot || !$is_ton_network) $lp_burned = '';
             else if (!$this->is_finished) $lp_burned = __('telegram.text.token_scanner.report.lp_burned.scan');
             else if ($pool->burned_amount) $lp_burned = __('telegram.text.token_scanner.report.lp_burned.yes', ['value' => $burned_percent]);
@@ -78,7 +88,7 @@ class TokenReportService
             if ($token->is_warn_honeypot || !$is_ton_network) $lp_locked = '';
             else if (!$this->is_finished) $lp_locked = __('telegram.text.token_scanner.report.lp_locked.scan');
             else if ($pool->burned_percent > 99) $lp_locked = __('telegram.text.token_scanner.report.lp_locked.burned', ['value' => $burned_percent]);
-            else if ($pool->locked_type === Lock::CHECK) $lp_locked = __('telegram.text.token_scanner.report.lp_locked.multiple', ['value' => $locked_percent]);
+            else if ($pool->locked_type === Lock::CHECK || $pool->locks?->count() ?? 0 > 1) $lp_locked = __('telegram.text.token_scanner.report.lp_locked.multiple', ['value' => $locked_percent, 'examples' => $examples]);
             else if ($pool->locked_amount) $lp_locked = __('telegram.text.token_scanner.report.lp_locked.yes', ['value' => $locked_percent, 'type' => $type, 'unlocks' => $unlocks, 'dyor' => $dyor, 'link' => $pool->locked_type ? Lock::link($pool->locked_type, $pool->address) : null]);
             else $lp_locked = __('telegram.text.token_scanner.report.lp_locked.no');
 
