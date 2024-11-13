@@ -16,7 +16,7 @@ use SergiX44\Nutgram\Telegram\Types\Message\Message;
 
 class GptMenu extends InlineMenu
 {
-    const MAX_ATTEMPTS = 20;
+    const MAX_ATTEMPTS = 50;
 
     protected function doOpen(string $text, InlineKeyboardMarkup $buttons, array $opt): Message|null
     {
@@ -40,7 +40,7 @@ class GptMenu extends InlineMenu
 
     public function handle(Nutgram $bot): void
     {
-        if ($this->getRemainingAttempts($bot)) {
+        if ($this->getRemainingAttempts($bot) > 0) {
 
             $bot->sendChatAction(ChatAction::TYPING);
             $this->incrementAttempt($bot);
@@ -50,28 +50,34 @@ class GptMenu extends InlineMenu
             $matches = [];
             preg_match('/\$([a-zA-Z0-9-_$]*)/', $bot->message()->text, $matches);
 
-            if (count($matches) >= 2 && ($token = Token::query()->where('symbol', $matches[1])->first())) {
+            if (count($matches) >= 2) {
 
-                $pool = $token->pools()->first();
-                $links = [];
+                $token = Token::getAddress($matches[1]);
+                if ($token['success']) {
 
-                foreach ($token->websites ?? [] as $website)
-                    $links[] = "{$website['label']} - {$website['url']}";
+                    $token = Token::query()->where('address', $token['address'])->first();
+                    $pool = $token->pools()->first();
+                    $links = [];
 
-                foreach ($token->socials ?? [] as $social)
-                    $links[] = "{$social['type']} - {$social['url']}";
+                    foreach ($token->websites ?? [] as $website)
+                        $links[] = "{$website['label']} - {$website['url']}";
 
-                $ticker = [
-                    'ticker' => $token->symbol,
-                    'name' => $token->name,
-                    'description' => $token->description,
-                    'socials' => implode("\n", $links),
-                    'pool_link' => $pool->dex->getLink($pool->address),
-                    'swap_link' => match ($pool->dex->slug) {
-                        'dedust' => "https://dedust.io/swap/TON/$token->address",
-                        'stonfi', 'stonfi-v2' => "https://app.ston.fi/swap?chartVisible=false&ft=TON&tt=$token->symbol",
-                    },
-                ];
+                    foreach ($token->socials ?? [] as $social)
+                        $links[] = "{$social['type']} - {$social['url']}";
+
+                    $ticker = [
+                        'ticker' => $token->symbol,
+                        'name' => $token->name,
+                        'description' => $token->description,
+                        'socials' => implode("\n", $links),
+                        'pool_link' => $pool->dex->getLink($pool->address),
+                        'swap_link' => match ($pool->dex->slug) {
+                            'dedust' => "https://dedust.io/swap/TON/$token->address",
+                            'stonfi', 'stonfi-v2' => "https://app.ston.fi/swap?chartVisible=false&ft=TON&tt=$token->symbol",
+                        },
+                    ];
+
+                }
 
             }
 

@@ -269,7 +269,7 @@ class TokenReportService
     private function getHoldersChartUrl(Token $token): string
     {
         $path = storage_path("app/public/charts/holders/{$token->address}.png");
-        $holders = implode(' ', array_map(fn ($holder) => number_format($holder['percent'], 2, thousands_separator: ''), $token->holders->all()));
+        $holders = implode(' ', array_map(fn ($holder) => number_format($holder['percent'], 2, thousands_separator: ''), $token->holders?->all() ?? []));
         Process::path(base_path('utils/charts'))->run("python3 pie.py $path $holders");
         return $path;
     }

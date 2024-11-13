@@ -50,6 +50,9 @@ class ScanTokenTon implements ShouldQueue
         $this->updateLiquidity($tonService);
         $this->simulateTransactions($tonService);
         $this->updateStatistics();
+
+        $this->token->scanned_at = now();
+        $this->token->save();
     }
 
 
@@ -61,11 +64,15 @@ class ScanTokenTon implements ShouldQueue
         if (!$this->token->scanned_at || $this->token->scanned_at <= now()->subDay() || !$this->token->is_revoked) {
 
             $tokenMetadata = $tonService->getJetton($this->token->address);
-            if (!$tokenMetadata) throw new MetadataError($this->token);
+            if ($tokenMetadata) {
 
-            $this->token->update($tokenMetadata);
-            $this->token->scanned_at = now();
-            $this->token->save();
+                $this->token->update($tokenMetadata);
+                return;
+
+            }
+
+            if (!$this->token->scanned_at)
+                throw new MetadataError($this->token);
 
         }
     }
@@ -76,26 +83,33 @@ class ScanTokenTon implements ShouldQueue
     private function updatePools(GeckoTerminalService $geckoTerminalService, TonService $tonService): void
     {
         $tokenMetadata = $geckoTerminalService->getTokenInfo($this->token->address, $this->token->network->slug);
-        if (!$tokenMetadata) throw new MetadataError($this->token);
-        $this->token->update($tokenMetadata);
-
         $pool = $geckoTerminalService->getPoolsByTokenAddress($this->token->address, $this->token->network->slug);
-        if (!$pool) throw new MetadataError($this->token);
 
-        $poolMetadata = $tonService->getJetton($pool['address']);
-        if (!$poolMetadata) throw new MetadataError($this->token);
+        if ($tokenMetadata && $pool) {
 
-        $this->token->pools()->whereNot('address', $pool['address'])->delete();
+            $this->token->update($tokenMetadata);
+            $poolMetadata = $tonService->getJetton($pool['address']);
 
-        $dex = Dex::query()->updateOrCreate(['slug' => $pool['dex']]);
-        unset($pool['dex']);
+            if ($poolMetadata) {
 
-        $pool['token_id'] = $this->token->id;
-        $pool['dex_id'] = $dex->id;
-        $pool['supply'] = $poolMetadata['supply'];
-        $pool['decimals'] = $poolMetadata['decimals'];
+                $this->token->pools()->whereNot('address', $pool['address'])->delete();
+                $dex = Dex::query()->updateOrCreate(['slug' => $pool['dex']]);
+                unset($pool['dex']);
 
-        Pool::query()->updateOrCreate(['address' => $pool['address']], $pool);
+                $pool['token_id'] = $this->token->id;
+                $pool['dex_id'] = $dex->id;
+                $pool['supply'] = $poolMetadata['supply'];
+                $pool['decimals'] = $poolMetadata['decimals'];
+
+                Pool::query()->updateOrCreate(['address' => $pool['address']], $pool);
+                return;
+
+            }
+
+        }
+
+        if (!$this->token->scanned_at)
+            throw new MetadataError($this->token);
     }
 
     private function updateHolders(TonService $tonService): void
@@ -152,17 +166,30 @@ class ScanTokenTon implements ShouldQueue
         $pool = $this->token->pools()->first();
         if (!$this->token->is_revoked || $pool->tax_buy === null || $pool->tax_sell === null) {
 
-            $taxes = $tonService->getTaxes($this->token->address, $pool->dex->slug);
-            if (gettype($taxes) === 'string') throw new SimulationError($this->token, $taxes);
+            $tries = 3;
+            do {
 
-            $this->token->is_known_master = $taxes['is_known_master'];
-            $this->token->is_known_wallet = $taxes['is_known_wallet'];
-            $this->token->save();
+                $taxes = $tonService->getTaxes($this->token->address, $pool->dex->slug);
+                if (gettype($taxes) === 'string') {
 
-            $pool->tax_buy = $taxes['tax_buy'] ?? $pool->tax_buy;
-            $pool->tax_sell = $taxes['tax_sell'] ?? $pool->tax_sell;
-            $pool->tax_transfer = $taxes['tax_transfer'] ?? $pool->tax_transfer;
-            $pool->save();
+                    $tries--;
+                    continue;
+
+                }
+
+                // if (gettype($taxes) === 'string') throw new SimulationError($this->token, $taxes);
+
+                $this->token->is_known_master = $taxes['is_known_master'];
+                $this->token->is_known_wallet = $taxes['is_known_wallet'];
+                $this->token->save();
+
+                $pool->tax_buy = $taxes['tax_buy'] ?? $pool->tax_buy;
+                $pool->tax_sell = $taxes['tax_sell'] ?? $pool->tax_sell;
+                $pool->tax_transfer = $taxes['tax_transfer'] ?? $pool->tax_transfer;
+                $pool->save();
+                $tries = 0;
+
+            } while ($tries > 0);
 
         }
     }
@@ -179,7 +206,6 @@ class ScanTokenTon implements ShouldQueue
         $this->token->sendNotification($this->source);
         $this->token->save();
     }
-
 
     private function checkHoneypot(): bool
     {
