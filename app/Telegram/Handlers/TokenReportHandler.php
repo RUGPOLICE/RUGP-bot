@@ -115,7 +115,7 @@ class TokenReportHandler
 
         } catch (\Throwable $e) {
 
-            if (!str_contains($e->getMessage(), 'MEDIA_EMPTY'))
+            if (!str_contains($e->getMessage(), 'MEDIA_EMPTY') && !str_contains($e->getMessage(), 'wrong type of the web page content'))
                 throw $e;
 
             $options['image'] = public_path('img/blank.png');
