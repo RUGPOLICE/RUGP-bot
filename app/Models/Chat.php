@@ -49,7 +49,7 @@ class Chat extends Model
     {
         $table->id();
         $table->timestamps();
-        $table->timestamp('last_active_at');
+        $table->timestamp('last_active_at')->nullable();
         $table->foreignIdFor(Network::class)->nullable();
 
         $table->string('telegram_id')->unique();
