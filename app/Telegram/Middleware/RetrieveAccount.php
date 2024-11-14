@@ -25,6 +25,7 @@ class RetrieveAccount
             $account->telegram_name = $name;
             $account->last_active_at = now();
             $account->save();
+            $account->refresh();
 
             $bot->set('account', $account);
             $language = $account->language->value;
@@ -39,6 +40,7 @@ class RetrieveAccount
             $chat->telegram_username = $bot->user()->username;
             $chat->last_active_at = now();
             $chat->save();
+            $chat->refresh();
 
             $bot->set('chat', $chat);
             $language = $chat->language->value;
