@@ -103,10 +103,26 @@ class PublicTokenReportHandler
 
     private function send(Nutgram $bot, string $message, array $options = []): void
     {
-        $bot->asResponse()->sendImagedMessage(
-            $message,
-            options: $options,
-            reply_to_message_id: $bot->messageId(),
-        );
+        try {
+
+            $bot->sendImagedMessage(
+                $message,
+                options: $options,
+                reply_to_message_id: $bot->messageId(),
+            );
+
+        } catch (\Throwable $e) {
+
+            if (!str_contains($e->getMessage(), 'MEDIA_EMPTY') && !str_contains($e->getMessage(), 'wrong type of the web page content'))
+                throw $e;
+
+            $options['image'] = public_path('img/blank.png');
+            $bot->sendImagedMessage(
+                $message,
+                options: $options,
+                reply_to_message_id: $bot->messageId(),
+            );
+
+        }
     }
 }
