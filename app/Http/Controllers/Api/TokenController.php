@@ -34,6 +34,7 @@ class TokenController extends Controller
             $language = Language::key(App::getLocale());
             $token = Token::query()->firstOrCreate(['address' => $address['address']]);
 
+            Log::info("Request API: {$request->bearerToken()} [$token->address]");
             Request::log($request->user(), $token, RequestSource::API, RequestModule::SCANNER);
 
             $token->network()->associate($network);
