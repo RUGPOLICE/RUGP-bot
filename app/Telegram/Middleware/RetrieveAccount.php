@@ -5,6 +5,7 @@ namespace App\Telegram\Middleware;
 use App\Models\Account;
 use App\Models\Chat;
 use App\Models\Network;
+use App\Telegram\Conversations\GptMenu;
 use Illuminate\Support\Facades\App;
 use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\Telegram\Properties\ChatType;
@@ -18,7 +19,7 @@ class RetrieveAccount
             $name = $bot->user()->first_name . ($bot->user()->last_name ? ' ' . $bot->user()->last_name : '');
             $account = Account::query()->firstOrCreate(
                 ['telegram_id' => $bot->user()->id],
-                ['telegram_username' => $bot->user()->username, 'network_id' => Network::getDefault()->id],
+                ['telegram_username' => $bot->user()->username, 'network_id' => Network::getDefault()->id, 'gpt_count' => GptMenu::MAX_ATTEMPTS],
             );
 
             $account->telegram_username = $bot->user()->username;

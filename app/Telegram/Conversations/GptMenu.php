@@ -4,7 +4,6 @@ namespace App\Telegram\Conversations;
 
 use App\Models\Token;
 use App\Services\OpenAiService;
-use Illuminate\Support\Facades\Cache;
 use SergiX44\Nutgram\Conversations\InlineMenu;
 use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\Telegram\Properties\ChatAction;
@@ -113,19 +112,15 @@ class GptMenu extends InlineMenu
         };
     }
 
-    private function getCacheKey(Nutgram $bot): string
-    {
-        return "gpt:user:{$bot->get('account')->id}";
-    }
-
     private function getRemainingAttempts(Nutgram $bot): int
     {
-        Cache::add($this->getCacheKey($bot), 0, now()->endOfDay()->subHours(3));
-        return self::MAX_ATTEMPTS - Cache::get($this->getCacheKey($bot));
+        return $bot->get('account')->gpt_count;
     }
 
     private function incrementAttempt(Nutgram $bot): void
     {
-        Cache::increment($this->getCacheKey($bot));
+        $account = $bot->get('account');
+        $account->gpt_count--;
+        $account->save();
     }
 }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\Frame;
 use App\Enums\Language;
+use App\Telegram\Conversations\GptMenu;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,6 +17,7 @@ use Illuminate\Notifications\Notifiable;
  * @property string $telegram_id
  * @property string $telegram_username
  * @property string $telegram_name
+ * @property int $gpt_count
  * @property Language $language
  * @property Frame $frame
  * @property boolean $is_blocked
@@ -35,6 +37,7 @@ class Account extends Model
         'telegram_username',
         'telegram_name',
         'last_active_at',
+        'gpt_count',
         'frame',
         'is_show_chart_text',
         'network_id',
@@ -65,6 +68,7 @@ class Account extends Model
         $table->string('telegram_username')->nullable();
         $table->string('telegram_name')->nullable();
         $table->boolean('is_blocked')->default(false);
+        $table->integer('gpt_count')->default(GptMenu::MAX_ATTEMPTS);
 
         $table->boolean('is_shown_language')->default(false);
         $table->boolean('is_shown_rules')->default(false);
