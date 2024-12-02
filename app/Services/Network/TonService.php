@@ -151,7 +151,7 @@ class TonService
         $report = json_decode($result->output());
 
         if ($report === null || !$report->success)
-            return $report->message;
+            return $report?->message ?? 'Script Error';
 
         return [
             'is_known_master' => true,
