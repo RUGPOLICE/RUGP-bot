@@ -6,14 +6,16 @@ use App\Models\Account;
 use App\Telegram\Conversations\GptMenu;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use SergiX44\Nutgram\Nutgram;
 
 class UpdateGptCounts implements ShouldQueue
 {
     use Queueable;
 
-    public function handle(Nutgram $bot): void
+    public function handle(): void
     {
-        Account::query()->update(['gpt_count' => GptMenu::MAX_ATTEMPTS]);
+        foreach (Account::query()->get() as $account) {
+            $account->gpt_count = GptMenu::MAX_ATTEMPTS;
+            $account->save();
+        }
     }
 }
