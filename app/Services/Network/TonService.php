@@ -147,7 +147,7 @@ class TonService
 
     public function getTaxes(string $address, string $dex): array|string
     {
-        $result = Process::path(base_path('utils/honeypot'))->run("npx tsx src/index.ts $address");
+        $result = Process::path(base_path('utils/scanner'))->run("npx tsx src/index.ts $address");
         $report = json_decode($result->output());
 
         if ($report === null || !$report->success)
