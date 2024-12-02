@@ -147,18 +147,18 @@ class TonService
 
     public function getTaxes(string $address, string $dex): array|string
     {
-        $result = Process::path(base_path('utils/scanner'))->run("node --no-warnings src/main.js $address $dex");
+        $result = Process::path(base_path('utils/honeypot'))->run("npx tsx src/index.ts $address");
         $report = json_decode($result->output());
 
-        if (!$report->success)
+        if ($report === null || !$report->success)
             return $report->message;
 
         return [
-            'is_known_master' => $report->isKnownMaster,
+            'is_known_master' => true,
             'is_known_wallet' => $report->isKnownWallet,
-            'tax_buy' => isset($report->{$dex}->taxBuy) ? ($report->{$dex}->taxBuy * 100) : null,
-            'tax_sell' => isset($report->{$dex}->taxSell) ? ($report->{$dex}->taxSell * 100) : null,
-            'tax_transfer' => isset($report->{$dex}->taxTransfer) ? ($report->{$dex}->taxTransfer * 100) : null,
+            'tax_buy' => isset($report->buy) ? ($report->buy * 100) : null,
+            'tax_sell' => isset($report->sell) ? ($report->sell * 100) : null,
+            'tax_transfer' => isset($report->transfer) ? ($report->transfer * 100) : null,
         ];
     }
 }

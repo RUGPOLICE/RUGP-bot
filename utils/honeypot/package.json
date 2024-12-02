@@ -5,19 +5,23 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc src/index.ts --outFile dist/index.js",
     "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "typescript": "^5.2.2",
+    "vite": "^5.4.11",
+    "vite-plugin-node-polyfills": "^0.22.0"
   },
   "dependencies": {
     "@dedust/sdk": "^0.8.7",
     "@orbs-network/ton-access": "^2.3.3",
-    "@ston-fi/sdk": "^2.0.0-rc.9",
-    "@ton/core": "^0.56.3",
+    "@ston-fi/sdk": "^2.0.0-rc.10",
+    "@ton/core": "^0.59.0",
     "@ton/crypto": "^3.2.0",
     "@ton/sandbox": "^0.20.0",
     "@ton/ton": "^13.11.2",
-    "@tonconnect/sdk": "^3.0.5",
-    "axios": "^1.7.7",
     "graphql-request": "^7.1.0"
   }
 }

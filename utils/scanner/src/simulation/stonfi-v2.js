@@ -1,21 +1,26 @@
 import { Address, fromNano, SendMode, toNano, } from '@ton/core';
 import { allTxsOk, createTransferBody, calculateLoss, getJettonBalance, getJettonWallet } from './utils.js';
 import { DEX, pTON } from '@ston-fi/sdk';
+import axios from 'axios';
 
-const PTON_WALLET = 'EQARULUYsmJq1RiZ-YiH-IJLcAZUVkVff-KBPwEmmaQGH6aC';
+const TON_ASSET = 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c';
+const PTON_WALLET = 'EQBiLHuQjDj4fNyCD7Ch5HwpNGldlb5g-LMwQ1kStQ4NM5kv';
 
 
 export async function simulateStonfiV2(client, chain, master, simulator, jettonWallet, buyAmount) {
 
     try {
 
-        const router = chain.openContract(DEX.v2_2.Router.create(
-            'EQCiypoBWNIEPlarBp04UePyEj5zH0ZDHxuRNqJ1WQx3FCY-'
-        ));
+        const routerInfo = await getRouterInfo(master.toString());
+        if (!routerInfo) return null;
 
+        const [routerClass, pTon] = getRouter(routerInfo);
+        const v1 = routerInfo.router.pton_version === '1.0';
+
+        const router = chain.openContract(routerClass);
         const pool = chain.openContract(await router.getPool({
             token0: master,
-            token1: (pTON.v2_1.create('EQBnGWMCf3-FZZq1W4IWcWiGAc3PHuZ0_H-7sad2oY00o83S')).address,
+            token1: pTon.address,
         }));
 
         const { token0WalletAddress, token1WalletAddress } = await pool.getPoolData();
@@ -104,6 +109,45 @@ export async function simulateStonfiV2(client, chain, master, simulator, jettonW
         return e.stack;
 
     }
+
+}
+
+async function getRouterInfo(asset) {
+    const response = await axios.post(`https://api.ston.fi/v1/pool/query?unconditional_asset=${asset}&dex_v2=true`);
+    const poolData = findPoolByTokens(response.data.pool_list, asset, TON_ASSET);
+    return poolData ? (await axios.get(`https://api.ston.fi/v1/routers/${poolData.router_address}`)).data : false;
+}
+
+function findPoolByTokens(poolList, token0Address, token1Address) {
+    return poolList.find(pool =>
+        (pool.token0_address === token0Address && pool.token1_address === token1Address) ||
+        (pool.token0_address === token1Address && pool.token1_address === token0Address)
+    ) || false;
+}
+
+function getRouter(routerInfo) {
+
+    let router;
+    let pTon;
+
+    if (routerInfo.router.pton_version === '1.0') {
+
+        router = new DEX.v1.Router();
+        pTon = new pTON.v1();
+
+    } else if (routerInfo.router.pton_version === '2.1') {
+
+        router = DEX.v2_1.Router.create(routerInfo.router.address);
+        pTon = pTON.v2_1.create(routerInfo.router.pton_master_address);
+
+    } else {
+
+        router = DEX.v2_2.Router.create(routerInfo.router.address);
+        pTon = pTON.v2_1.create(routerInfo.router.pton_master_address);
+
+    }
+
+    return [router, pTon];
 
 }
 
